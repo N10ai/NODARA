@@ -1,4 +1,4 @@
-import { createGuidedWR } from './wr-guided.js';
+import { createGuidedWR } from './wr-guided.js?v=20260901-1955';
 
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
