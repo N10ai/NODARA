@@ -34,13 +34,14 @@ export async function listEntities(search = '') {
 }
 
 export async function createWarehouseReceipt(input = {}) {
-  const { data, error } = await supabase.rpc('create_warehouse_receipt', {
+  const { data, error } = await supabase.rpc('create_warehouse_receipt_v2', {
     p_reference: input.reference || null,
     p_customer_name: input.customer || null,
     p_description: input.description || null,
-    p_package_type: input.packageType || 'PALLET',
-    p_packages: Number(input.packages || 1),
-    p_cartons: Number(input.cartons || 0),
+    p_layer1_type: input.layer1Type || input.packageType || 'PACKAGE',
+    p_layer1_qty: Number(input.layer1Qty ?? input.packages ?? 1),
+    p_layer2_type: input.layer2Type || null,
+    p_layer2_qty: Number(input.layer2Qty || 0),
     p_units: Number(input.units || 0),
     p_sku: input.sku || null,
     p_condition: input.condition || 'good'
