@@ -1,51 +1,5 @@
 import { supabase } from './supabase-client.js';
-
-export async function getInventorySnapshot() {
-  const { data, error } = await supabase.rpc('inventory_snapshot');
-  if (error) throw error;
-  return data || [];
-}
-
-export async function findExpectedReceipts(search) {
-  const q = String(search || '').trim();
-  if (!q) return [];
-  const { data: refs, error: refError } = await supabase.from('expected_receipt_references').select('expected_receipt_id,reference_type,reference_value').ilike('reference_value', `%${q}%`).limit(20);
-  if (refError) throw refError;
-  const ids = [...new Set((refs || []).map(r => r.expected_receipt_id))];
-  if (!ids.length) return [];
-  const { data, error } = await supabase.from('expected_receipts').select('*').in('id', ids).limit(20);
-  if (error) throw error;
-  return data || [];
-}
-
-export async function findInventory(search) {
-  const q = String(search || '').trim().toLowerCase();
-  const rows = await getInventorySnapshot();
-  if (!q) return rows;
-  return rows.filter(row => [row.item_key,row.part_number,row.sku,row.description].filter(Boolean).some(value => String(value).toLowerCase().includes(q)));
-}
-
-export async function listEntities(search = '') {
-  let query = supabase.from('entities').select('id,name,code,roles').order('name').limit(50);
-  if (String(search).trim()) query = query.ilike('name', `%${String(search).trim()}%`);
-  const { data, error } = await query;
-  if (error) throw error;
-  return data || [];
-}
-
-export async function createWarehouseReceipt(input = {}) {
-  const { data, error } = await supabase.rpc('create_warehouse_receipt_v2', {
-    p_reference: input.reference || null,
-    p_customer_name: input.customer || null,
-    p_description: input.description || null,
-    p_layer1_type: input.layer1Type || input.packageType || 'PACKAGE',
-    p_layer1_qty: Number(input.layer1Qty ?? input.packages ?? 1),
-    p_layer2_type: input.layer2Type || null,
-    p_layer2_qty: Number(input.layer2Qty || 0),
-    p_units: Number(input.units || 0),
-    p_sku: input.sku || null,
-    p_condition: input.condition || 'good'
-  });
-  if (error) throw error;
-  return data;
-}
+export async function getInventorySnapshot(){const{data,error}=await supabase.rpc('inventory_snapshot');if(error)throw error;return data||[]}
+export async function findExpectedReceipts(search){const q=String(search||'').trim();if(!q)return[];const{data:refs,error:refError}=await supabase.from('expected_receipt_references').select('expected_receipt_id,reference_type,reference_value').ilike('reference_value',`%${q}%`).limit(20);if(refError)throw refError;const ids=[...new Set((refs||[]).map(r=>r.expected_receipt_id))];if(!ids.length)return[];const{data,error}=await supabase.from('expected_receipts').select('*').in('id',ids).limit(20);if(error)throw error;return data||[]}
+export async function findInventory(search){const q=String(search||'').trim().toLowerCase(),rows=await getInventorySnapshot();if(!q)return rows;return rows.filter(r=>[r.item_key,r.part_number,r.sku,r.description].filter(Boolean).some(v=>String(v).toLowerCase().includes(q)))}
+export async function createWarehouseReceiptTree(input={}){const{data,error}=await supabase.rpc('create_warehouse_receipt_tree',{p_reference:input.reference||null,p_customer_name:input.customer||null,p_description:input.description||null,p_tree:input.tree||[]});if(error)throw error;return data}
