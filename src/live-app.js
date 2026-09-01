@@ -1,6 +1,7 @@
 import { getSession, signInWithPassword, signUpWithPassword, signOut, ensureWorkspace } from './auth-session.js';
 import { getInventorySnapshot, findExpectedReceipts, findInventory } from './live-data.js';
 
+window.__nodaraBooted = true;
 const main = document.getElementById('main');
 const nav = document.getElementById('nav');
 const mobile = document.getElementById('mobile');
