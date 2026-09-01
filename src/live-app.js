@@ -6,8 +6,9 @@ const main = document.getElementById('main');
 const nav = document.getElementById('nav');
 const mobile = document.getElementById('mobile');
 let session = null;
+let wrDraft = {};
 
-const esc = v => String(v ?? '').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const esc = v => String(v ?? '').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
 function shell(eye,title,body){ main.innerHTML=`<div class="eyebrow">${eye}</div><h1 class="title">${title}</h1>${body}`; }
 function bindNav(){
   nav.innerHTML=`<button data-go="home">Command</button><button data-go="receive">Receive</button><button data-go="inventory">Inventory</button><button data-go="release">Release</button><button data-go="account">Account</button>`;
@@ -45,6 +46,7 @@ async function inventory(){
 function renderInventory(rows){ return rows.map(r=>`<button class="inventory-card" onclick="window.nodaraRelease('${esc(r.item_key || r.part_number || r.sku || '')}')"><div><b>${esc(r.part_number || r.sku || r.item_key || 'Cargo')}</b><span>${esc(r.description || '')}</span></div><div class="inventory-numbers"><strong>${Number(r.total_units||0)} EA</strong><span>${Number(r.carton_count||0)} boxes · ${Number(r.pallet_count||0)} pallets</span><small>${esc((r.locations||[]).join?.(' · ') || r.locations || '')}</small></div></button>`).join(''); }
 
 async function receive(){
+  wrDraft={};
   shell('Warehouse · Receive','What arrived?',`<p class="muted">Scan or enter any reference. NODARA searches live expected receipts.</p><div class="card"><div class="field"><label>PO, BOL, PRO, tracking, ASN or reference</label><input id="wr-search" autofocus></div><button id="wr-find" class="primary wide">Find expected cargo</button><button id="wr-new" class="secondary wide">No reference · New receipt</button><div id="wr-results"></div></div>`);
   document.getElementById('wr-find').onclick=searchExpected;
   document.getElementById('wr-search').onkeydown=e=>{if(e.key==='Enter')searchExpected()};
@@ -56,10 +58,29 @@ async function searchExpected(){
   try{const rows=await findExpectedReceipts(q); out.innerHTML=rows.length?rows.map(r=>`<button class="choice" onclick='window.nodaraExpected(${JSON.stringify(JSON.stringify(r))})'><b>${esc(r.description||'Expected receipt')}</b><small>${esc(r.expected_quantity||'')} ${esc(r.expected_package_type||'')} · ${esc(r.status||'expected')}</small></button>`).join(''):`<div class="empty compact"><b>No expected receipt found.</b><p class="muted">Start a new receipt without inventing shipment data.</p><button class="secondary" onclick="window.nodaraNewReceipt('${esc(q)}')">Create new receipt</button></div>`;}catch(e){out.innerHTML=`<p class="warning">${esc(e.message)}</p>`}
 }
 function expected(row){
-  shell('Warehouse · Receive','Expected cargo found.',`<div class="card"><div class="record"><b>${esc(row.description||'Expected receipt')}</b><div class="status"><span>Expected</span><strong>${esc(row.expected_quantity||'—')} ${esc(row.expected_package_type||'')}</strong></div><div class="status"><span>Service</span><strong>${esc(row.service_code||'Warehouse')}</strong></div></div><p class="muted">This is live Supabase data. The next step verifies physical quantity and applies the customer/service SOP.</p><button class="primary wide">Start physical receiving</button><button class="secondary wide" onclick="window.nodaraReceive()">Back</button></div>`);
+  wrDraft={ expectedReceiptId:row.id, reference:row.reference||'', customerId:row.customer_id||null, description:row.description||'', expectedQuantity:row.expected_quantity||null, expectedPackageType:row.expected_package_type||'' };
+  shell('Warehouse · Receive','Expected cargo found.',`<div class="card"><div class="record"><b>${esc(row.description||'Expected receipt')}</b><div class="status"><span>Expected</span><strong>${esc(row.expected_quantity||'—')} ${esc(row.expected_package_type||'')}</strong></div><div class="status"><span>Service</span><strong>${esc(row.service_code||'Warehouse')}</strong></div></div><p class="muted">This is live Supabase data. Now verify what physically arrived.</p><button id="start-physical" class="primary wide">Start physical receiving</button><button class="secondary wide" onclick="window.nodaraReceive()">Back</button></div>`);
+  document.getElementById('start-physical').onclick=()=>physicalReceiving();
 }
 function newReceipt(reference=''){
-  shell('Warehouse · Receive','New warehouse receipt.',`<p class="muted">Only enter what NODARA could not identify automatically.</p><div class="card"><div class="field"><label>Reference</label><input value="${esc(reference)}" placeholder="PO, BOL, customer ref…"></div><div class="field"><label>Customer</label><input placeholder="Search customer"></div><div class="field"><label>Description / commodity</label><input placeholder="What is it?"></div><button class="primary wide">Continue to physical receiving</button><button class="secondary wide" onclick="window.nodaraReceive()">Cancel</button></div>`);
+  wrDraft={reference};
+  shell('Warehouse · Receive','New warehouse receipt.',`<p class="muted">Only enter what NODARA could not identify automatically.</p><div class="card"><div class="field"><label>Reference</label><input id="new-wr-ref" value="${esc(reference)}" placeholder="PO, BOL, customer ref…"></div><div class="field"><label>Customer</label><input id="new-wr-customer" placeholder="Search customer"></div><div class="field"><label>Description / commodity</label><input id="new-wr-desc" placeholder="What is it?"></div><button id="new-wr-continue" class="primary wide">Continue to physical receiving</button><button class="secondary wide" onclick="window.nodaraReceive()">Cancel</button></div>`);
+  document.getElementById('new-wr-continue').onclick=()=>{
+    wrDraft.reference=document.getElementById('new-wr-ref').value.trim();
+    wrDraft.customerName=document.getElementById('new-wr-customer').value.trim();
+    wrDraft.description=document.getElementById('new-wr-desc').value.trim();
+    physicalReceiving();
+  };
+}
+function physicalReceiving(){
+  shell('Warehouse · Receive','What physically arrived?',`<p class="muted">Verify only the physical facts.</p><div class="card"><div class="row"><div class="field"><label>Pallets</label><input id="phys-pallets" type="number" min="0" inputmode="numeric"></div><div class="field"><label>Boxes / cartons</label><input id="phys-boxes" type="number" min="0" inputmode="numeric"></div><div class="field"><label>Total units</label><input id="phys-units" type="number" min="0" inputmode="numeric"></div><div class="field"><label>Part / SKU</label><input id="phys-sku" placeholder="Optional"></div></div><div class="field"><label>Condition</label><select id="phys-condition"><option value="good">Good</option><option value="damaged">Damaged</option></select></div><div class="actions"><button class="secondary" onclick="window.nodaraReceive()">Back</button><button id="phys-review" class="primary">Review</button></div></div>`);
+  document.getElementById('phys-review').onclick=()=>{
+    Object.assign(wrDraft,{pallets:Number(document.getElementById('phys-pallets').value||0),boxes:Number(document.getElementById('phys-boxes').value||0),units:Number(document.getElementById('phys-units').value||0),sku:document.getElementById('phys-sku').value.trim(),condition:document.getElementById('phys-condition').value});
+    reviewReceipt();
+  };
+}
+function reviewReceipt(){
+  shell('Warehouse · Receive','Review receipt.',`<div class="card"><div class="status"><span>Reference</span><b>${esc(wrDraft.reference||'—')}</b></div><div class="status"><span>Description</span><b>${esc(wrDraft.description||'—')}</b></div><div class="status"><span>Pallets</span><b>${wrDraft.pallets||0}</b></div><div class="status"><span>Boxes</span><b>${wrDraft.boxes||0}</b></div><div class="status"><span>Units</span><b>${wrDraft.units||0}</b></div><div class="status"><span>Part / SKU</span><b>${esc(wrDraft.sku||'—')}</b></div><div class="status"><span>Condition</span><b>${esc(wrDraft.condition||'good')}</b></div><p class="muted">Next we will connect this review to the atomic WR creation RPC.</p><div class="actions"><button class="secondary" onclick="window.nodaraPhysicalReceive()">Back</button><button class="primary" disabled>Create WR</button></div></div>`);
 }
 
 async function release(prefill=''){
@@ -69,7 +90,7 @@ async function release(prefill=''){
 async function account(){ shell('Account','Account.',`<div class="card"><div class="status"><span>Signed in</span><b>${esc(session?.user?.email)}</b></div><button id="signout" class="secondary wide">Sign out</button></div>`);document.getElementById('signout').onclick=async()=>{await signOut();location.reload()}; }
 function errorScreen(title,e){shell('NODARA',title,`<div class="empty"><p class="warning">${esc(e?.message||e)}</p><button class="secondary" onclick="location.reload()">Reload</button></div>`)}
 const routes={home,receive,inventory,release,account};
-window.nodaraReceive=receive; window.nodaraRelease=release; window.nodaraNewReceipt=newReceipt; window.nodaraExpected=s=>expected(JSON.parse(s));
+window.nodaraReceive=receive; window.nodaraRelease=release; window.nodaraNewReceipt=newReceipt; window.nodaraExpected=s=>expected(JSON.parse(s)); window.nodaraPhysicalReceive=physicalReceiving;
 
 async function boot(){ bindNav(); try{session=await getSession(); if(!session){await login();return;} await ensureWorkspace(); await home();}catch(e){errorScreen('Could not start NODARA',e);} }
 boot();
