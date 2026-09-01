@@ -1,4 +1,4 @@
-import { getSession, signInWithEmail, signOut, ensureWorkspace } from './auth-session.js';
+import { getSession, signInWithPassword, signUpWithPassword, signOut, ensureWorkspace } from './auth-session.js';
 import { getInventorySnapshot, findExpectedReceipts, findInventory } from './live-data.js';
 
 const main = document.getElementById('main');
@@ -15,10 +15,15 @@ function bindNav(){
 }
 
 async function login(){
-  shell('NODARA','Sign in.',`<p class="muted">Warehouse data is protected. Use your work email to continue.</p><div class="card"><div class="field"><label>Email</label><input id="email" type="email" placeholder="you@company.com"></div><button id="signin" class="primary wide">Send sign-in link</button><div id="auth-status" class="muted statusline"></div></div>`);
+  shell('NODARA','Sign in.',`<p class="muted">Warehouse data is protected.</p><div class="card"><div class="field"><label>Email</label><input id="email" type="email" autocomplete="email" placeholder="you@company.com"></div><div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Password"></div><button id="signin" class="primary wide">Sign in</button><button id="signup" class="secondary wide">Create account</button><div id="auth-status" class="muted statusline"></div></div>`);
   document.getElementById('signin').onclick=async()=>{
-    const status=document.getElementById('auth-status'); status.textContent='Sending secure link…';
-    try{ await signInWithEmail(document.getElementById('email').value); status.textContent='Check your email and open the sign-in link on this device.'; }
+    const status=document.getElementById('auth-status'); status.textContent='Signing in…';
+    try{ session=await signInWithPassword(document.getElementById('email').value,document.getElementById('password').value); await ensureWorkspace(); await home(); }
+    catch(e){ status.textContent=e.message; }
+  };
+  document.getElementById('signup').onclick=async()=>{
+    const status=document.getElementById('auth-status'); status.textContent='Creating account…';
+    try{ const result=await signUpWithPassword(document.getElementById('email').value,document.getElementById('password').value); if(result.session){session=result.session;await ensureWorkspace();await home();}else{status.textContent='Account created. Check your email if Supabase requires confirmation, then sign in.';} }
     catch(e){ status.textContent=e.message; }
   };
 }
@@ -50,7 +55,7 @@ async function searchExpected(){
   try{const rows=await findExpectedReceipts(q); out.innerHTML=rows.length?rows.map(r=>`<button class="choice" onclick='window.nodaraExpected(${JSON.stringify(JSON.stringify(r))})'><b>${esc(r.description||'Expected receipt')}</b><small>${esc(r.expected_quantity||'')} ${esc(r.expected_package_type||'')} · ${esc(r.status||'expected')}</small></button>`).join(''):`<div class="empty compact"><b>No expected receipt found.</b><p class="muted">Start a new receipt without inventing shipment data.</p><button class="secondary" onclick="window.nodaraNewReceipt('${esc(q)}')">Create new receipt</button></div>`;}catch(e){out.innerHTML=`<p class="warning">${esc(e.message)}</p>`}
 }
 function expected(row){
-  shell('Warehouse · Receive','Expected cargo found.',`<div class="card"><div class="record"><b>${esc(row.description||'Expected receipt')}</b><div class="status"><span>Expected</span><strong>${esc(row.expected_quantity||'—')} ${esc(row.expected_package_type||'')}</strong></div><div class="status"><span>Service</span><strong>${esc(row.service_code||'Warehouse')}</strong></div></div><p class="muted">This is live Supabase data. The next step will verify physical quantity and apply the customer/service SOP.</p><button class="primary wide">Start physical receiving</button><button class="secondary wide" onclick="window.nodaraReceive()">Back</button></div>`);
+  shell('Warehouse · Receive','Expected cargo found.',`<div class="card"><div class="record"><b>${esc(row.description||'Expected receipt')}</b><div class="status"><span>Expected</span><strong>${esc(row.expected_quantity||'—')} ${esc(row.expected_package_type||'')}</strong></div><div class="status"><span>Service</span><strong>${esc(row.service_code||'Warehouse')}</strong></div></div><p class="muted">This is live Supabase data. The next step verifies physical quantity and applies the customer/service SOP.</p><button class="primary wide">Start physical receiving</button><button class="secondary wide" onclick="window.nodaraReceive()">Back</button></div>`);
 }
 function newReceipt(reference=''){
   shell('Warehouse · Receive','New warehouse receipt.',`<p class="muted">Only enter what NODARA could not identify automatically.</p><div class="card"><div class="field"><label>Reference</label><input value="${esc(reference)}" placeholder="PO, BOL, customer ref…"></div><div class="field"><label>Customer</label><input placeholder="Search customer"></div><div class="field"><label>Description / commodity</label><input placeholder="What is it?"></div><button class="primary wide">Continue to physical receiving</button><button class="secondary wide" onclick="window.nodaraReceive()">Cancel</button></div>`);
