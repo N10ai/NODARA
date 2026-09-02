@@ -1,4 +1,4 @@
-import { createWRObjectEditorV2 } from './wr-object-editor-v2.js?v=20260901-2235';
+import { createWRObjectEditorV2 } from './wr-object-editor-v2.js?v=20260901-2315';
 const main=document.getElementById('main');
 const editor=createWRObjectEditorV2({main});
 function openEditor(){window.nodaraSetActive?.('wr');editor.start()}
