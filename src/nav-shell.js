@@ -1,5 +1,6 @@
 const nav=document.getElementById('nav');
 const mobile=document.getElementById('mobile');
+const main=document.getElementById('main');
 
 const icons={
   home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2v8.3a.5.5 0 0 1-.5.5H15v-6H9v6H3.5a.5.5 0 0 1-.5-.5z"/></svg>',
@@ -10,34 +11,31 @@ const icons={
   entities:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c.7-4 2.7-6 6-6s5.3 2 6 6M16 5h5M18.5 2.5v5"/></svg>',
   more:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>'
 };
-
 const item=(key,label,action)=>`<button class="shell-nav-item" data-shell="${key}" data-shell-action="${action}"><span class="shell-icon">${icons[key]}</span><span>${label}</span></button>`;
-
+function setActive(action){document.querySelectorAll('[data-shell]').forEach(x=>x.classList.toggle('active',x.dataset.shellAction===action))}
+function command(){
+  main.innerHTML=`<div class="eyebrow">Command</div><h1 class="title">Operations</h1><p class="muted">One place to start and open operational records.</p><div class="module-grid"><button class="module-tile" id="cmd-wr"><span class="shell-icon">${icons.wr}</span><b>Warehouse Receipts</b><small>Open saved receipts or receive new cargo</small></button><button class="module-tile" id="cmd-cargo"><span class="shell-icon">${icons.cargo}</span><b>Cargo</b><small>Physical packages and nested contents</small></button><button class="module-tile" id="cmd-inv"><span class="shell-icon">${icons.inv}</span><b>Inventory</b><small>On-hand, available and reserved quantities</small></button><button class="module-tile" id="cmd-release"><span class="shell-icon">${icons.release}</span><b>Cargo Release</b><small>Create an outbound release</small></button></div>`;
+  document.getElementById('cmd-wr').onclick=()=>go('wr');document.getElementById('cmd-cargo').onclick=()=>go('cargo');document.getElementById('cmd-inv').onclick=()=>go('inventory');document.getElementById('cmd-release').onclick=()=>go('release');
+}
 function go(action){
-  document.querySelectorAll('[data-shell]').forEach(x=>x.classList.remove('active'));
-  const target=document.querySelector(`[data-shell-action="${action}"]`);if(target)target.classList.add('active');
-  if(action==='home'){document.querySelector('[data-go="home"]')?.click();return}
+  setActive(action);
+  if(action==='home'){command();return}
   if(action==='wr'){window.nodaraWRList?.();return}
   if(action==='cargo'){window.nodaraCargo?.();return}
-  if(action==='inventory'){document.querySelector('[data-go="inventory"]')?.click();return}
+  if(action==='inventory'){window.nodaraInventoryExplorer?.list?.();return}
   if(action==='release'){window.nodaraRelease?.();return}
-  if(action==='entities'){renderMore();return}
-  if(action==='more'){renderMore();return}
+  renderMore();
 }
-
 function renderMore(){
-  const main=document.getElementById('main');if(!main)return;
   main.innerHTML=`<div class="eyebrow">NODARA</div><h1 class="title">More</h1><div class="module-grid"><button class="module-tile" id="more-release"><span class="shell-icon">${icons.release}</span><b>Cargo Release</b><small>Create and manage outbound releases</small></button><button class="module-tile" id="more-entities"><span class="shell-icon">${icons.entities}</span><b>Entities</b><small>Customers, vendors, carriers and item profiles</small></button></div>`;
-  document.getElementById('more-release').onclick=()=>window.nodaraRelease?.();
-  document.getElementById('more-entities').onclick=()=>{const old=[...document.querySelectorAll('#nav button')].find(x=>x.textContent.trim()==='Entities');if(old)old.click();else main.innerHTML='<div class="eyebrow">Entities</div><h1 class="title">Entities</h1><div class="notice">Entity explorer is next in this same record-list style.</div>'};
+  document.getElementById('more-release').onclick=()=>go('release');document.getElementById('more-entities').onclick=()=>{main.innerHTML='<div class="eyebrow">Entities</div><h1 class="title">Entities</h1><div class="notice">Entity record list will use this same table/open-record pattern.</div>'};
 }
-
 function install(){
-  if(nav){nav.innerHTML=[item('home','Command','home'),item('wr','Warehouse Receipts','wr'),item('cargo','Cargo','cargo'),item('inv','Inventory','inventory'),item('release','Cargo Releases','release'),item('entities','Entities','entities')].join('')}
-  if(mobile){mobile.innerHTML=[item('home','Home','home'),item('wr','Receipts','wr'),item('cargo','Cargo','cargo'),item('inv','Inventory','inventory'),item('more','More','more')].join('')}
+  if(nav)nav.innerHTML=[item('home','Command','home'),item('wr','Warehouse Receipts','wr'),item('cargo','Cargo','cargo'),item('inv','Inventory','inventory'),item('release','Cargo Releases','release'),item('entities','Entities','entities')].join('');
+  if(mobile)mobile.innerHTML=[item('home','Home','home'),item('wr','Receipts','wr'),item('cargo','Cargo','cargo'),item('inv','Inventory','inventory'),item('more','More','more')].join('');
   document.querySelectorAll('[data-shell-action]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();go(b.dataset.shellAction)});
 }
-
-setTimeout(install,120);
-new MutationObserver(()=>{if(nav&&!nav.querySelector('[data-shell-action="wr"]'))install();}).observe(document.body,{childList:true,subtree:true});
+setTimeout(install,180);
+new MutationObserver(()=>{if(nav&&!nav.querySelector('[data-shell-action="wr"]'))install()}).observe(document.body,{childList:true,subtree:true});
 window.nodaraInstallShell=install;
+window.nodaraCommand=command;
