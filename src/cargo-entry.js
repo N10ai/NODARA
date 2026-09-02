@@ -8,6 +8,7 @@ const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'
 const shell=(eye,title,body)=>{main.innerHTML=`<div class="eyebrow">${eye}</div><h1 class="title">${title}</h1>${body}`};
 const explorer=createCargoExplorer({main,shell,esc,packageTypes:PACKAGE_TYPES});
 window.nodaraCargo=()=>explorer.list();
+window.nodaraOpenCargo=id=>explorer.open(id);
 
 function install(){
   if(nav&&!nav.querySelector('[data-cargo-nav]')){
