@@ -1,0 +1,20 @@
+@media(max-width:760px){
+  .wr-object-layout{display:flex;flex-direction:column;overflow:visible!important}
+  .wr-draft-summary{order:-1!important;position:sticky!important;top:116px!important;z-index:38;margin:0 0 10px!important;width:100%!important;padding:10px 12px!important;border:1px solid rgba(96,165,250,.28)!important;border-radius:14px!important;background:rgba(8,13,20,.94)!important;backdrop-filter:blur(18px);box-shadow:0 10px 28px rgba(0,0,0,.28)}
+  .wr-draft-summary .eyebrow{font-size:8px;margin:0 0 2px}
+  .wr-draft-summary>h3{font-size:13px!important;margin:0!important;padding-right:86px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wr-summary-toggle{position:absolute;right:8px;top:8px;height:30px!important;padding:0 9px!important;border-radius:9px!important;font-size:10px!important;border:1px solid rgba(255,255,255,.1)!important;background:rgba(255,255,255,.05)!important;color:#b8c7da!important}
+  .wr-draft-summary:not(.summary-expanded)>.summary-line{display:none!important}
+  .wr-draft-summary:not(.summary-expanded)>.wr-live-cargo-summary{margin:6px 0 0!important;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+  .wr-draft-summary:not(.summary-expanded)>.wr-live-cargo-summary>.summary-divider,
+  .wr-draft-summary:not(.summary-expanded)>.wr-live-cargo-summary>.eyebrow,
+  .wr-draft-summary:not(.summary-expanded)>.wr-live-cargo-summary>.summary-line:nth-of-type(3),
+  .wr-draft-summary:not(.summary-expanded)>.wr-live-cargo-summary>.summary-line:nth-of-type(5){display:none!important}
+  .wr-draft-summary:not(.summary-expanded)>.wr-live-cargo-summary>.summary-line{display:block!important;border:0!important;padding:6px!important;border-radius:9px;background:rgba(255,255,255,.035);min-width:0}
+  .wr-draft-summary:not(.summary-expanded)>.wr-live-cargo-summary>.summary-line span{display:block;font-size:8px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wr-draft-summary:not(.summary-expanded)>.wr-live-cargo-summary>.summary-line b{display:block;font-size:9px!important;text-align:left!important;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wr-draft-summary.summary-expanded{max-height:46dvh;overflow:auto;padding-top:12px!important}
+  .wr-draft-summary.summary-expanded .summary-line{padding:6px 0!important}
+  .wr-draft-summary.summary-expanded .wr-live-cargo-summary{margin-top:8px!important}
+  .wr-object-main{min-width:0}
+}
