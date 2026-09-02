@@ -12,30 +12,10 @@ const icons={
   more:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>'
 };
 const item=(key,label,action)=>`<button class="shell-nav-item" data-shell="${key}" data-shell-action="${action}"><span class="shell-icon">${icons[key]}</span><span>${label}</span></button>`;
-function setActive(action){document.querySelectorAll('[data-shell]').forEach(x=>x.classList.toggle('active',x.dataset.shellAction===action))}
-function command(){
-  main.innerHTML=`<div class="eyebrow">Command</div><h1 class="title">Operations</h1><p class="muted">One place to start and open operational records.</p><div class="module-grid"><button class="module-tile" id="cmd-wr"><span class="shell-icon">${icons.wr}</span><b>Warehouse Receipts</b><small>Open saved receipts or receive new cargo</small></button><button class="module-tile" id="cmd-cargo"><span class="shell-icon">${icons.cargo}</span><b>Cargo</b><small>Physical packages and nested contents</small></button><button class="module-tile" id="cmd-inv"><span class="shell-icon">${icons.inv}</span><b>Inventory</b><small>On-hand, available and reserved quantities</small></button><button class="module-tile" id="cmd-release"><span class="shell-icon">${icons.release}</span><b>Cargo Release</b><small>Create an outbound release</small></button></div>`;
-  document.getElementById('cmd-wr').onclick=()=>go('wr');document.getElementById('cmd-cargo').onclick=()=>go('cargo');document.getElementById('cmd-inv').onclick=()=>go('inventory');document.getElementById('cmd-release').onclick=()=>go('release');
-}
-function go(action){
-  setActive(action);
-  if(action==='home'){command();return}
-  if(action==='wr'){window.nodaraWRList?.();return}
-  if(action==='cargo'){window.nodaraCargo?.();return}
-  if(action==='inventory'){window.nodaraInventoryExplorer?.list?.();return}
-  if(action==='release'){window.nodaraRelease?.();return}
-  renderMore();
-}
-function renderMore(){
-  main.innerHTML=`<div class="eyebrow">NODARA</div><h1 class="title">More</h1><div class="module-grid"><button class="module-tile" id="more-release"><span class="shell-icon">${icons.release}</span><b>Cargo Release</b><small>Create and manage outbound releases</small></button><button class="module-tile" id="more-entities"><span class="shell-icon">${icons.entities}</span><b>Entities</b><small>Customers, vendors, carriers and item profiles</small></button></div>`;
-  document.getElementById('more-release').onclick=()=>go('release');document.getElementById('more-entities').onclick=()=>{main.innerHTML='<div class="eyebrow">Entities</div><h1 class="title">Entities</h1><div class="notice">Entity record list will use this same table/open-record pattern.</div>'};
-}
-function install(){
-  if(nav)nav.innerHTML=[item('home','Command','home'),item('wr','Warehouse Receipts','wr'),item('cargo','Cargo','cargo'),item('inv','Inventory','inventory'),item('release','Cargo Releases','release'),item('entities','Entities','entities')].join('');
-  if(mobile)mobile.innerHTML=[item('home','Home','home'),item('wr','Receipts','wr'),item('cargo','Cargo','cargo'),item('inv','Inventory','inventory'),item('more','More','more')].join('');
-  document.querySelectorAll('[data-shell-action]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();go(b.dataset.shellAction)});
-}
-setTimeout(install,180);
-new MutationObserver(()=>{if(nav&&!nav.querySelector('[data-shell-action="wr"]'))install()}).observe(document.body,{childList:true,subtree:true});
-window.nodaraInstallShell=install;
-window.nodaraCommand=command;
+function setActive(action){document.querySelectorAll('[data-shell-action]').forEach(x=>x.classList.toggle('active',x.dataset.shellAction===action))}
+function command(){setActive('home');main.innerHTML=`<div class="eyebrow">Command</div><h1 class="title">Operations</h1><p class="muted">One place to start and open operational records.</p><div class="module-grid"><button class="module-tile" id="cmd-wr"><span class="shell-icon">${icons.wr}</span><b>Warehouse Receipts</b><small>Open saved receipts or receive new cargo</small></button><button class="module-tile" id="cmd-cargo"><span class="shell-icon">${icons.cargo}</span><b>Cargo</b><small>Physical packages and nested contents</small></button><button class="module-tile" id="cmd-inv"><span class="shell-icon">${icons.inv}</span><b>Inventory</b><small>On-hand, available and reserved quantities</small></button><button class="module-tile" id="cmd-release"><span class="shell-icon">${icons.release}</span><b>Cargo Release</b><small>Create an outbound release</small></button></div>`;document.getElementById('cmd-wr').onclick=()=>go('wr');document.getElementById('cmd-cargo').onclick=()=>go('cargo');document.getElementById('cmd-inv').onclick=()=>go('inventory');document.getElementById('cmd-release').onclick=()=>go('release')}
+function go(action){setActive(action);if(action==='home'){command();return}if(action==='wr'){window.nodaraWRList?.();return}if(action==='cargo'){window.nodaraCargo?.();return}if(action==='inventory'){window.nodaraInventoryExplorer?.list?.();return}if(action==='release'){window.nodaraRelease?.();return}renderMore()}
+function renderMore(){setActive('more');main.innerHTML=`<div class="eyebrow">NODARA</div><h1 class="title">More</h1><div class="module-grid"><button class="module-tile" id="more-release"><span class="shell-icon">${icons.release}</span><b>Cargo Release</b><small>Create and manage outbound releases</small></button><button class="module-tile" id="more-entities"><span class="shell-icon">${icons.entities}</span><b>Entities</b><small>Customers, vendors, carriers and item profiles</small></button></div>`;document.getElementById('more-release').onclick=()=>go('release');document.getElementById('more-entities').onclick=()=>{setActive('entities');main.innerHTML='<div class="eyebrow">Entities</div><h1 class="title">Entities</h1><div class="notice">Entity record list will use this same table/open-record pattern.</div>'}}
+function install(){if(nav)nav.innerHTML=[item('home','Command','home'),item('wr','Warehouse Receipts','wr'),item('cargo','Cargo','cargo'),item('inv','Inventory','inventory'),item('release','Cargo Releases','release'),item('entities','Entities','entities')].join('');if(mobile)mobile.innerHTML=[item('home','Home','home'),item('wr','Receipts','wr'),item('cargo','Cargo','cargo'),item('inv','Inventory','inventory'),item('more','More','more')].join('');document.querySelectorAll('[data-shell-action]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();go(b.dataset.shellAction)})}
+setTimeout(install,180);new MutationObserver(()=>{if(nav&&!nav.querySelector('[data-shell-action="wr"]'))install()}).observe(document.body,{childList:true,subtree:true});
+window.nodaraInstallShell=install;window.nodaraCommand=command;window.nodaraSetActive=setActive;
