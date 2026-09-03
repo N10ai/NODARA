@@ -31,8 +31,7 @@ declare c record; org uuid;
 begin
   select * into c from public.cargo_units where id=p_cargo_unit_id for update;
   if c.id is null then raise exception 'Cargo unit not found'; end if;
-  select organization_id into org from public.jobs where id=c.job_id;
-  if org is null then org:=public.bootstrap_workspace('NODARA Workspace'); end if;
+  org:=public.bootstrap_workspace('NODARA Workspace');
   insert into public.inventory_transactions(organization_id,cargo_unit_id,transaction_type,quantity_before,quantity_after,from_location_id,to_location_id,status_before,status_after,reason,notes)
   values(org,c.id,'MOVE',c.quantity,c.quantity,c.warehouse_location_id,p_to_location_id,c.status,c.status,p_reason,p_notes);
   update public.cargo_units set warehouse_location_id=p_to_location_id where id=c.id;
@@ -46,8 +45,7 @@ begin
   if p_new_quantity < 0 then raise exception 'Quantity cannot be negative'; end if;
   select * into c from public.cargo_units where id=p_cargo_unit_id for update;
   if c.id is null then raise exception 'Cargo unit not found'; end if;
-  select organization_id into org from public.jobs where id=c.job_id;
-  if org is null then org:=public.bootstrap_workspace('NODARA Workspace'); end if;
+  org:=public.bootstrap_workspace('NODARA Workspace');
   insert into public.inventory_transactions(organization_id,cargo_unit_id,transaction_type,quantity_before,quantity_after,from_location_id,to_location_id,status_before,status_after,reason,notes)
   values(org,c.id,'ADJUST',c.quantity,p_new_quantity,c.warehouse_location_id,c.warehouse_location_id,c.status,case when p_new_quantity=0 then 'DEPLETED' else c.status end,p_reason,p_notes);
   update public.cargo_units set quantity=p_new_quantity,status=case when p_new_quantity=0 then 'DEPLETED' else status end where id=c.id;
@@ -62,8 +60,7 @@ begin
   if c.id is null then raise exception 'Cargo unit not found'; end if;
   ns:=case when p_hold then 'HOLD' else 'AVAILABLE' end;
   tt:=case when p_hold then 'HOLD' else 'RELEASE_HOLD' end;
-  select organization_id into org from public.jobs where id=c.job_id;
-  if org is null then org:=public.bootstrap_workspace('NODARA Workspace'); end if;
+  org:=public.bootstrap_workspace('NODARA Workspace');
   insert into public.inventory_transactions(organization_id,cargo_unit_id,transaction_type,quantity_before,quantity_after,from_location_id,to_location_id,status_before,status_after,reason,notes)
   values(org,c.id,tt,c.quantity,c.quantity,c.warehouse_location_id,c.warehouse_location_id,c.status,ns,p_reason,p_notes);
   update public.cargo_units set status=ns where id=c.id;
@@ -77,8 +74,7 @@ begin
   if p_counted_quantity < 0 then raise exception 'Counted quantity cannot be negative'; end if;
   select * into c from public.cargo_units where id=p_cargo_unit_id for update;
   if c.id is null then raise exception 'Cargo unit not found'; end if;
-  select organization_id into org from public.jobs where id=c.job_id;
-  if org is null then org:=public.bootstrap_workspace('NODARA Workspace'); end if;
+  org:=public.bootstrap_workspace('NODARA Workspace');
   insert into public.inventory_transactions(organization_id,cargo_unit_id,transaction_type,quantity_before,quantity_after,from_location_id,to_location_id,status_before,status_after,reason,notes)
   values(org,c.id,'CYCLE_COUNT',c.quantity,p_counted_quantity,c.warehouse_location_id,c.warehouse_location_id,c.status,c.status,'Cycle count',p_notes);
   update public.cargo_units set quantity=p_counted_quantity where id=c.id;
