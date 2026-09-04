@@ -1,4 +1,5 @@
 const KEY='nodara:appearance';
+if(!document.querySelector('link[data-nodara-theme]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./theme.css?v=20260904-0310';l.dataset.nodaraTheme='1';document.head.appendChild(l)}
 const media=window.matchMedia?.('(prefers-color-scheme: light)');
 const valid=new Set(['system','light','dark']);
 let preference=valid.has(localStorage.getItem(KEY))?localStorage.getItem(KEY):'system';
