@@ -13,13 +13,19 @@ html[data-theme="light"] .muted,html[data-theme="light"] small,html[data-theme="
 html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{background:#fff!important;color:#16202c!important;border-color:#cfd8e3!important;box-shadow:none!important}
 html[data-theme="light"] input::placeholder,html[data-theme="light"] textarea::placeholder{color:#96a1af!important}
 html[data-theme="light"] .view-search,html[data-theme="light"] .inventory-searchbox,html[data-theme="light"] .top-search-light{background:#fff!important;border-color:#cfd8e3!important;color:#16202c!important}
-html[data-theme="light"] .smart-grid-row.body,html[data-theme="light"] .smart-grid-row.head,html[data-theme="light"] .smart-grid-select-row,html[data-theme="light"] .inventory-stock-row{border-color:#e1e6ed!important}
-html[data-theme="light"] .smart-grid-row.body:hover,html[data-theme="light"] .inventory-stock-row:hover{background:#f7faff!important}
-html[data-theme="light"] .smart-grid-row.head{background:#f7f9fc!important;color:#526174!important}
+/* Tables: keep the full operational canvas light, not dark rows floating on white. */
+html[data-theme="light"] .smart-grid,html[data-theme="light"] .smart-grid-row.body,html[data-theme="light"] .smart-grid-select-row,html[data-theme="light"] .smart-grid-group,html[data-theme="light"] .inventory-stock-row,html[data-theme="light"] .rate-list,html[data-theme="light"] .rate-row,html[data-theme="light"] .location-table,[data-theme="light"] .wr-table,[data-theme="light"] .wr-table-row{background:#fff!important;color:#1d2939!important}
+html[data-theme="light"] .smart-grid-row.body,html[data-theme="light"] .smart-grid-row.head,html[data-theme="light"] .smart-grid-select-row,html[data-theme="light"] .inventory-stock-row,html[data-theme="light"] .rate-row,html[data-theme="light"] .location-table>*{border-color:#e1e6ed!important}
+html[data-theme="light"] .smart-grid-row.body:hover,html[data-theme="light"] .inventory-stock-row:hover,html[data-theme="light"] .rate-row:hover,html[data-theme="light"] .wr-table-row:hover{background:#f4f8fd!important}
+html[data-theme="light"] .smart-grid-row.head,html[data-theme="light"] .smart-grid-row.head button{background:#f3f6fa!important;color:#526174!important;font-weight:700}
+html[data-theme="light"] .smart-grid-row.body button,html[data-theme="light"] .rate-row button,html[data-theme="light"] .location-table button,html[data-theme="light"] .inventory-stock-row button{color:#1d2939!important}
+html[data-theme="light"] .smart-grid-row.body i,html[data-theme="light"] .rate-row small,html[data-theme="light"] .rate-row span,html[data-theme="light"] .inventory-stock-row span,html[data-theme="light"] .inventory-stock-row small{color:#64748b!important}
+html[data-theme="light"] .status-pill,html[data-theme="light"] .badge,html[data-theme="light"] .pill{background:#edf4fb!important;border-color:#cddbea!important;color:#35506f!important}
 html[data-theme="light"] button.secondary,html[data-theme="light"] .secondary,html[data-theme="light"] button.subtle,html[data-theme="light"] .subtle{background:#fff!important;color:#334155!important;border-color:#cfd8e3!important}
 html[data-theme="light"] button.secondary:hover,html[data-theme="light"] .secondary:hover{background:#f4f7fb!important;border-color:#9fb3ca!important}
 html[data-theme="light"] .record-tabs,html[data-theme="light"] .inventory-ledger-tabs{background:rgba(245,247,250,.94)!important}
-html[data-theme="light"] .badge,html[data-theme="light"] .pill,html[data-theme="light"] .status-pill{color:#334155}
+/* Preserve intentional dark intelligence/command surfaces for hierarchy. */
+html[data-theme="light"] .nodara-command-box,html[data-theme="light"] .command-result-host,html[data-theme="light"] .nodara-float-panel{color-scheme:dark}
 /* Preserve module accents while preventing a rainbow idle state. */
 html[data-theme="light"] .eyebrow{color:var(--module-accent,#4d86c6)!important}
 /* Theme chooser */
