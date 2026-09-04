@@ -10,13 +10,34 @@ function syncSmart(host,set){
 function enhanceCR(){
  if(window.__nodaraRoute!=='release')return;
  const host=document.getElementById('crv2-view'),grid=host?.querySelector('.smart-grid');
- if(!host||!grid||grid.dataset.nativeSelect)return;
- grid.dataset.nativeSelect='1';grid.classList.add('selectable');
- const head=grid.querySelector(':scope > .smart-grid-row.head');
- if(head){const wrap=document.createElement('div');wrap.className='smart-grid-select-row head-wrap';wrap.innerHTML='<label class="grid-select-box"><input type="checkbox" data-native-all aria-label="Select visible records"></label>';head.parentNode.insertBefore(wrap,head);wrap.appendChild(head)}
- for(const row of [...grid.querySelectorAll(':scope > .smart-grid-row.body')]){const id=row.dataset.gridOpen;if(!id)continue;const wrap=document.createElement('div');wrap.className='smart-grid-select-row';wrap.dataset.selectId=id;const lab=document.createElement('label');lab.className='grid-select-box';lab.innerHTML='<input type="checkbox" data-native-row aria-label="Select record">';row.parentNode.insertBefore(wrap,row);wrap.append(lab,row)}
- host.addEventListener('click',e=>{if(e.target.closest('.grid-select-box'))e.stopPropagation()});
- host.addEventListener('change',e=>{const all=e.target.closest?.('[data-native-all]');if(all){for(const w of host.querySelectorAll('.smart-grid-select-row:not(.head-wrap)'))all.checked?crSelected.add(w.dataset.selectId):crSelected.delete(w.dataset.selectId);syncSmart(host,crSelected);return}const x=e.target.closest?.('[data-native-row]');if(!x)return;const id=x.closest('.smart-grid-select-row')?.dataset.selectId;if(!id)return;x.checked?crSelected.add(id):crSelected.delete(id);syncSmart(host,crSelected)});
+ if(!host||!grid)return;
+ grid.classList.add('selectable');
+
+ // data-view always renders the column header inside a wrapper div. Reuse that
+ // wrapper for the selector column instead of looking only for a direct child.
+ let headWrap=grid.querySelector(':scope > .head-wrap');
+ const head=grid.querySelector(':scope > div > .smart-grid-row.head, :scope > .smart-grid-row.head');
+ if(!headWrap&&head){
+   const existingParent=head.parentElement;
+   if(existingParent&&existingParent.parentElement===grid&&existingParent.children.length===1){
+     headWrap=existingParent;
+     headWrap.className='smart-grid-select-row head-wrap';
+     const lab=document.createElement('label');lab.className='grid-select-box';lab.innerHTML='<input type="checkbox" data-native-all aria-label="Select visible records">';
+     headWrap.prepend(lab);
+   }else{
+     headWrap=document.createElement('div');headWrap.className='smart-grid-select-row head-wrap';head.parentNode.insertBefore(headWrap,head);headWrap.innerHTML='<label class="grid-select-box"><input type="checkbox" data-native-all aria-label="Select visible records"></label>';headWrap.appendChild(head)
+   }
+ }else if(headWrap&&!headWrap.querySelector('[data-native-all]')){
+   const lab=document.createElement('label');lab.className='grid-select-box';lab.innerHTML='<input type="checkbox" data-native-all aria-label="Select visible records">';headWrap.prepend(lab)
+ }
+
+ for(const row of [...grid.querySelectorAll(':scope > .smart-grid-row.body, :scope > div:not(.smart-grid-select-row) > .smart-grid-row.body')]){const id=row.dataset.gridOpen;if(!id||row.closest('.smart-grid-select-row'))continue;const wrap=document.createElement('div');wrap.className='smart-grid-select-row';wrap.dataset.selectId=id;const lab=document.createElement('label');lab.className='grid-select-box';lab.innerHTML='<input type="checkbox" data-native-row aria-label="Select record">';row.parentNode.insertBefore(wrap,row);wrap.append(lab,row)}
+
+ if(!host.dataset.nativeSelectBound){
+   host.dataset.nativeSelectBound='1';
+   host.addEventListener('click',e=>{if(e.target.closest('.grid-select-box'))e.stopPropagation()});
+   host.addEventListener('change',e=>{const all=e.target.closest?.('[data-native-all]');if(all){for(const w of host.querySelectorAll('.smart-grid-select-row:not(.head-wrap)'))all.checked?crSelected.add(w.dataset.selectId):crSelected.delete(w.dataset.selectId);syncSmart(host,crSelected);return}const x=e.target.closest?.('[data-native-row]');if(!x)return;const id=x.closest('.smart-grid-select-row')?.dataset.selectId;if(!id)return;x.checked?crSelected.add(id):crSelected.delete(id);syncSmart(host,crSelected)})
+ }
  syncSmart(host,crSelected)
 }
 function syncEntities(host){const wraps=[...host.querySelectorAll('.entity-select-row')];for(const w of wraps){const on=entitySelected.has(w.dataset.id),x=w.querySelector('[data-entity-native-row]');if(x)x.checked=on;w.classList.toggle('selected',on)}const h=host.querySelector('[data-entity-native-all]');if(h){const n=wraps.filter(w=>entitySelected.has(w.dataset.id)).length;h.checked=wraps.length>0&&n===wraps.length;h.indeterminate=n>0&&n<wraps.length}}
