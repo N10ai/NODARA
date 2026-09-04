@@ -1,3 +1,5 @@
+import './theme.js';
+import './nav-icon-polish.js';
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function intent(text){const t=String(text||'').trim(),l=t.toLowerCase();if(!t)return{type:'empty'};if(/\b(create|new|receive).*\b(wr|warehouse receipt|receipt)\b|\bwarehouse receipt\b/.test(l))return{type:'route',route:'wr',label:'Open Warehouse Receipts / create WR'};if(/\b(create|new).*\b(cr|cargo release|release)\b|\bcargo release\b/.test(l))return{type:'route',route:'release',label:'Open Cargo Releases'};if(/\binventory|stock|on hand|available cargo\b/.test(l))return{type:'route',route:'inventory',label:'Open Inventory'};if(/\blocation|rack|bin|position\b/.test(l))return{type:'route',route:'warehouse_locations',label:'Open Locations'};if(/\brate|pricing agreement|rate book\b/.test(l))return{type:'route',route:'pricing_rates',label:'Open Rate Book'};if(/\bquote|rfq|rate request|pricing|air freight|ocean freight|drayage\b/.test(l)||t.length>160)return{type:'rfq',label:'Analyze as RFQ'};return{type:'ask',label:'Search / ask NODARA'}}
