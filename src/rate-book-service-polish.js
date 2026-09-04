@@ -1,15 +1,15 @@
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId } from './live-data.js';
 
-// Billing bases are intentionally unit-system agnostic. NODARA resolves kg/lb,
-// dimensions and display conversions from organization/system preferences.
+// Weight follows organization unit settings. Commercial volume can be unit-specific
+// (especially ocean pricing), so CBM and CFT stay distinct billing units.
 const UNITS=[
  ['EA','Each / unit'],['PIECE','Piece'],['BOX','Box'],['CARTON','Carton'],['PALLET','Pallet'],['SKID','Skid'],['CRATE','Crate'],['BIN','Bin'],['LOCATION','Storage location'],
  ['ORDER','Order'],['ORDER_LINE','Order line'],['PICK','Pick'],['PACK','Pack'],['LABEL','Label'],['DOCUMENT','Document'],['WR','Warehouse receipt'],['CR','Cargo release'],['SHIPMENT','Shipment'],['BOOKING','Booking'],['CONTAINER','Container'],['TEU','TEU'],
- ['WEIGHT','Gross weight'],['CHARGEABLE_WEIGHT','Chargeable weight'],['VOLUMETRIC_WEIGHT','Volumetric weight'],['VOLUME','Volume'],['AREA','Area'],
+ ['WEIGHT','Gross weight'],['CHARGEABLE_WEIGHT','Chargeable weight'],['VOLUMETRIC_WEIGHT','Volumetric weight'],['CBM','Cubic meter · CBM'],['CFT','Cubic foot · CFT'],['AREA','Area'],
  ['HOUR','Hour'],['DAY','Day'],['WEEK','Week'],['MONTH','Month'],['DISTANCE','Distance'],['PICKUP','Pickup'],['DELIVERY','Delivery'],['FLAT','Flat fee'],['PERCENT','Percentage']
 ];
-const LEGACY={KG:'WEIGHT',LB:'WEIGHT',CHARGEABLE_KG:'CHARGEABLE_WEIGHT',CHARGEABLE_LB:'CHARGEABLE_WEIGHT',VOLUMETRIC_KG:'VOLUMETRIC_WEIGHT',CBM:'VOLUME',CUFT:'VOLUME',SQFT:'AREA',MILE:'DISTANCE',KM:'DISTANCE'};
+const LEGACY={KG:'WEIGHT',LB:'WEIGHT',CHARGEABLE_KG:'CHARGEABLE_WEIGHT',CHARGEABLE_LB:'CHARGEABLE_WEIGHT',VOLUMETRIC_KG:'VOLUMETRIC_WEIGHT',CUFT:'CFT',SQFT:'AREA',MILE:'DISTANCE',KM:'DISTANCE'};
 const slug=s=>String(s||'').trim().toUpperCase().normalize('NFKD').replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,48)||'SERVICE';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -24,7 +24,7 @@ function enhance(){
  const sync=()=>{if(isNew||!code.value.trim())code.value=slug(name.value)};name.addEventListener('input',sync);sync();
  const current=LEGACY[String(unit.value||'EA').toUpperCase()]||String(unit.value||'EA').toUpperCase();
  const sel=document.createElement('select');sel.id='rs-unit';sel.innerHTML=UNITS.map(([v,l])=>`<option value="${v}" ${current===v?'selected':''}>${esc(l)}</option>`).join('');unit.replaceWith(sel);
- const unitNote=document.createElement('small');unitNote.className='muted';unitNote.textContent='Physical units follow NODARA system settings (for example kg/lb).';sel.parentElement?.appendChild(unitNote);
+ const unitNote=document.createElement('small');unitNote.className='muted';unitNote.textContent='Weight follows NODARA system units; ocean volume keeps CBM/CFT explicit.';sel.parentElement?.appendChild(unitNote);
  if(!isNew)return;
  const grid=document.querySelector('.detail-grid');
  if(grid&&!document.getElementById('rs-sell')){
