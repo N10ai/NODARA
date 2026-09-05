@@ -1,0 +1,13 @@
+import { supabase } from './supabase-client.js';
+import { mountCargoWorkspace } from './cargo-workspace.js';
+const main=document.getElementById('main');
+let busy=false;
+const text=(s)=>String(s||'').trim();
+async function findByVisibleNumber(table,numberFields,number){for(const f of numberFields){const{data}=await supabase.from(table).select('*').eq(f,number).maybeSingle();if(data)return data}return null}
+function cargoAnchor(){return [...main.querySelectorAll('.record-section')].find(s=>/cargo|load|freight/i.test(s.querySelector('h3')?.textContent||''))||main.querySelector('.ops-record-grid .record-section')||main.querySelector('.record-section')}
+async function mount(type,id,title,allowAdd=true){if(main.querySelector(`[data-universal-cargo="${type}:${id}"]`))return true;const anchor=cargoAnchor();if(!anchor)return false;const sec=document.createElement('section');sec.className='record-section';sec.dataset.universalCargo=`${type}:${id}`;sec.innerHTML='<div data-cargo-mount></div>';anchor.insertAdjacentElement('afterend',sec);await mountCargoWorkspace(sec.querySelector('[data-cargo-mount]'),{transactionType:type,transactionId:id,title,allowAdd});return true}
+async function transport(){const h=text(main.querySelector('.record-header .title')?.textContent||main.querySelector('.record-number')?.textContent);if(!h||!/^(PU|DL|DR|TR|TO)[-#]/i.test(h))return false;const r=await findByVisibleNumber('transport_orders',['order_number','transport_number','reference_number'],h);if(!r)return false;return mount('TRANSPORT_ORDER',r.id,r.type==='DELIVERY'?'Delivery Cargo':r.type==='PICKUP'?'Pickup Cargo':'Transport Cargo')}
+async function consolidation(){const h=text(main.querySelector('.record-header .title')?.textContent||main.querySelector('.record-number')?.textContent);if(!h)return false;let r=null;for(const table of ['consolidations','consolidation_loads']){try{r=await findByVisibleNumber(table,['consolidation_number','load_number','reference'],h);if(r)break}catch{}}if(!r)return false;return mount('CONSOLIDATION',r.id,'Consolidation Cargo')}
+function hideCargoTotals(){if(!main.querySelector('#sh-save'))return;for(const f of main.querySelectorAll('.field')){const l=text(f.querySelector('label')?.textContent);if(['Pieces','Weight','Weight unit','Volume CBM'].includes(l))f.style.display='none'}}
+async function tick(){if(busy)return;busy=true;try{hideCargoTotals();if(main.querySelector('[data-universal-cargo]'))return;await transport()||await consolidation()}catch(e){if(!/does not exist|schema cache|column .* does not exist/i.test(e?.message||''))console.warn('Universal cargo workspace',e)}finally{busy=false}}
+new MutationObserver(()=>setTimeout(tick,100)).observe(main,{childList:true,subtree:true});setTimeout(tick,900);
