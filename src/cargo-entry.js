@@ -1,6 +1,7 @@
 import './cargo-workspace.js';
 import './transaction-cargo-workspaces.js';
-if(!document.querySelector('link[data-cargo-workspace-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='cargo-workspace.css?v=20260905-1810';l.dataset.cargoWorkspaceCss='1';document.head.appendChild(l)}
+import './cargo-loader-smart-search.js';
+if(!document.querySelector('link[data-cargo-workspace-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='cargo-workspace.css?v=20260905-1849';l.dataset.cargoWorkspaceCss='1';document.head.appendChild(l)}
 import { createCargoExplorer } from './cargo-explorer.js';
 import { PACKAGE_TYPES } from './cargo-tree-builder.js';
 
