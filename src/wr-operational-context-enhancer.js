@@ -1,4 +1,5 @@
 import{ supabase }from'./supabase-client.js';
+if(!document.querySelector('link[data-wr-context-style]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./wr-operational-context.css?v=20260905-1230';l.dataset.wrContextStyle='1';document.head.appendChild(l)}
 const main=document.getElementById('main');let running=false,last='';const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function findWR(number){const{data,error}=await supabase.from('warehouse_receipts').select('id,receipt_number').eq('receipt_number',number).maybeSingle();if(error)throw error;return data}
 function badge(req){const code=req.requirement_code||'';const cls=req.blocking?'blocking':'info';return `<span class="wr-smart-req ${cls}">${esc(code.replaceAll('_',' '))}${req.blocking?' · Required':''}</span>`}
