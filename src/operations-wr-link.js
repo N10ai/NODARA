@@ -1,6 +1,8 @@
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId } from './live-data.js';
+import './consolidation-readiness-enhancer.js';
 
+const readinessStyle=document.createElement('link');readinessStyle.rel='stylesheet';readinessStyle.href='./consolidation-readiness.css?v=20260905-0655';document.head.appendChild(readinessStyle);
 const main=document.getElementById('main');
 const wait=(ms=0)=>new Promise(r=>setTimeout(r,ms));
 const style=document.createElement('style');style.textContent=`.pickup-wr-source{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 16px;padding:13px 15px;border:1px solid color-mix(in srgb,var(--module-accent,#35d0d0) 38%,transparent);border-radius:14px;background:color-mix(in srgb,var(--module-accent,#35d0d0) 8%,transparent)}.pickup-wr-source>div{display:flex;flex-direction:column;gap:2px;min-width:0}.pickup-wr-source b{font-size:13px}.pickup-wr-source small{color:var(--muted);white-space:normal}.pickup-wr-source .eyebrow{font-size:8px}@media(max-width:760px){.pickup-wr-source{align-items:flex-start;flex-direction:column}.pickup-wr-source .status-pill{align-self:flex-start}}`;document.head.appendChild(style);
