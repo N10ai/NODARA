@@ -1,12 +1,18 @@
-import { openWRUnified } from './wr-unified-editor.js?v=20260906-1320';
+import { openWRUnified } from './wr-unified-editor.js?v=20260906-1330';
 
+async function openCreatedReceipt(result){
+ const id=result?.warehouse_receipt_id||result?.id;
+ const mod=await import('./wr-records-unified.js?v=20260906-1330');
+ if(id)return mod.warehouseReceiptOpen(id);
+ return mod.warehouseReceiptList();
+}
 async function openEditor(){
  window.nodaraSetActive?.('wr');
  window.__nodaraCargoDraftDetails=null;
  await openWRUnified({
   wr:null,
-  onDone:result=>window.nodaraWROpen?.(result?.warehouse_receipt_id),
-  onCancel:()=>window.nodaraWRList?.()
+  onDone:openCreatedReceipt,
+  onCancel:async()=>{const mod=await import('./wr-records-unified.js?v=20260906-1330');return mod.warehouseReceiptList();}
  });
 }
 window.nodaraReceive=openEditor;
