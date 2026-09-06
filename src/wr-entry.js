@@ -1,5 +1,6 @@
 import './operations-wr-link.js?v=20260904-0315';
-import './wr-receiving-wizard-v2.js?v=20260906-0050';
+import './wr-fast-guidance.js?v=20260906-0128';
+import './bulk-record-delete.js?v=20260906-0145';
 import './service-contract-clarity.js?v=20260906-2336';
 import './wr-completion-actions.js?v=20260906-2355';
 import './wr-smart-billing-v2.js?v=20260906-0050';
