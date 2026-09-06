@@ -1,3 +1,4 @@
+import './cargo-loader-smart-search.js';
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId } from './live-data.js';
 
