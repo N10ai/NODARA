@@ -10,6 +10,7 @@ import { openWRUnified } from './wr-unified-editor.js?v=20260906-1300';
 
 async function openEditor(){
  window.nodaraSetActive?.('wr');
+ window.__nodaraCargoDraftDetails=null;
  await openWRUnified({
   wr:null,
   onDone:result=>window.nodaraWROpen?.(result?.warehouse_receipt_id),
