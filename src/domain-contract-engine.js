@@ -62,23 +62,28 @@ export function conditionsMatch(conditions={},facts={}){
 
 function requirementInstances(requirement,facts){
   if(!conditionsMatch(requirement.conditions,facts))return[];
+  const inheritedProvenance=requirement.provenance&&Object.keys(requirement.provenance).length
+    ?requirement.provenance
+    :requirement.agreement_id
+      ?{source:'SERVICE_AGREEMENT',agreement_id:requirement.agreement_id,requirement_id:requirement.id}
+      :{source:'NODARA_RULE',requirement_id:requirement.id};
   const base={
     source_requirement_id:requirement.id,
     requirement_code:requirement.requirement_code,
     label:requirement.label,
     scope:requirement.scope||'TRANSACTION',
     blocking:requirement.blocking!==false,
-    provenance:{source:'SERVICE_AGREEMENT',agreement_id:requirement.agreement_id,requirement_id:requirement.id}
+    provenance:inheritedProvenance
   };
   const mode=requirement.repeat_mode||'ONCE';
   if(mode==='PER_HANDLING_UNIT')return(facts.handling_units||[]).map((x,i)=>({...base,scope:'HANDLING_UNIT',scope_id:x.id||null,requirement_code:`${base.requirement_code}:${x.id||i+1}`,provenance:{...base.provenance,handling_unit_id:x.id||null}}));
   if(mode==='PER_ITEM')return(facts.items||[]).map((x,i)=>({...base,scope:'ITEM',scope_id:x.id||null,requirement_code:`${base.requirement_code}:${x.id||i+1}`,provenance:{...base.provenance,item_id:x.id||null}}));
-  if(mode==='PER_SERIAL')return(facts.serials||[]).map((x,i)=>({...base,scope:'SERIAL',scope_id:x.id||null,requirement_code:`${base.requirement_code}:${x.id||i+1}`}));
+  if(mode==='PER_SERIAL')return(facts.serials||[]).map((x,i)=>({...base,scope:'SERIAL',scope_id:x.id||null,requirement_code:`${base.requirement_code}:${x.id||i+1}`,provenance:{...base.provenance,serial_id:x.id||null}}));
   return[base];
 }
 
 export function compileRequirements({agreement,systemRequirements=[],contextRequirements=[],facts={}}){
-  const agreementRequirements=(agreement?.service_agreement_requirements||[]).filter(x=>x.active!==false);
+  const agreementRequirements=(agreement?.service_agreement_requirements||[]).filter(x=>x.active!==false).map(x=>({...x,provenance:{source:'SERVICE_AGREEMENT',agreement_id:agreement.id,agreement_version:agreement.agreement_version,requirement_id:x.id}}));
   const combined=[...systemRequirements,...agreementRequirements,...contextRequirements];
   const byCode=new Map();
   for(const req of combined){
