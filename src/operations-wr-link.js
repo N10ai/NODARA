@@ -1,6 +1,8 @@
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId } from './live-data.js';
 import './consolidation-readiness-enhancer.js';
+import './wr-cargo-bulk-tools.js';
+import './cargo-architecture-guard.js';
 
 const readinessStyle=document.createElement('link');readinessStyle.rel='stylesheet';readinessStyle.href='./consolidation-readiness.css?v=20260905-0655';document.head.appendChild(readinessStyle);
 const main=document.getElementById('main');
