@@ -1,3 +1,3 @@
-// Retired. Saved Warehouse Receipts now use wr-edit-modern.js directly from wr-records.js.
-// This file intentionally has no click interception so the legacy field-heavy editor
-// can no longer override the unified WR editor on mobile or desktop.
+import './wr-route-authority.js?v=20260906-0919';
+// Legacy saved-WR launcher retired. This direct import makes the modern WR route
+// authoritative for new receipts on mobile, tablet and desktop as well.
