@@ -1,12 +1,4 @@
-import './operations-wr-link.js?v=20260904-0315';
-import './wr-fast-guidance.js?v=20260906-0128';
-import './bulk-record-delete.js?v=20260906-0301';
-import './service-contract-clarity.js?v=20260906-2336';
-import './wr-completion-actions.js?v=20260906-2355';
-import './wr-smart-billing-v2.js?v=20260906-0050';
-import './wr-saved-guidance-v2.js?v=20260906-0050';
-import './wr-canonical-action-events.js?v=20260906-0050';
-import { openWRUnified } from './wr-unified-editor.js?v=20260906-1300';
+import { openWRUnified } from './wr-unified-editor.js?v=20260906-1320';
 
 async function openEditor(){
  window.nodaraSetActive?.('wr');
