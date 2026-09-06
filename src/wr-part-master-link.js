@@ -1,81 +1,14 @@
-import { listInventoryItems,listEntityItems } from './wr-data-v2.js';
-
-let catalog=[];
-let loaded=false;
+import { listInventoryItems,listEntityItems,createInventoryItemQuick } from './wr-data-v2.js';
+const main=document.getElementById('main');
+let catalog=[],loaded=false;const selected=new Map();
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-async function loadCatalog(){
-  const customer=document.querySelector('[data-party="customer"]')?.value;
-  try{
-    if(customer){
-      const profiles=await listEntityItems(customer);
-      if(profiles?.length){
-        catalog=profiles.map(p=>({
-          ...p.inventory_items,
-          id:p.inventory_item_id,
-          part_number:p.customer_part_number||p.inventory_items?.part_number||'',
-          sku:p.customer_sku||p.inventory_items?.sku||'',
-          description:p.description_override||p.inventory_items?.description||'',
-          base_uom:p.base_uom_override||p.inventory_items?.base_uom||'EA',
-          barcode:p.inventory_items?.metadata?.barcode||''
-        }));
-        loaded=true;
-        return;
-      }
-    }
-    catalog=await listInventoryItems();
-    loaded=true;
-  }catch(e){
-    console.warn('Part Master lookup failed',e);
-    catalog=[];
-    loaded=true;
-  }
-}
-
-function setValue(el,value){
-  if(!el)return;
-  el.value=value??'';
-  el.dispatchEvent(new Event('input',{bubbles:true}));
-  el.dispatchEvent(new Event('change',{bubbles:true}));
-}
-
-function enhanceNode(node){
-  const meta=node.querySelector('.cargo-product-meta');
-  if(!meta||meta.querySelector('[data-part-master-picker]'))return;
-  const part=meta.querySelector('input[id$="-part"]');
-  const sku=meta.querySelector('input[id$="-sku"]');
-  const barcode=meta.querySelector('input[id$="-barcode"]');
-  const desc=node.querySelector('input[id$="-desc"]');
-  if(!part||!sku)return;
-
-  const field=document.createElement('div');
-  field.className='field cargo-part-master-field';
-  field.dataset.partMasterPicker='1';
-  const current=catalog.find(x=>(x.part_number||'')===part.value&&(x.sku||'')===sku.value);
-  field.innerHTML=`<label>Part Master</label><select><option value="">No saved part / manual entry</option>${catalog.map(x=>`<option value="${x.id}" ${current?.id===x.id?'selected':''}>${esc(x.part_number||x.sku||x.description||'Item')}${x.sku&&x.part_number?` · ${esc(x.sku)}`:''}${x.description?` · ${esc(x.description)}`:''}</option>`).join('')}</select><small>Select a saved item to associate this cargo with Part Master.</small>`;
-  meta.prepend(field);
-  field.querySelector('select').onchange=e=>{
-    const item=catalog.find(x=>String(x.id)===e.target.value);
-    if(!item)return;
-    setValue(part,item.part_number||'');
-    setValue(sku,item.sku||'');
-    setValue(barcode,item.barcode||item.metadata?.barcode||'');
-    if(desc&&!desc.value)setValue(desc,item.description||'');
-    part.dataset.inventoryItemId=item.id;
-    sku.dataset.inventoryItemId=item.id;
-  };
-}
-
-async function enhance(){
-  if(!document.querySelector('.wr-object-head #cargo .cargo-hierarchy-v3'))return;
-  if(!loaded)await loadCatalog();
-  document.querySelectorAll('#cargo .cargo-tree-node').forEach(enhanceNode);
-}
-
-window.addEventListener('nodara:cargo-hierarchy-rendered',()=>enhance());
-window.addEventListener('nodara:new-wr-draft',()=>{loaded=false;catalog=[];setTimeout(enhance,120)});
-document.addEventListener('change',e=>{
-  if(!e.target.matches?.('[data-party="customer"]'))return;
-  loaded=false;catalog=[];setTimeout(enhance,120);
-});
-setTimeout(enhance,600);
+const nodeId=input=>input.id.replace(/^cv3-/,'').replace(/-part$/,'');
+async function loadCatalog(){const customer=document.querySelector('[data-party="customer"]')?.value;try{if(customer){const p=await listEntityItems(customer);if(p?.length){catalog=p.map(x=>({...x.inventory_items,id:x.inventory_item_id,part_number:x.customer_part_number||x.inventory_items?.part_number||'',sku:x.customer_sku||x.inventory_items?.sku||'',description:x.description_override||x.inventory_items?.description||'',base_uom:x.base_uom_override||x.inventory_items?.base_uom||'EA',barcode:x.inventory_items?.metadata?.barcode||''}));loaded=true;return}}catalog=await listInventoryItems();loaded=true}catch(e){console.warn('Part Master lookup failed',e);catalog=[];loaded=true}}
+function patchTree(){const roots=window.__nodaraCargoDraftDetails?.roots;if(!Array.isArray(roots))return;const walk=n=>{if(selected.has(n.id))n.inventory_item_id=selected.get(n.id);(n.children||[]).forEach(walk)};roots.forEach(walk)}
+function setValue(el,value){if(!el)return;el.value=value??'';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}
+function applyItem(part,item){const id=nodeId(part),p=`cv3-${id}`,sku=document.getElementById(`${p}-sku`),barcode=document.getElementById(`${p}-barcode`),desc=document.getElementById(`${p}-desc`);selected.set(id,item.id);part.dataset.inventoryItemId=item.id;setValue(part,item.part_number||item.sku||'');setValue(sku,item.sku||'');setValue(barcode,item.barcode||item.metadata?.barcode||'');if(desc&&!desc.value)setValue(desc,item.description||'');patchTree();document.querySelector('.part-master-overlay')?.remove()}
+function picker(part){document.querySelector('.part-master-overlay')?.remove();const overlay=document.createElement('div');overlay.className='part-master-overlay';overlay.innerHTML=`<div class="part-master-modal"><div class="record-commandbar"><div><div class="eyebrow">Part Master</div><h2>Select or create part</h2></div><button class="subtle" data-pm-close>×</button></div><div class="field"><label>Search</label><input data-pm-search placeholder="Part number, SKU, barcode or description"></div><div data-pm-results class="part-master-results"></div><section class="record-section"><div class="section-heading"><div><h3>Create new part</h3><span class="muted">Creates it in Part Master and returns here selected.</span></div></div><div class="detail-grid"><div class="field"><label>Part number</label><input data-pm-new-part value="${esc(part.value||'')}"></div><div class="field"><label>SKU</label><input data-pm-new-sku></div><div class="field"><label>Barcode</label><input data-pm-new-barcode></div><div class="field"><label>Description</label><input data-pm-new-desc></div><div class="field"><label>UOM</label><input data-pm-new-uom value="EA"></div></div><button class="primary" data-pm-create>Create & select</button></section></div>`;document.body.appendChild(overlay);overlay.querySelector('[data-pm-close]').onclick=()=>overlay.remove();overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});const search=overlay.querySelector('[data-pm-search]'),results=overlay.querySelector('[data-pm-results]');const render=()=>{const q=search.value.trim().toLowerCase(),found=catalog.filter(x=>!q||[x.part_number,x.sku,x.barcode,x.description].filter(Boolean).some(v=>String(v).toLowerCase().includes(q))).slice(0,50);results.innerHTML=found.length?found.map(x=>`<button class="part-master-result" data-pm-id="${x.id}"><span><b>${esc(x.part_number||x.sku||'Unnamed part')}</b><small>${esc([x.sku,x.barcode,x.description].filter(Boolean).join(' · '))}</small></span><span>Use</span></button>`).join(''):'<div class="empty compact">No matching parts.</div>';results.querySelectorAll('[data-pm-id]').forEach(b=>b.onclick=()=>applyItem(part,catalog.find(x=>x.id===b.dataset.pmId))};search.oninput=render;render();overlay.querySelector('[data-pm-create]').onclick=async()=>{const b=overlay.querySelector('[data-pm-create]');b.disabled=true;b.textContent='Creating…';try{const item=await createInventoryItemQuick({part_number:overlay.querySelector('[data-pm-new-part]').value,sku:overlay.querySelector('[data-pm-new-sku]').value,barcode:overlay.querySelector('[data-pm-new-barcode]').value,description:overlay.querySelector('[data-pm-new-desc]').value,base_uom:overlay.querySelector('[data-pm-new-uom]').value||'EA',entity_id:document.querySelector('[data-party="customer"]')?.value||null});catalog.unshift(item);applyItem(part,item)}catch(e){alert(e.message);b.disabled=false;b.textContent='Create & select'}};search.focus()}
+function enhanceNode(node){const meta=node.querySelector('.cargo-product-meta');if(!meta||meta.querySelector('[data-part-master-picker]'))return;const part=meta.querySelector('input[id$="-part"]');if(!part)return;const field=document.createElement('div');field.className='field cargo-part-master-field';field.dataset.partMasterPicker='1';const btn=document.createElement('button');btn.type='button';btn.className='secondary compact-btn';btn.textContent='Find / Create';btn.onclick=()=>picker(part);field.innerHTML='<label>Part Master</label>';field.append(btn);meta.prepend(field)}
+async function enhance(){if(!document.querySelector('.wr-object-head #cargo .cargo-hierarchy-v3'))return;if(!loaded)await loadCatalog();document.querySelectorAll('#cargo .cargo-tree-node').forEach(enhanceNode)}
+window.addEventListener('nodara:cargo-hierarchy-rendered',enhance);window.addEventListener('nodara:new-wr-draft',()=>{loaded=false;catalog=[];selected.clear();setTimeout(enhance,120)});window.addEventListener('nodara:prepare-hierarchy-save',patchTree);window.addEventListener('nodara:cargo-totals',patchTree);document.addEventListener('change',e=>{if(!e.target.matches?.('[data-party="customer"]'))return;loaded=false;catalog=[];setTimeout(enhance,120)});setTimeout(enhance,500);
+const style=document.createElement('style');style.textContent=`.cargo-part-master-field{align-self:end}.part-master-overlay{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.72);display:grid;place-items:center;padding:18px}.part-master-modal{width:min(760px,100%);max-height:90dvh;overflow:auto;background:var(--panel,#0b1119);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:0 30px 90px rgba(0,0,0,.6)}.part-master-results{display:grid;gap:6px;margin:10px 0 16px;max-height:300px;overflow:auto}.part-master-result{display:flex;justify-content:space-between;gap:12px;text-align:left;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:inherit}.part-master-result span:first-child{display:flex;flex-direction:column}.part-master-result small{color:var(--muted);margin-top:2px}`;document.head.appendChild(style);
