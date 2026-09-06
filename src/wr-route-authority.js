@@ -5,7 +5,7 @@ async function modernWR(){
  opening=true;
  try{
   window.nodaraSetActive?.('wr');
-  if(!editor){const mod=await import(`./wr-object-editor-v2.js?v=20260906-0919`);editor=mod.createWRObjectEditorV2({main});}
+  if(!editor){const mod=await import(`./wr-object-editor-v2.js?v=20260906-1245`);editor=mod.createWRObjectEditorV2({main});}
   await editor.start();
   window.dispatchEvent(new CustomEvent('nodara:new-wr-draft'));
  }catch(e){console.error('Could not open modern WR editor',e);alert(e?.message||'Could not open Warehouse Receipt editor.');}
