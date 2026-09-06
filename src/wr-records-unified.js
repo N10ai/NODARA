@@ -1,0 +1,52 @@
+import { supabase } from './supabase-client.js';
+import { mountDataView } from './data-view.js?v=20260902-0035';
+import { openWRUnified } from './wr-unified-editor.js?v=20260906-1300';
+import { deleteWRModern } from './wr-edit-modern.js?v=20260906-0915';
+
+const main=document.getElementById('main');
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate=v=>v?new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',year:'numeric'}).format(new Date(v)):'—';
+const shell=(eye,title,body)=>{window.nodaraSetActive?.('wr');main.innerHTML=`<div class="eyebrow">${eye}</div><h1 class="title">${title}</h1>${body}`};
+
+async function getReceipts(){
+ const{data:receipts,error}=await supabase.from('warehouse_receipts').select('id,organization_id,job_id,receipt_number,status,started_at,completed_at,notes,created_at,jobs(id,job_number,reference,description,customer_id)').order('created_at',{ascending:false}).limit(250);if(error)throw error;
+ const rows=receipts||[],customerIds=[...new Set(rows.map(r=>r.jobs?.customer_id).filter(Boolean))],jobIds=[...new Set(rows.map(r=>r.job_id).filter(Boolean))],receiptIds=rows.map(r=>r.id);
+ const[entitiesRes,refsRes,cargoRes,partyRes]=await Promise.all([
+  customerIds.length?supabase.from('entities').select('id,name,code').in('id',customerIds):Promise.resolve({data:[],error:null}),
+  receiptIds.length?supabase.from('shipment_references').select('warehouse_receipt_id,reference_type,reference_value,is_primary').in('warehouse_receipt_id',receiptIds):Promise.resolve({data:[],error:null}),
+  jobIds.length?supabase.from('cargo_units').select('job_id,id,parent_id,package_type,quantity,uom').in('job_id',jobIds).is('parent_id',null):Promise.resolve({data:[],error:null}),
+  receiptIds.length?supabase.from('warehouse_receipt_parties').select('warehouse_receipt_id,role,entity_id,display_name,entities(name,code)').in('warehouse_receipt_id',receiptIds):Promise.resolve({data:[],error:null})
+ ]);
+ for(const x of[entitiesRes,refsRes,cargoRes,partyRes])if(x.error)throw x.error;
+ const entities=new Map((entitiesRes.data||[]).map(x=>[x.id,x])),refsBy=new Map(),cargoBy=new Map(),partiesBy=new Map();
+ for(const r of refsRes.data||[]){if(!refsBy.has(r.warehouse_receipt_id))refsBy.set(r.warehouse_receipt_id,[]);refsBy.get(r.warehouse_receipt_id).push(r)}
+ for(const c of cargoRes.data||[]){if(!cargoBy.has(c.job_id))cargoBy.set(c.job_id,[]);cargoBy.get(c.job_id).push(c)}
+ for(const p of partyRes.data||[]){if(!partiesBy.has(p.warehouse_receipt_id))partiesBy.set(p.warehouse_receipt_id,{});partiesBy.get(p.warehouse_receipt_id)[p.role]={...p,name:p.entities?.name||p.display_name||''}}
+ return rows.map(r=>({...r,customer:entities.get(r.jobs?.customer_id)||null,references:refsBy.get(r.id)||[],topCargo:cargoBy.get(r.job_id)||[],parties:partiesBy.get(r.id)||{}}));
+}
+function cargoSummary(rows){if(!rows?.length)return'No cargo';const by={};for(const r of rows){const t=r.package_type||'Cargo';by[t]=(by[t]||0)+Number(r.quantity||0)}return Object.entries(by).map(([k,v])=>`${v} ${k}`).join(' · ')}
+function primaryRef(r){const p=r.references.find(x=>x.is_primary)||r.references[0];return p?`${p.reference_type}: ${p.reference_value}`:(r.jobs?.reference||'—')}
+function partyName(r,role){return r.parties?.[role]?.name||(role==='customer'?r.customer?.name:'')||'—'}
+const columns=[
+ {key:'wr',label:'WR #',width:'180px',value:r=>r.receipt_number,render:r=>`<b>${esc(r.receipt_number)}</b><small>${esc(r.jobs?.job_number||'')}</small>`},
+ {key:'customer',label:'Customer',width:'160px',value:r=>partyName(r,'customer')},
+ {key:'shipper',label:'Shipper',width:'150px',value:r=>partyName(r,'shipper')},
+ {key:'consignee',label:'Consignee',width:'150px',value:r=>partyName(r,'consignee')},
+ {key:'reference',label:'Reference',width:'190px',value:r=>primaryRef(r)},
+ {key:'cargo',label:'Cargo',width:'140px',value:r=>cargoSummary(r.topCargo)},
+ {key:'status',label:'Status',width:'110px',value:r=>r.status,render:r=>`<span class="status-pill ${esc(r.status)}">${esc(r.status)}</span>`},
+ {key:'date',label:'Date',width:'120px',value:r=>fmtDate(r.created_at)}
+];
+
+export async function warehouseReceiptList(){
+ shell('Warehouse','Warehouse Receipts',`<div class="context-bar"><div><b>Saved receipts</b><small class="muted">One WR experience for create, view and edit.</small></div><div class="context-actions"><button class="secondary compact-btn" id="wr-refresh">↻ Refresh</button><button class="primary compact-btn" id="wr-create-new">＋ New Receipt</button></div></div><div id="wr-table-wrap"><p class="muted">Loading saved receipts…</p></div>`);
+ document.getElementById('wr-create-new').onclick=()=>window.nodaraReceive?.();document.getElementById('wr-refresh').onclick=warehouseReceiptList;
+ try{const rows=await getReceipts();mountDataView({container:document.getElementById('wr-table-wrap'),key:'warehouse_receipts',rows,columns,defaultColumns:['wr','customer','shipper','consignee','reference','cargo','status','date'],onOpen:r=>warehouseReceiptOpen(r.id),searchText:r=>[r.receipt_number,partyName(r,'customer'),partyName(r,'shipper'),partyName(r,'consignee'),r.jobs?.description,...r.references.map(x=>x.reference_value)].filter(Boolean).join(' '),selectionActions:[{label:'Open',single:true,handler:s=>warehouseReceiptOpen(s[0].id)},{label:'Delete',single:true,danger:true,handler:s=>deleteWRModern({wr:s[0],onDeleted:warehouseReceiptList})}]})}catch(e){document.getElementById('wr-table-wrap').innerHTML=`<div class="notice warning">${esc(e.message)}</div>`}
+}
+
+export async function warehouseReceiptOpen(id){
+ try{const rows=await getReceipts(),wr=rows.find(x=>x.id===id);if(!wr)throw new Error('Warehouse receipt not found');await openWRUnified({wr,onDone:()=>warehouseReceiptOpen(id),onCancel:warehouseReceiptList})}catch(e){shell('Warehouse Receipt','Could not open record',`<div class="notice warning">${esc(e.message)}</div><button class="secondary wide" id="wr-back-failed">Back</button>`);document.getElementById('wr-back-failed').onclick=warehouseReceiptList}
+}
+
+window.nodaraWRList=warehouseReceiptList;
+window.nodaraWROpen=warehouseReceiptOpen;
