@@ -1,7 +1,7 @@
 import { supabase } from './supabase-client.js';
 import { openWRDocuments } from './wr-documents.js?v=20260901-2240';
 import { openWRCharges } from './wr-charges.js?v=20260901-2240';
-import { openWREdit, deleteWR } from './wr-edit-actions.js?v=20260901-2240';
+import { openWREdit, deleteWR } from './wr-edit-actions.js?v=20260905-2145';
 import { mountDataView } from './data-view.js?v=20260902-0035';
 import { generateWRPDF } from './transaction-pdf.js?v=20260902-0035';
 import { printReceivingLabels } from './receiving-labels.js?v=20260902-0225';
