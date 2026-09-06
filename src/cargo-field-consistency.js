@@ -1,5 +1,23 @@
 const main=document.getElementById('main');
-function findNode(root,id){if(!root)return null;if(root.id===id)return root;for(const c of root.children||[]){const f=findNode(c,id);if(f)return f}return null}
-function syncMeta(){const draft=window.__nodaraCargoDraftDetails;if(!draft?.roots)return;for(const box of document.querySelectorAll('[data-cargo-node-meta]')){const id=box.dataset.cargoNodeMeta;let n=null;for(const r of draft.roots){n=findNode(r,id);if(n)break}if(!n)continue;const g=k=>box.querySelector(`[data-meta="${k}"]`)?.value?.trim?.()||'';n.part_number=g('part_number')||null;n.sku=g('sku')||null;n.barcode=g('barcode')||null;n.metadata={...(n.metadata||{}),part_number:n.part_number,sku:n.sku,barcode:n.barcode};delete n.inventory_quantity;delete n.inventory_uom;if(n.metadata){delete n.metadata.inventory_quantity;delete n.metadata.inventory_uom}}}
-function enhanceWR(){const cargo=document.getElementById('cargo');if(!cargo?.querySelector('.cargo-hierarchy-v3'))return;for(const node of cargo.querySelectorAll('.cargo-tree-node')){const measures=node.querySelector('.cargo-node-grid.measures');if(measures){for(const field of measures.querySelectorAll('.field')){const label=field.querySelector('label')?.textContent?.trim();if(label==='Piece unit'||label==='UOM'||label==='Units')field.style.display='none'}}const id=node.querySelector('[id^="cv3-"][id$="-type"]')?.id?.replace(/^cv3-/,'').replace(/-type$/,'');if(!id)continue;let meta=node.querySelector('[data-cargo-node-meta]');if(!meta){const primary=node.querySelector('.cargo-node-grid.primary');meta=document.createElement('div');meta.className='cargo-node-grid cargo-product-meta';meta.dataset.cargoNodeMeta=id;meta.innerHTML=`<div class="field"><label>Part number</label><input data-meta="part_number" placeholder="Optional"></div><div class="field"><label>SKU</label><input data-meta="sku" placeholder="Optional"></div><div class="field"><label>Barcode</label><input data-meta="barcode" placeholder="Optional"></div>`;primary?.insertAdjacentElement('afterend',meta)}else{for(const field of meta.querySelectorAll('.field')){const label=field.querySelector('label')?.textContent?.trim();if(label==='Units'||label==='UOM')field.remove()}}meta.querySelectorAll('input,select').forEach(x=>{x.addEventListener('input',syncMeta);x.addEventListener('change',syncMeta)})}}
-window.addEventListener('nodara:cargo-totals',()=>{enhanceWR();syncMeta()});new MutationObserver(()=>enhanceWR()).observe(main,{childList:true,subtree:true});setTimeout(enhanceWR,500);
+
+// The canonical WR hierarchy already owns Part number / SKU / Barcode fields.
+// This compatibility enhancer now only removes legacy duplicate metadata blocks
+// and hides obsolete unit fields. It intentionally does not inject fields or
+// attach mutation-driven input listeners.
+function cleanCargoFields(){
+  const cargo=document.getElementById('cargo');
+  if(!cargo?.querySelector('.cargo-hierarchy-v3'))return;
+  for(const node of cargo.querySelectorAll('.cargo-tree-node')){
+    const nativeMeta=node.querySelector('.cargo-product-meta:not([data-cargo-node-meta])');
+    node.querySelectorAll('[data-cargo-node-meta]').forEach(box=>{ if(nativeMeta) box.remove(); });
+    const measures=node.querySelector('.cargo-node-grid.measures');
+    if(measures){
+      for(const field of measures.querySelectorAll('.field')){
+        const label=field.querySelector('label')?.textContent?.trim();
+        if(['Piece unit','UOM','Units'].includes(label))field.style.display='none';
+      }
+    }
+  }
+}
+window.addEventListener('nodara:cargo-hierarchy-rendered',cleanCargoFields);
+setTimeout(cleanCargoFields,500);
