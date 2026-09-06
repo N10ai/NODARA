@@ -1,6 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { mountDataView } from './data-view.js?v=20260902-0035';
-import { openWRUnified } from './wr-unified-editor.js?v=20260906-1300';
+import { openWRUnified } from './wr-unified-editor.js?v=20260906-1320';
 import { deleteWRModern } from './wr-edit-modern.js?v=20260906-0915';
 
 const main=document.getElementById('main');
