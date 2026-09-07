@@ -2,7 +2,7 @@ import { supabase } from './supabase-client.js';
 import { loadTransactionReadModel, transactionCargoSummary } from './transaction-read-model.js?v=20260907-2';
 
 const main=document.getElementById('main');
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>v?new Date(v).toLocaleString():'—';
 const n=(v,d=2)=>Number(v||0).toLocaleString(undefined,{maximumFractionDigits:d});
 const money=(v,c='USD')=>new Intl.NumberFormat(undefined,{style:'currency',currency:c||'USD'}).format(Number(v||0));
