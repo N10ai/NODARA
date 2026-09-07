@@ -1,2 +1,2 @@
-export { listCR, createCR, openCR } from './cargo-releases-core-v2.js?v=20260906-core5';
-import './cargo-releases-core-v2.js?v=20260906-core5';
+export { listCR, createCR, openCR } from './cargo-releases-stable.js?v=20260907-stable1';
+import './cargo-releases-stable.js?v=20260907-stable1';
