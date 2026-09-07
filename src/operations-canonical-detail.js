@@ -2,13 +2,13 @@ import { supabase } from './supabase-client.js';
 import { loadTransactionReadModel, transactionCargoSummary } from './transaction-read-model.js?v=20260907-2';
 
 const main=document.getElementById('main');
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
 const fmt=v=>v?new Date(v).toLocaleString():'—';
 const n=(v,d=2)=>Number(v||0).toLocaleString(undefined,{maximumFractionDigits:d});
 const money=(v,c='USD')=>new Intl.NumberFormat(undefined,{style:'currency',currency:c||'USD'}).format(Number(v||0));
 const label=s=>String(s||'').replaceAll('_',' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 
-function partyName(p){return p?.entity_name_snapshot||p?.name_snapshot||p?.display_name||p?.entity?.name||'—'}
+function partyName(p){return p?.party_name_snapshot||p?.entity_name_snapshot||p?.name_snapshot||p?.display_name||p?.entity?.name||'—'}
 function refValue(r){return r?.reference_value||r?.value||'—'}
 function noteText(x){return x?.body||x?.note_text||x?.content||x?.text||''}
 
@@ -20,7 +20,7 @@ export function renderCanonicalContract(model){
  const cargo=transactionCargoSummary(model);
  const partyHtml=parties.length?`<div class="detail-grid">${parties.map(p=>`<div><span>${esc(label(p.role_code))}</span><b>${esc(partyName(p))}</b></div>`).join('')}</div>`:empty('No canonical parties.');
  const refHtml=refs.length?`<div class="detail-grid">${refs.map(r=>`<div><span>${esc(label(r.reference_type))}</span><b>${esc(refValue(r))}</b></div>`).join('')}</div>`:empty('No references.');
- const milestoneHtml=milestones.length?`<div class="detail-grid">${milestones.map(m=>`<div><span>${esc(label(m.milestone_type||m.milestone_code))} · ${esc(label(m.basis))}</span><b>${esc(fmt(m.milestone_at||m.milestone_date))}</b></div>`).join('')}</div>`:empty('No milestones yet.');
+ const milestoneHtml=milestones.length?`<div class="detail-grid">${milestones.map(m=>`<div><span>${esc(label(m.label||m.milestone_type||m.milestone_code))} · ${esc(label(m.time_basis||m.basis))}</span><b>${esc(fmt(m.milestone_at||m.milestone_date))}</b></div>`).join('')}</div>`:empty('No milestones yet.');
  const cargoHtml=`<div class="detail-grid"><div><span>Handling quantity</span><b>${n(cargo.handlingQuantity,3)}</b></div><div><span>Gross weight</span><b>${n(cargo.grossWeightKg,3)} KG</b></div><div><span>Volume</span><b>${n(cargo.volumeCbm,6)} CBM</b></div><div><span>Current calculations</span><b>${calcs.length}</b></div></div>`;
  const commercialHtml=`<div class="detail-grid"><div><span>Documents</span><b>${docs.length}</b></div><div><span>Charges</span><b>${charges.length}</b></div><div><span>Sell total</span><b>${money(charges.reduce((s,x)=>s+Number(x.sell_amount??x.amount??0),0),charges[0]?.currency||'USD')}</b></div><div><span>Relationships</span><b>${rels.length}</b></div></div>`;
  const noteHtml=notes.length?notes.map(x=>`<div class="notice"><b>${esc(label(x.note_type||'NOTE'))}</b>${x.visibility?` · <small>${esc(label(x.visibility))}</small>`:''}<div>${esc(noteText(x))}</div></div>`).join(''):empty('No canonical notes.');
