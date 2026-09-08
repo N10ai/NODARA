@@ -54,6 +54,6 @@ new MutationObserver(()=>setTimeout(()=>tick(),100)).observe(main,{childList:tru
 setTimeout(()=>tick(true),800);
 
 setTimeout(()=>{
-  if(!document.querySelector('link[data-txw-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./transaction-workspace.css?v=20260907-workspace3';l.dataset.txwCss='1';document.head.appendChild(l)}
-  import('./transaction-workspace-shell.js?v=20260907-workspace3').catch(e=>console.warn('[NODARA] optional transaction workspace did not load',e));
+  if(!document.querySelector('link[data-txw-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./transaction-workspace.css?v=20260907-workspace4';l.dataset.txwCss='1';document.head.appendChild(l)}
+  import('./transaction-workspace-shell.js?v=20260907-workspace4').catch(e=>console.warn('[NODARA] optional transaction workspace did not load',e));
 },1200);
