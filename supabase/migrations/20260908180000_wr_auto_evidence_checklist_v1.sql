@@ -1,0 +1,21 @@
+create or replace function public.nodara_wr_auto_checklist(p_transaction_id uuid)
+returns jsonb language plpgsql security definer set search_path=public as $$
+declare v_tx transactions%rowtype; v_wr warehouse_receipts%rowtype; v_op jsonb; v_docs int; v_bol int; v_photos int; v_roots int; v_measured int; v_located int; v_scan int; v_items jsonb; v_complete text[]:=array[]::text[];
+begin
+ select * into v_tx from transactions where id=p_transaction_id and transaction_type='WAREHOUSE_RECEIPT'; if not found then raise exception 'WR transaction not found'; end if;
+ select * into v_wr from warehouse_receipts where id=v_tx.domain_record_id; v_op=coalesce(v_tx.operational_data,'{}');
+ select count(*) into v_docs from documents where transaction_id=v_tx.id and coalesce(is_current,true);
+ select count(*) into v_bol from documents where transaction_id=v_tx.id and coalesce(is_current,true) and upper(coalesce(document_type,category,'')) in ('BOL','BILL_OF_LADING');
+ select count(*) into v_photos from documents where transaction_id=v_tx.id and coalesce(is_current,true) and (upper(coalesce(category,''))='PHOTO' or photo_view is not null);
+ select count(*) into v_roots from cargo_units where job_id=v_wr.job_id and parent_id is null;
+ select count(*) into v_measured from cargo_units where job_id=v_wr.job_id and parent_id is null and weight_lb>0 and length_in>0 and width_in>0 and height_in>0;
+ select count(*) into v_located from cargo_units where job_id=v_wr.job_id and parent_id is null and coalesce(warehouse_location_id,current_location_id) is not null;
+ select count(*) into v_scan from workflow_events where warehouse_receipt_id=v_wr.id and event_type in ('PUTAWAY_SCAN_VERIFIED','LOCATION_SCAN_VERIFIED');
+ v_items=jsonb_build_array(
+  jsonb_build_object('code','DRIVER','label','Driver identified','step','CHECK_IN','complete',coalesce(v_op->>'driver_name','')<>''),jsonb_build_object('code','DRIVER_ID','label','Driver ID verified','step','CHECK_IN','complete',coalesce(v_op->>'driver_id','')<>''),jsonb_build_object('code','STA','label','STA verified / not required','step','CHECK_IN','complete',coalesce(v_op->>'sta_status','') in ('VERIFIED','NOT_REQUIRED')),jsonb_build_object('code','TIME_IN','label','Time in captured','step','CHECK_IN','complete',coalesce(v_op->>'time_in','')<>''),jsonb_build_object('code','BOL','label','BOL captured','step','INSPECT','complete',coalesce(v_op->>'bol','')<>'' or v_bol>0),jsonb_build_object('code','CARGO','label','Cargo recorded','step','RECEIVE','complete',v_roots>0),jsonb_build_object('code','MEASURED','label','Top-level cargo measured','step','RECEIVE','complete',v_roots>0 and v_measured=v_roots),jsonb_build_object('code','PHOTOS','label','Cargo photos captured','step','RECEIVE','complete',v_photos>=greatest(v_roots*4,4),'detail',v_photos||' / '||greatest(v_roots*4,4)),jsonb_build_object('code','LOCATION','label','Location assigned','step','PUT_AWAY','complete',v_roots>0 and v_located=v_roots),jsonb_build_object('code','SCAN','label','Put-away scan verified','step','PUT_AWAY','complete',v_roots>0 and v_scan>=v_roots),jsonb_build_object('code','DOCS','label','Documents on file','step','NOTIFY','complete',v_docs>0),jsonb_build_object('code','TIME_OUT','label','Time out captured','step','NOTIFY','complete',coalesce(v_op->>'time_out','')<>'')
+ );
+ select coalesce(array_agg(distinct x->>'step'),'{}') into v_complete from jsonb_array_elements(v_items) x where (x->>'complete')::boolean and not exists(select 1 from jsonb_array_elements(v_items) y where y->>'step'=x->>'step' and not (y->>'complete')::boolean);
+ insert into workflow_progress(organization_id,transaction_type,transaction_id,completed_steps,updated_at) values(v_tx.organization_id,'WAREHOUSE_RECEIPT',v_tx.domain_record_id,to_jsonb(v_complete),now()) on conflict(organization_id,transaction_type,transaction_id) do update set completed_steps=excluded.completed_steps,updated_at=now();
+ return jsonb_build_object('items',v_items,'completed_steps',to_jsonb(v_complete),'complete_count',(select count(*) from jsonb_array_elements(v_items) x where (x->>'complete')::boolean),'total_count',jsonb_array_length(v_items));
+end $$;
+grant execute on function public.nodara_wr_auto_checklist(uuid) to authenticated;
