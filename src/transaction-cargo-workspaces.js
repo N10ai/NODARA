@@ -46,24 +46,14 @@ async function tick(force=false){
   if(busy||!main)return;
   const sig=screenSignature();
   if(!force&&sig===lastScreen&&main.querySelector('[data-canonical-cargo]'))return;
-  lastScreen=sig;
-  busy=true;
-  try{
-    hideLegacyTotals();
-    if(!sig){lastKey='';return}
-    if(main.querySelector('[data-canonical-cargo]'))return;
-    await mountShipment()||await mountTransport();
-  }catch(e){if(!/does not exist|schema cache/i.test(e?.message||''))console.warn('Transaction cargo workspace',e)}finally{busy=false}
+  lastScreen=sig;busy=true;
+  try{hideLegacyTotals();if(!sig){lastKey='';return}if(main.querySelector('[data-canonical-cargo]'))return;await mountShipment()||await mountTransport()}catch(e){if(!/does not exist|schema cache/i.test(e?.message||''))console.warn('Transaction cargo workspace',e)}finally{busy=false}
 }
 
-// Only react to top-level screen replacement. Nested table/editor mutations should
-// never trigger another transaction lookup.
 new MutationObserver(()=>setTimeout(()=>tick(),100)).observe(main,{childList:true});
 setTimeout(()=>tick(true),800);
 
-// Unified transaction workspace is deliberately lazy/non-critical. A failure here
-// must never prevent the core application from booting.
 setTimeout(()=>{
-  if(!document.querySelector('link[data-txw-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./transaction-workspace.css?v=20260907-workspace2';l.dataset.txwCss='1';document.head.appendChild(l)}
-  import('./transaction-workspace-shell.js?v=20260907-workspace2').catch(e=>console.warn('[NODARA] optional transaction workspace did not load',e));
+  if(!document.querySelector('link[data-txw-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./transaction-workspace.css?v=20260907-workspace3';l.dataset.txwCss='1';document.head.appendChild(l)}
+  import('./transaction-workspace-shell.js?v=20260907-workspace3').catch(e=>console.warn('[NODARA] optional transaction workspace did not load',e));
 },1200);
