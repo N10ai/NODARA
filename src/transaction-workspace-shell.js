@@ -1,0 +1,85 @@
+import { supabase } from './supabase-client.js';
+import { loadTransactionReadModel, transactionCargoSummary, primaryParty } from './transaction-read-model.js?v=20260907-workspace1';
+
+const main=document.getElementById('main');
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const label=v=>String(v||'').replaceAll('_',' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+const fmt=v=>v?new Date(v).toLocaleString():'—';
+const n=(v,d=2)=>Number(v||0).toLocaleString(undefined,{maximumFractionDigits:d});
+const partyName=p=>p?.party_name_snapshot||p?.contact_snapshot?.name||'—';
+const refText=r=>r?.reference_value||'—';
+
+async function identify(){
+  if(!main)return null;
+  if(main.dataset.wrCore==='1'){
+    const number=main.querySelector('.wr-modern-title .title')?.textContent?.trim();
+    if(!number||number==='New Warehouse Receipt')return null;
+    const{data}=await supabase.from('warehouse_receipts').select('id,receipt_number,status').eq('receipt_number',number).maybeSingle();
+    return data?{type:'WAREHOUSE_RECEIPT',id:data.id,number:data.receipt_number,status:data.status,kind:'Warehouse Receipt'}:null;
+  }
+  if(main.querySelector('#crc-back')&&main.querySelector('.record-number')){
+    const number=main.querySelector('.record-number')?.textContent?.trim();
+    const{data}=await supabase.from('cargo_releases').select('id,release_number,status').eq('release_number',number).maybeSingle();
+    return data?{type:'CARGO_RELEASE',id:data.id,number:data.release_number,status:data.status,kind:'Cargo Release'}:null;
+  }
+  const eye=main.querySelector('.record-header .eyebrow')?.textContent?.trim()||'';
+  const number=main.querySelector('.record-header .title')?.textContent?.trim();
+  if(!number||!eye.startsWith('Operations ·'))return null;
+  const subtype=eye.split('·').pop().trim().toUpperCase();
+  if(['AIR','OCEAN','GROUND'].includes(subtype)){
+    const{data}=await supabase.from('shipments').select('id,shipment_number,status,mode').eq('shipment_number',number).maybeSingle();
+    return data?{type:'SHIPMENT',id:data.id,number:data.shipment_number,status:data.status,kind:`${label(data.mode)} Shipment`}:null;
+  }
+  if(['PICKUP','DELIVERY','TRANSFER','DRAYAGE'].includes(subtype)){
+    const{data}=await supabase.from('transport_orders').select('id,order_number,status,order_type').eq('order_number',number).maybeSingle();
+    return data?{type:'TRANSPORT_ORDER',id:data.id,number:data.order_number,status:data.status,kind:label(data.order_type)}:null;
+  }
+  return null;
+}
+
+function primaryReference(model){const rs=model?.references||[];return rs.find(x=>x.is_primary)||rs[0]||null}
+function nextMilestone(model){const ms=model?.milestones||[];const now=Date.now();return ms.find(x=>x.milestone_at&&new Date(x.milestone_at).getTime()>=now)||ms[0]||null}
+function card(k,v,small=''){return `<div class="txw-card"><span>${esc(k)}</span><b>${esc(v??'—')}</b>${small?`<small>${esc(small)}</small>`:''}</div>`}
+function row(a,b,small=''){return `<div class="txw-row"><div><b>${esc(a)}</b>${small?`<small>${esc(small)}</small>`:''}</div><div>${esc(b??'—')}</div></div>`}
+function empty(t){return `<div class="txw-empty">${esc(t)}</div>`}
+
+function overview(model){
+  const customer=primaryParty(model,'CUSTOMER'),ref=primaryReference(model),m=nextMilestone(model),docs=model?.documents?.items||[],charges=model?.charges||[],reqs=model?.requirements||[];
+  return `<div class="txw-grid">${card('Customer',partyName(customer))}${card('Primary reference',ref?`${label(ref.reference_type)} · ${refText(ref)}`:'—')}${card('Next milestone',m?(m.label||label(m.milestone_code)):'—',m?fmt(m.milestone_at||m.milestone_date):'')}${card('Documents / Charges',`${docs.length} docs · ${charges.length} charges`)}${card('Requirements',reqs.length?`${reqs.length} active`:'None')}${card('Relationships',(model?.relationships||[]).length)}</div>`;
+}
+function parties(model){const ps=model?.parties||[],rs=model?.references||[];return `<div class="txw-grid"><div class="txw-card"><span>Parties</span>${ps.length?`<div class="txw-list">${ps.map(p=>row(label(p.role_code),partyName(p),p.is_primary?'Primary':'')).join('')}</div>`:empty('No parties.')}</div><div class="txw-card"><span>References</span>${rs.length?`<div class="txw-list">${rs.map(r=>row(label(r.reference_type),refText(r),r.is_primary?'Primary':'')).join('')}</div>`:empty('No references.')}</div></div>`}
+function cargo(model){const t=transactionCargoSummary(model),xs=model?.cargo||[];return `<div class="txw-grid">${card('Handling quantity',n(t.handlingQuantity,3))}${card('Gross weight',`${n(t.grossWeightKg,3)} KG`)}${card('Volume',`${n(t.volumeCbm,6)} CBM`)}${card('Cargo records',xs.length)}</div><div class="txw-card" style="margin-top:10px"><span>Cargo / Items</span>${xs.length?`<div class="txw-list">${xs.slice(0,20).map(x=>{const c=x.cargo_object||{},q=x.allocated_quantity??c.quantity??0,u=x.uom||c.uom||c.package_type||'';return row(c.metadata?.part_number||c.metadata?.sku||c.description||c.cargo_code||c.package_type||'Cargo',`${n(q,3)} ${u}`,x.source==='CARGO_RELEASE_LINE'?'Release allocation':label(c.status||''))}).join('')}</div>`:empty('No cargo on this transaction.')}</div>`}
+function documents(model){const ds=model?.documents?.items||[];return ds.length?`<div class="txw-list">${ds.map(d=>row(d.display_name||d.file_name||d.document_type||'Document',label(d.document_type||d.category||''),d.status||'')).join('')}</div>`:empty('No documents.')}
+function charges(model){const xs=model?.charges||[];return xs.length?`<div class="txw-list">${xs.map(c=>row(c.description||c.service_code||c.unit||'Charge',`${Number(c.sell_amount||0).toLocaleString()} ${c.currency||'USD'}`,label(c.status||c.billing_status||''))).join('')}</div>`:empty('No charges.')}
+function notes(model){const xs=model?.notes||[];return xs.length?`<div class="txw-list">${xs.map(x=>row(label(x.note_type||'Note'),x.body||'',label(x.visibility||''))).join('')}</div>`:empty('No notes.')}
+function activity(model){const xs=model?.activity||[];return xs.length?`<div class="txw-list">${xs.slice(0,50).map(x=>row(x.summary||label(x.event_type||'Activity'),fmt(x.occurred_at),[label(x.domain||''),label(x.source_type||'')].filter(Boolean).join(' · '))).join('')}</div>`:empty('No activity recorded yet.')}
+function execution(model,ctx){const m=nextMilestone(model);return `<div class="txw-grid">${card('Execution type',ctx.kind)}${card('Status',ctx.status)}${card('Next operational time',m?fmt(m.milestone_at||m.milestone_date):'—')}${card('Workflow requirements',(model?.requirements||[]).filter(x=>x.blocking).length?'Action required':'Clear')}</div><div class="txw-empty">Domain-specific execution remains in the working area below: ${esc(ctx.type==='WAREHOUSE_RECEIPT'?'receiving, measurement, put-away and custody':ctx.type==='CARGO_RELEASE'?'allocation, picking and physical release':ctx.type==='SHIPMENT'?'routing, booking, carrier and forwarding execution':'pickup, delivery, drayage and dispatch execution')}.</div>`}
+
+const renderers={overview,parties,cargo,documents,charges,notes,activity};
+function renderShell(ctx,model){
+  const t=transactionCargoSummary(model),customer=primaryParty(model,'CUSTOMER'),ref=primaryReference(model),m=nextMilestone(model);
+  const shell=document.createElement('section');shell.className='txw-shell';shell.dataset.txwShell=`${ctx.type}:${ctx.id}`;
+  shell.innerHTML=`<div class="txw-top"><div><div class="txw-kicker">${esc(ctx.kind)}</div><h1 class="txw-title">${esc(ctx.number)}</h1><div class="txw-sub">${esc(partyName(customer))}${ref?` · ${esc(label(ref.reference_type))} ${esc(refText(ref))}`:''}</div></div><span class="txw-status">${esc(ctx.status||model?.transaction?.status_projection||'')}</span></div><div class="txw-metrics"><div class="txw-metric"><span>Cargo</span><b>${n(t.handlingQuantity,3)}</b></div><div class="txw-metric"><span>Gross weight</span><b>${n(t.grossWeightKg,3)} KG</b></div><div class="txw-metric"><span>Volume</span><b>${n(t.volumeCbm,4)} CBM</b></div><div class="txw-metric"><span>Next</span><b>${esc(m?(m.label||label(m.milestone_code)):'—')}</b></div></div><div class="txw-tabs">${['overview','parties','cargo','execution','documents','charges','notes','activity'].map((x,i)=>`<button class="txw-tab ${i===0?'active':''}" data-txw-tab="${x}">${label(x)}</button>`).join('')}</div><div class="txw-panel" data-txw-panel>${overview(model)}</div>`;
+  shell.querySelectorAll('[data-txw-tab]').forEach(b=>b.onclick=()=>{shell.querySelectorAll('[data-txw-tab]').forEach(x=>x.classList.toggle('active',x===b));const tab=b.dataset.txwTab;shell.querySelector('[data-txw-panel]').innerHTML=tab==='execution'?execution(model,ctx):(renderers[tab]?.(model)||overview(model));if(tab==='cargo')main.querySelector('[data-canonical-cargo]')?.scrollIntoView({behavior:'smooth',block:'center'})});
+  return shell;
+}
+
+let busy=false,last='';
+async function enhance(){
+  if(busy||!main)return;busy=true;
+  try{
+    const ctx=await identify();
+    if(!ctx){main.querySelector('.txw-shell')?.remove();last='';return}
+    const key=`${ctx.type}:${ctx.id}`;
+    if(last===key&&main.querySelector(`[data-txw-shell="${key}"]`))return;
+    const model=await loadTransactionReadModel(ctx.type,ctx.id);if(!model)return;
+    main.querySelector('.txw-shell')?.remove();
+    const shell=renderShell(ctx,model);
+    const anchor=main.querySelector('.record-commandbar,.context-bar,[data-wr-core] > .record-commandbar')||main.firstElementChild;
+    if(anchor)anchor.insertAdjacentElement('afterend',shell);else main.prepend(shell);
+    last=key;
+  }catch(error){console.warn('[NODARA] transaction workspace enhancement unavailable',error)}finally{busy=false}
+}
+let timer;function schedule(){clearTimeout(timer);timer=setTimeout(enhance,180)}
+if(main){new MutationObserver(schedule).observe(main,{childList:true,subtree:true});setTimeout(enhance,900)}
+window.nodaraTransactionWorkspace={refresh:enhance};
