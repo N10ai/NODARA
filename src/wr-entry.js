@@ -1,5 +1,4 @@
 import { openWRCoreV2 } from './wr-core-editor-v2.js?v=20260906-core3';
-import './warehouse-canonical-detail.js?v=20260907-1';
 
 async function openCreatedReceipt(result){
  const id=result?.warehouse_receipt_id||result?.id;
