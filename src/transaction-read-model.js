@@ -14,7 +14,8 @@ export async function resolveRegistryTransaction(transactionType,domainRecordId)
 }
 
 export async function loadTransactionReadModelById(registryTransactionId){
-  const{data,error}=await supabase.rpc('nodara_get_transaction_read_model',{p_transaction_id:registryTransactionId});
+  let{data,error}=await supabase.rpc('nodara_get_transaction_workspace',{p_transaction_id:registryTransactionId});
+  if(error&&/does not exist|schema cache/i.test(error.message||''))({data,error}=await supabase.rpc('nodara_get_transaction_read_model',{p_transaction_id:registryTransactionId}));
   if(error)throw error;
   return data||null;
 }
