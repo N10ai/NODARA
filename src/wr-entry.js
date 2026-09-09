@@ -5,6 +5,7 @@ import './wr-execution-tools-v6.js?v=20260909-v6a';
 import './wr-unified-receiving-v8.js?v=20260909-v8a';
 import './wr-part-link-v8.js?v=20260909-v8a';
 import './wr-cargo-nav-v8.js?v=20260909-v8a';
+import './wr-capture-bridge-v8.js?v=20260909-v8a';
 import './settings-system.js?v=20260908-settings1';
 import { openWRCreateEditor } from './wr-create-editor.js?v=20260909-flow1';
 
