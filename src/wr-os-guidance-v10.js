@@ -1,0 +1,3 @@
+const main=document.getElementById('main');
+document.addEventListener('click',e=>{if(main?.dataset?.wrCanonical!=='1')return;if(e.target.closest?.('#wros-unload-complete'))sessionStorage.setItem('nodara_wr_next_surface','evidence')},true);
+let t;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(()=>{if(main?.dataset?.wrCanonical!=='1')return;const next=sessionStorage.getItem('nodara_wr_next_surface');if(!next)return;const b=main.querySelector(`[data-step="${next}"]`);if(!b)return;sessionStorage.removeItem('nodara_wr_next_surface');b.click()},80)}).observe(main,{childList:true,subtree:true});
