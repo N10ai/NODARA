@@ -1,17 +1,18 @@
 import './wr-mobile-operations-v3.js?v=20260908-visit1';
+import './wr-workspace-polish-v4.js?v=20260908-v4a';
 import './settings-system.js?v=20260908-settings1';
-import { openWRCreateEditor } from './wr-create-editor.js?v=20260908-native3';
+import { openWRCreateEditor } from './wr-create-editor.js?v=20260908-v4a';
 
 async function openCreatedReceipt(result){
  const id=result?.warehouse_receipt_id||result?.id;
- const mod=await import('./wr-records-unified.js?v=20260908-native3');
+ const mod=await import('./wr-records-unified.js?v=20260908-v4a');
  if(id)return mod.warehouseReceiptOpen(id);
  return mod.warehouseReceiptList();
 }
 async function openEditor(){
  window.nodaraSetActive?.('wr');
  window.__nodaraCargoDraftDetails=null;
- await openWRCreateEditor({onDone:openCreatedReceipt,onCancel:async()=>{const mod=await import('./wr-records-unified.js?v=20260908-native3');return mod.warehouseReceiptList();}});
+ await openWRCreateEditor({onDone:openCreatedReceipt,onCancel:async()=>{const mod=await import('./wr-records-unified.js?v=20260908-v4a');return mod.warehouseReceiptList();}});
 }
 window.nodaraReceive=openEditor;
 window.nodaraNewReceipt=openEditor;
