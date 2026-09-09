@@ -1,6 +1,7 @@
 import './wr-media-components-v9.js?v=20260909-v10';
 import './wr-document-scanner-v9b.js?v=20260909-v10';
 import './wr-signature-component-v9.js?v=20260909-v10';
+import './wr-os-guard-v10.js?v=20260909-v10b';
 import './settings-system.js?v=20260908-settings1';
 import { openNewWarehouseReceipt, openWarehouseReceipt } from './wr-receiving-os-v10.js?v=20260909-v10';
 
