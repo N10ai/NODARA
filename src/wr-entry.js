@@ -6,6 +6,9 @@ import './wr-unified-receiving-v8.js?v=20260909-v8a';
 import './wr-part-link-v8.js?v=20260909-v8a';
 import './wr-cargo-nav-v8.js?v=20260909-v8a';
 import './wr-capture-bridge-v8.js?v=20260909-v8a';
+import './wr-media-components-v9.js?v=20260909-v9a';
+import './wr-signature-component-v9.js?v=20260909-v9a';
+import './wr-real-components-bridge-v9.js?v=20260909-v9a';
 import './settings-system.js?v=20260908-settings1';
 import { openWRCreateEditor } from './wr-create-editor.js?v=20260909-flow1';
 
