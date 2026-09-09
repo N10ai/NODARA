@@ -1,5 +1,4 @@
-import './wr-mobile-operations-v3.js?v=20260908-ops4';
-import './wr-checkin-hotfix.js?v=20260908-ops4';
+import './wr-mobile-operations-v3.js?v=20260908-visit1';
 import './settings-system.js?v=20260908-settings1';
 import { openWRCreateEditor } from './wr-create-editor.js?v=20260908-native3';
 
