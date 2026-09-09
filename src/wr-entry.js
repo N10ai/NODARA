@@ -1,3 +1,4 @@
+import './wr-mobile-operations-v3.js?v=20260908-ops3';
 import { openWRCreateEditor } from './wr-create-editor.js?v=20260908-native2';
 
 async function openCreatedReceipt(result){
