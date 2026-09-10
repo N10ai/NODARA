@@ -1,6 +1,6 @@
 import { supabase } from './supabase-client.js';
-import { parseIntent } from './ai-intent-engine.js';
-import { executeIntent,canExecuteIntent } from './ai-intent-executor.js';
+import { parseIntent } from './ai-intent-engine.js?v=20260910-ai2';
+import { executeIntent,canExecuteIntent } from './ai-intent-executor.js?v=20260910-ai2';
 
 const css=document.createElement('style');css.textContent=`
 @supports (-webkit-touch-callout:none){
