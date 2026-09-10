@@ -22,3 +22,4 @@ document.head.appendChild(style);
 function enhanceSheet(sheet){if(!sheet||sheet.dataset.aiTabPolished==='1')return;const primary=sheet.querySelector('.nodara-context-primary'),original=sheet.querySelector('.nodara-context-ai[data-nctx="chat"]');if(!primary||!original)return;const ai=document.createElement('button');ai.type='button';ai.className='nodara-ai-tab';ai.innerHTML='<i>N°<small>AI</small></i><b>AI</b>';ai.onclick=e=>{e.preventDefault();e.stopPropagation();original.click()};primary.appendChild(ai);sheet.dataset.aiTabPolished='1'}
 function scan(){document.querySelectorAll('.nodara-context-sheet').forEach(enhanceSheet)}
 new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});scan();
+import('./nodara-mobile-interaction-fix-v3.js?v=20260910-mobile3').catch(e=>console.warn('NODARA mobile interaction fix unavailable',e));
