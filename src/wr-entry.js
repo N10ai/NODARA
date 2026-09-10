@@ -16,6 +16,7 @@ async function loadOS(){
       import('./wr-cargo-hierarchy-v11.js?v=20260910-v11f').catch(e=>{console.warn('WR cargo hierarchy unavailable',e);return null}),
       import('./wr-units-settings-bridge-v11.js?v=20260910-v11f').catch(e=>{console.warn('WR unit settings bridge unavailable',e);return null}),
       import('./wr-context-actions-v11.js?v=20260910-v11f').catch(e=>{console.warn('WR contextual actions unavailable',e);return null}),
+      import('./wr-visual-polish-v12.js?v=20260910-v12a').catch(e=>{console.warn('WR visual polish unavailable',e);return null}),
       import('./wr-media-components-v9.js?v=20260910-v11f').catch(e=>{console.warn('WR media component unavailable',e);return null}),
       import('./wr-document-scanner-v9b.js?v=20260910-v11f').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
       import('./wr-signature-component-v9.js?v=20260910-v11f').catch(e=>{console.warn('WR signature unavailable',e);return null}),
