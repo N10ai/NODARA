@@ -1,6 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { mountDataView } from './data-view.js?v=20260902-0035';
-import { openWarehouseReceipt } from './wr-receiving-os-v10.js?v=20260909-v10';
+import { openWarehouseReceipt } from './wr-receiving-os-v11.js?v=20260909-v11a';
 
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
