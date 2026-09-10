@@ -11,11 +11,12 @@ function showLoadError(err){
 async function loadOS(){
   if(!osPromise){
     osPromise=Promise.all([
-      import('./wr-receiving-os-v11.js?v=20260909-v11a'),
-      import('./wr-media-components-v9.js?v=20260909-v11a').catch(e=>{console.warn('WR media component unavailable',e);return null}),
-      import('./wr-document-scanner-v9b.js?v=20260909-v11a').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
-      import('./wr-signature-component-v9.js?v=20260909-v11a').catch(e=>{console.warn('WR signature unavailable',e);return null}),
-      import('./wr-os-guard-v10.js?v=20260909-v11a').catch(e=>{console.warn('WR guard unavailable',e);return null})
+      import('./wr-receiving-os-v11.js?v=20260909-v11b'),
+      import('./wr-output-studio-v11.js?v=20260909-v11b').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
+      import('./wr-media-components-v9.js?v=20260909-v11b').catch(e=>{console.warn('WR media component unavailable',e);return null}),
+      import('./wr-document-scanner-v9b.js?v=20260909-v11b').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
+      import('./wr-signature-component-v9.js?v=20260909-v11b').catch(e=>{console.warn('WR signature unavailable',e);return null}),
+      import('./wr-os-guard-v10.js?v=20260909-v11b').catch(e=>{console.warn('WR guard unavailable',e);return null})
     ]).then(([os])=>os);
   }
   return osPromise;
