@@ -22,8 +22,10 @@ function listen(el,b){
 }
 function enhance(root=main){
  if(!root)return;
+ root.querySelectorAll('.wr11 .field-mic,.wr11-modal .field-mic').forEach(x=>x.remove());
  root.querySelectorAll('input:not([type="hidden"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]),textarea,select').forEach(el=>{
-  if(el.dataset.voiceField==='1'||el.closest('.voice-command-overlay,.tx-smart-menu'))return;
+  if(el.closest('.wr11,.wr11-modal,.voice-command-overlay,.tx-smart-menu'))return;
+  if(el.dataset.voiceField==='1')return;
   const parent=el.parentElement;if(!parent)return;el.dataset.voiceField='1';parent.classList.add('voice-field-wrap');const b=button();b.onclick=e=>{e.preventDefault();e.stopPropagation();listen(el,b)};parent.appendChild(b);
  });
 }
