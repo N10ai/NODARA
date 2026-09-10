@@ -8,8 +8,8 @@ function setValue(sel,value,{change=true,input=true}={}){const el=document.query
 function setSelectByValue(sel,value){const el=document.querySelector(sel);if(!el||!value)return false;const v=String(value),opt=[...el.options].find(o=>String(o.value).toUpperCase()===v.toUpperCase()||o.textContent.trim().toUpperCase().startsWith(v.toUpperCase()));if(!opt)return false;el.value=opt.value;el.dispatchEvent(new Event('change',{bubbles:true}));return true}
 function firstCargo(intent){return intent?.facts?.cargo?.[0]||null}
 function primaryReference(intent){return intent?.facts?.references?.[0]||(intent?.facts?.reference?{type:'REFERENCE',value:intent.facts.reference}:null)}
-const lb=(v,u)=>v==null?null:Number(u||'LB').toUpperCase()==='KG'?Number(v)*2.2046226218:Number(v);
-const inch=(v,u)=>v==null?null:Number(u||'IN').toUpperCase()==='CM'?Number(v)/2.54:Number(v);
+const lb=(v,u)=>v==null?null:String(u||'LB').toUpperCase()==='KG'?Number(v)*2.2046226218:Number(v);
+const inch=(v,u)=>v==null?null:String(u||'IN').toUpperCase()==='CM'?Number(v)/2.54:Number(v);
 const uomFor=t=>({PALLET:'PLT',SKID:'SKD',CRATE:'CRT',CARTON:'CTN',BOX:'BOX',DRUM:'DRM',BAG:'BAG',PIECE:'EA'}[String(t||'').toUpperCase()]||'EA');
 
 async function applyWR(result){
