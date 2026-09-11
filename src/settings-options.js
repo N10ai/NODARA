@@ -1,5 +1,5 @@
 import { OPTION_SETS,OPTION_LABELS,getOptionSet,saveOptionSet,resetOptionSet } from './configurable-options.js';
-import { openSystemSettings } from './system-settings.js?v=20260908-settings1';
+import { openSystemSettings } from './system-settings.js?v=20260911-workflows1';
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 if(!document.querySelector('link[data-nodara-system-settings]')){const l=document.createElement('link');l.rel='stylesheet';l.href='system-settings.css?v=20260908-settings1';l.dataset.nodaraSystemSettings='1';document.head.appendChild(l)}
