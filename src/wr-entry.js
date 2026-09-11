@@ -1,5 +1,8 @@
+import { supabase } from './supabase-client.js';
+
 const main=document.getElementById('main');
 let opening=false;
+let canonicalizing=false;
 let bundlePromise=null;
 
 function showLoadError(err){
@@ -13,15 +16,15 @@ function showLoadError(err){
 async function loadBundle(){
   if(!bundlePromise){
     bundlePromise=Promise.all([
-      import('./wr-receiving-os-v11.js?v=20260910-core17'),
-      import('./wr-canonical-v15.js?v=20260910-stable17'),
-      import('./wr-output-studio-v11.js?v=20260910-stable17').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
-      import('./wr-cargo-hierarchy-v11.js?v=20260910-stable17').catch(e=>{console.warn('WR cargo hierarchy unavailable',e);return null}),
-      import('./wr-units-settings-bridge-v11.js?v=20260910-stable17').catch(e=>{console.warn('WR unit settings bridge unavailable',e);return null}),
-      import('./wr-media-components-v9.js?v=20260910-stable17').catch(e=>{console.warn('WR media component unavailable',e);return null}),
-      import('./wr-document-scanner-v9b.js?v=20260910-stable17').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
-      import('./wr-signature-component-v9.js?v=20260910-stable17').catch(e=>{console.warn('WR signature unavailable',e);return null}),
-      import('./wr-os-guard-v10.js?v=20260910-stable17').catch(e=>{console.warn('WR guard unavailable',e);return null})
+      import('./wr-receiving-os-v11.js?v=20260910-core18'),
+      import('./wr-canonical-v15.js?v=20260910-stable18'),
+      import('./wr-output-studio-v11.js?v=20260910-stable18').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
+      import('./wr-cargo-hierarchy-v11.js?v=20260910-stable18').catch(e=>{console.warn('WR cargo hierarchy unavailable',e);return null}),
+      import('./wr-units-settings-bridge-v11.js?v=20260910-stable18').catch(e=>{console.warn('WR unit settings bridge unavailable',e);return null}),
+      import('./wr-media-components-v9.js?v=20260910-stable18').catch(e=>{console.warn('WR media component unavailable',e);return null}),
+      import('./wr-document-scanner-v9b.js?v=20260910-stable18').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
+      import('./wr-signature-component-v9.js?v=20260910-stable18').catch(e=>{console.warn('WR signature unavailable',e);return null}),
+      import('./wr-os-guard-v10.js?v=20260910-stable18').catch(e=>{console.warn('WR guard unavailable',e);return null})
     ]).then(([os,canonical])=>({os,canonical}));
   }
   return bundlePromise;
@@ -30,6 +33,28 @@ async function loadBundle(){
 function beginTransition(){
   document.body.classList.add('wr-canonical-loading');
   main.style.visibility='hidden';
+}
+
+async function mountCanonicalFromRenderedWR(){
+  if(opening||canonicalizing)return;
+  if(main.querySelector('.wr16'))return;
+  const recordActive=main.querySelector('.wr11 [data-mode="record"].active');
+  if(recordActive)return;
+  const receiptNumber=main.querySelector('.wr11 .txw-title')?.textContent?.trim();
+  if(!receiptNumber)return;
+  canonicalizing=true;
+  try{
+    const {data:wr,error}=await supabase.from('warehouse_receipts').select('id').eq('receipt_number',receiptNumber).maybeSingle();
+    if(error)throw error;
+    if(!wr?.id)return;
+    const {canonical}=await loadBundle();
+    if(typeof canonical?.mountWarehouseReceiptV15!=='function')throw new Error('Canonical guided WR experience is missing.');
+    await canonical.mountWarehouseReceiptV15(wr.id,{mode:'guided'});
+  }catch(e){
+    console.error('Could not hand WR to canonical Guided experience',e);
+  }finally{
+    canonicalizing=false;
+  }
 }
 
 async function openEditor(){
@@ -78,8 +103,13 @@ const takeover=()=>{
   takeoverTimer=setTimeout(()=>{
     const title=main?.querySelector('h1.title')?.textContent?.trim()||'';
     const text=main?.textContent||'';
-    if(title==='What arrived?'&&text.includes('Find expected cargo'))openEditor();
-  },25);
+    if(title==='What arrived?'&&text.includes('Find expected cargo')){
+      openEditor();
+      return;
+    }
+    mountCanonicalFromRenderedWR();
+  },40);
 };
-new MutationObserver(takeover).observe(main,{childList:true});
+new MutationObserver(takeover).observe(main,{childList:true,subtree:true});
 setTimeout(takeover,250);
+setTimeout(mountCanonicalFromRenderedWR,650);
