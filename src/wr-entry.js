@@ -11,19 +11,16 @@ function showLoadError(err){
 async function loadOS(){
   if(!osPromise){
     osPromise=Promise.all([
-      import('./wr-receiving-os-v11.js?v=20260910-v11f'),
-      import('./wr-output-studio-v11.js?v=20260910-output12').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
-      import('./wr-cargo-hierarchy-v11.js?v=20260910-v11f').catch(e=>{console.warn('WR cargo hierarchy unavailable',e);return null}),
-      import('./wr-units-settings-bridge-v11.js?v=20260910-v11f').catch(e=>{console.warn('WR unit settings bridge unavailable',e);return null}),
-      import('./wr-context-actions-v11.js?v=20260910-v11f').catch(e=>{console.warn('WR contextual actions unavailable',e);return null}),
-      import('./wr-visual-polish-v12.js?v=20260910-v12a').catch(e=>{console.warn('WR visual polish unavailable',e);return null}),
-      import('./wr-workflow-v12.js?v=20260910-v12a').catch(e=>{console.warn('WR workflow v12 unavailable',e);return null}),
-      import('./wr-experience-v13.js?v=20260910-v13a').catch(e=>{console.warn('WR experience v13 unavailable',e);return null}),
-      import('./wr-design-v14.js?v=20260910-v14a').catch(e=>{console.warn('WR design v14 unavailable',e);return null}),
-      import('./wr-media-components-v9.js?v=20260910-v11f').catch(e=>{console.warn('WR media component unavailable',e);return null}),
-      import('./wr-document-scanner-v9b.js?v=20260910-v11f').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
-      import('./wr-signature-component-v9.js?v=20260910-v11f').catch(e=>{console.warn('WR signature unavailable',e);return null}),
-      import('./wr-os-guard-v10.js?v=20260910-v11f').catch(e=>{console.warn('WR guard unavailable',e);return null})
+      import('./wr-receiving-os-v11.js?v=20260910-prod1'),
+      import('./wr-output-studio-v11.js?v=20260910-prod1').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
+      import('./wr-cargo-hierarchy-v11.js?v=20260910-prod1').catch(e=>{console.warn('WR cargo hierarchy unavailable',e);return null}),
+      import('./wr-units-settings-bridge-v11.js?v=20260910-prod1').catch(e=>{console.warn('WR unit settings bridge unavailable',e);return null}),
+      import('./wr-experience-v13.js?v=20260910-prod1').catch(e=>{console.warn('WR experience unavailable',e);return null}),
+      import('./wr-design-v14.js?v=20260910-prod1').catch(e=>{console.warn('WR design unavailable',e);return null}),
+      import('./wr-media-components-v9.js?v=20260910-prod1').catch(e=>{console.warn('WR media component unavailable',e);return null}),
+      import('./wr-document-scanner-v9b.js?v=20260910-prod1').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
+      import('./wr-signature-component-v9.js?v=20260910-prod1').catch(e=>{console.warn('WR signature unavailable',e);return null}),
+      import('./wr-os-guard-v10.js?v=20260910-prod1').catch(e=>{console.warn('WR guard unavailable',e);return null})
     ]).then(([os])=>os);
   }
   return osPromise;
