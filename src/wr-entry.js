@@ -16,15 +16,13 @@ function showLoadError(err){
 async function loadBundle(){
   if(!bundlePromise){
     bundlePromise=Promise.all([
-      import('./wr-receiving-os-v11.js?v=20260911-core19'),
-      import('./wr-canonical-v17.js?v=20260911-v17a'),
-      import('./wr-output-studio-v11.js?v=20260911-v17a').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
-      import('./wr-cargo-hierarchy-v11.js?v=20260911-v17a').catch(e=>{console.warn('WR cargo hierarchy unavailable',e);return null}),
-      import('./wr-units-settings-bridge-v11.js?v=20260911-v17a').catch(e=>{console.warn('WR unit settings bridge unavailable',e);return null}),
-      import('./wr-media-components-v9.js?v=20260911-v17a').catch(e=>{console.warn('WR media component unavailable',e);return null}),
-      import('./wr-document-scanner-v9b.js?v=20260911-v17a').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
-      import('./wr-signature-component-v9.js?v=20260911-v17a').catch(e=>{console.warn('WR signature unavailable',e);return null}),
-      import('./wr-os-guard-v10.js?v=20260911-v17a').catch(e=>{console.warn('WR guard unavailable',e);return null})
+      import('./wr-receiving-os-v11.js?v=20260911-shell20'),
+      import('./wr-canonical-v18.js?v=20260911-v18a'),
+      import('./wr-output-studio-v11.js?v=20260911-v18a').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
+      import('./wr-media-components-v9.js?v=20260911-v18a').catch(e=>{console.warn('WR media component unavailable',e);return null}),
+      import('./wr-document-scanner-v9b.js?v=20260911-v18a').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
+      import('./wr-signature-component-v9.js?v=20260911-v18a').catch(e=>{console.warn('WR signature unavailable',e);return null}),
+      import('./wr-os-guard-v10.js?v=20260911-v18a').catch(e=>{console.warn('WR guard unavailable',e);return null})
     ]).then(([os,canonical])=>({os,canonical}));
   }
   return bundlePromise;
@@ -37,7 +35,7 @@ function beginTransition(){
 
 async function mountCanonicalFromRenderedWR(){
   if(opening||canonicalizing)return;
-  if(main.querySelector('.wr17'))return;
+  if(main.querySelector('.wr18'))return;
   const receiptNumber=main.querySelector('.wr11 .txw-title')?.textContent?.trim();
   if(!receiptNumber)return;
   canonicalizing=true;
@@ -46,8 +44,8 @@ async function mountCanonicalFromRenderedWR(){
     if(error)throw error;
     if(!wr?.id)return;
     const {canonical}=await loadBundle();
-    if(typeof canonical?.mountWarehouseReceiptV17!=='function')throw new Error('Canonical WR experience is missing.');
-    await canonical.mountWarehouseReceiptV17(wr.id,{mode:'guided'});
+    if(typeof canonical?.mountWarehouseReceiptV18!=='function')throw new Error('Canonical WR experience is missing.');
+    await canonical.mountWarehouseReceiptV18(wr.id,{mode:'guided'});
   }catch(e){
     console.error('Could not hand WR to canonical experience',e);
   }finally{
@@ -64,7 +62,7 @@ async function openEditor(){
     const {os,canonical}=await loadBundle();
     if(typeof os?.openNewWarehouseReceipt!=='function')throw new Error('Receiving workspace export is missing.');
     await os.openNewWarehouseReceipt();
-    canonical?.enhanceNewReceivingV17?.();
+    canonical?.enhanceNewReceivingV18?.();
     document.body.classList.remove('wr-canonical-loading');
     main.style.visibility='visible';
   }catch(e){showLoadError(e)}finally{opening=false}
@@ -79,8 +77,8 @@ async function openExisting(id,mode='guided'){
     const {os,canonical}=await loadBundle();
     if(typeof os?.openWarehouseReceipt!=='function')throw new Error('WR workspace export is missing.');
     await os.openWarehouseReceipt(id);
-    if(typeof canonical?.mountWarehouseReceiptV17!=='function')throw new Error('Canonical WR experience is missing.');
-    await canonical.mountWarehouseReceiptV17(id,{mode});
+    if(typeof canonical?.mountWarehouseReceiptV18!=='function')throw new Error('Canonical WR experience is missing.');
+    await canonical.mountWarehouseReceiptV18(id,{mode});
   }catch(e){showLoadError(e)}finally{opening=false}
 }
 
