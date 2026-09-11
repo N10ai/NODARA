@@ -16,15 +16,15 @@ function showLoadError(err){
 async function loadBundle(){
   if(!bundlePromise){
     bundlePromise=Promise.all([
-      import('./wr-receiving-os-v11.js?v=20260910-core18'),
-      import('./wr-canonical-v15.js?v=20260910-stable18'),
-      import('./wr-output-studio-v11.js?v=20260910-stable18').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
-      import('./wr-cargo-hierarchy-v11.js?v=20260910-stable18').catch(e=>{console.warn('WR cargo hierarchy unavailable',e);return null}),
-      import('./wr-units-settings-bridge-v11.js?v=20260910-stable18').catch(e=>{console.warn('WR unit settings bridge unavailable',e);return null}),
-      import('./wr-media-components-v9.js?v=20260910-stable18').catch(e=>{console.warn('WR media component unavailable',e);return null}),
-      import('./wr-document-scanner-v9b.js?v=20260910-stable18').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
-      import('./wr-signature-component-v9.js?v=20260910-stable18').catch(e=>{console.warn('WR signature unavailable',e);return null}),
-      import('./wr-os-guard-v10.js?v=20260910-stable18').catch(e=>{console.warn('WR guard unavailable',e);return null})
+      import('./wr-receiving-os-v11.js?v=20260911-core19'),
+      import('./wr-canonical-v16.js?v=20260911-v16a'),
+      import('./wr-output-studio-v11.js?v=20260911-v16a').catch(e=>{console.warn('WR output studio unavailable',e);return null}),
+      import('./wr-cargo-hierarchy-v11.js?v=20260911-v16a').catch(e=>{console.warn('WR cargo hierarchy unavailable',e);return null}),
+      import('./wr-units-settings-bridge-v11.js?v=20260911-v16a').catch(e=>{console.warn('WR unit settings bridge unavailable',e);return null}),
+      import('./wr-media-components-v9.js?v=20260911-v16a').catch(e=>{console.warn('WR media component unavailable',e);return null}),
+      import('./wr-document-scanner-v9b.js?v=20260911-v16a').catch(e=>{console.warn('WR scanner unavailable',e);return null}),
+      import('./wr-signature-component-v9.js?v=20260911-v16a').catch(e=>{console.warn('WR signature unavailable',e);return null}),
+      import('./wr-os-guard-v10.js?v=20260911-v16a').catch(e=>{console.warn('WR guard unavailable',e);return null})
     ]).then(([os,canonical])=>({os,canonical}));
   }
   return bundlePromise;
@@ -38,8 +38,6 @@ function beginTransition(){
 async function mountCanonicalFromRenderedWR(){
   if(opening||canonicalizing)return;
   if(main.querySelector('.wr16'))return;
-  const recordActive=main.querySelector('.wr11 [data-mode="record"].active');
-  if(recordActive)return;
   const receiptNumber=main.querySelector('.wr11 .txw-title')?.textContent?.trim();
   if(!receiptNumber)return;
   canonicalizing=true;
@@ -48,10 +46,10 @@ async function mountCanonicalFromRenderedWR(){
     if(error)throw error;
     if(!wr?.id)return;
     const {canonical}=await loadBundle();
-    if(typeof canonical?.mountWarehouseReceiptV15!=='function')throw new Error('Canonical guided WR experience is missing.');
-    await canonical.mountWarehouseReceiptV15(wr.id,{mode:'guided'});
+    if(typeof canonical?.mountWarehouseReceiptV16!=='function')throw new Error('Canonical WR experience is missing.');
+    await canonical.mountWarehouseReceiptV16(wr.id,{mode:'guided'});
   }catch(e){
-    console.error('Could not hand WR to canonical Guided experience',e);
+    console.error('Could not hand WR to canonical experience',e);
   }finally{
     canonicalizing=false;
   }
@@ -64,25 +62,25 @@ async function openEditor(){
   try{
     window.nodaraSetActive?.('wr');
     const {os,canonical}=await loadBundle();
-    if(typeof os?.openNewWarehouseReceipt!=='function')throw new Error('Canonical receiving workspace export is missing.');
+    if(typeof os?.openNewWarehouseReceipt!=='function')throw new Error('Receiving workspace export is missing.');
     await os.openNewWarehouseReceipt();
-    canonical?.enhanceNewReceivingV15?.();
+    canonical?.enhanceNewReceivingV16?.();
     document.body.classList.remove('wr-canonical-loading');
     main.style.visibility='visible';
   }catch(e){showLoadError(e)}finally{opening=false}
 }
 
-async function openExisting(id){
+async function openExisting(id,mode='guided'){
   if(opening)return;
   opening=true;
   beginTransition();
   try{
     window.nodaraSetActive?.('wr');
     const {os,canonical}=await loadBundle();
-    if(typeof os?.openWarehouseReceipt!=='function')throw new Error('Canonical WR workspace export is missing.');
+    if(typeof os?.openWarehouseReceipt!=='function')throw new Error('WR workspace export is missing.');
     await os.openWarehouseReceipt(id);
-    if(typeof canonical?.mountWarehouseReceiptV15!=='function')throw new Error('Canonical guided WR experience is missing.');
-    await canonical.mountWarehouseReceiptV15(id,{mode:'guided'});
+    if(typeof canonical?.mountWarehouseReceiptV16!=='function')throw new Error('Canonical WR experience is missing.');
+    await canonical.mountWarehouseReceiptV16(id,{mode});
   }catch(e){showLoadError(e)}finally{opening=false}
 }
 
