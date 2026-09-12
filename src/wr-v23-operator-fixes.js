@@ -1,4 +1,5 @@
 import { supabase } from './supabase-client.js';
+import { getOptionSet } from './configurable-options.js';
 
 const main=document.getElementById('main');
 let activeCargoId=null;
@@ -7,7 +8,7 @@ let childNavBusy=false;
 if(!document.querySelector('link[data-wr23-css]')){
   const l=document.createElement('link');
   l.rel='stylesheet';
-  l.href='./wr-canonical-v23.css?v=20260912-v26';
+  l.href='./wr-canonical-v23.css?v=20260912-v27';
   l.dataset.wr23Css='1';
   document.head.appendChild(l);
 }
@@ -58,11 +59,11 @@ async function savePhysicalFields(modal){
   const height=numberValue(modal.querySelector('#c-h'));
   const weightUnit=modal.querySelector('#c-wu')?.value||'LB';
   const dimUnit=modal.querySelector('#c-du')?.value||'IN';
-  const each=modal.querySelector('#v23-weight-each')?.checked!==false;
+  const total=modal.querySelector('#v23-weight-total')?.checked||false;
   const lb=weight==null?null:(weightUnit==='KG'?weight*2.2046226218:weight);
   const inch=v=>v==null?null:(dimUnit==='CM'?v/2.54:v);
   const {data:row}=await supabase.from('cargo_units').select('metadata').eq('id',id).maybeSingle();
-  const metadata={...(row?.metadata||{}),weight_basis:each?'EACH':'TOTAL',input_weight_unit:weightUnit,input_dimension_unit:dimUnit};
+  const metadata={...(row?.metadata||{}),weight_basis:total?'TOTAL':'EACH',input_weight_unit:weightUnit,input_dimension_unit:dimUnit};
   const {error}=await supabase.from('cargo_units').update({weight_lb:lb,weight_kg:lb==null?null:lb*0.45359237,length_in:inch(length),width_in:inch(width),height_in:inch(height),metadata}).eq('id',id);
   if(error)throw error;
 }
@@ -71,8 +72,8 @@ async function syncWeightBasis(modal){
   const id=await resolveCargoId();
   if(!id)return;
   const {data}=await supabase.from('cargo_units').select('metadata').eq('id',id).maybeSingle();
-  const toggle=modal.querySelector('#v23-weight-each');
-  if(toggle)toggle.checked=String(data?.metadata?.weight_basis||'EACH').toUpperCase()!=='TOTAL';
+  const toggle=modal.querySelector('#v23-weight-total');
+  if(toggle)toggle.checked=String(data?.metadata?.weight_basis||'EACH').toUpperCase()==='TOTAL';
 }
 
 function normalizeCargoInputs(modal){
@@ -89,10 +90,10 @@ function normalizeCargoInputs(modal){
     weight?.setAttribute('inputmode','decimal');
     weight?.setAttribute('placeholder','0');
     wu?.setAttribute('aria-label','Weight unit');
-    if(!modal.querySelector('#v23-weight-each')){
+    if(!modal.querySelector('#v23-weight-total')){
       const toggle=document.createElement('label');
       toggle.className='v23-weight-toggle';
-      toggle.innerHTML='<input type="checkbox" id="v23-weight-each" checked><span></span><b>Total</b><em>Each</em>';
+      toggle.innerHTML='<b>Each</b><input type="checkbox" id="v23-weight-total"><span></span><em>Total</em>';
       weightHolder.insertAdjacentElement('afterend',toggle);
     }
   }
@@ -146,9 +147,25 @@ async function injectChildNavigation(modal){
   }finally{childNavBusy=false}
 }
 
+function syncPhotoTags(){
+  const bar=document.querySelector('.wrm-overlay .wrm-tagbar');
+  if(!bar||bar.dataset.v27Tags)return;
+  bar.dataset.v27Tags='1';
+  const configured=getOptionSet('photo_tags');
+  const existing=new Set([...bar.querySelectorAll('[data-tag]')].map(b=>b.dataset.tag));
+  const other=bar.querySelector('[data-tag="Other"]');
+  for(const tag of configured){
+    if(!tag||existing.has(tag))continue;
+    const b=document.createElement('button');
+    b.className='wrm-tag';
+    b.dataset.tag=tag;
+    b.textContent=tag;
+    bar.insertBefore(b,other||null);
+  }
+}
+
 function editorBackState(){
-  const cargoModal=document.querySelector('.wr22-modal')?.querySelector('#c-weight')?.closest('.wr22-modal');
-  document.querySelectorAll('.wr22-back').forEach(b=>b.classList.toggle('v24-editor-back',!!cargoModal));
+  document.querySelectorAll('.wr22-back').forEach(b=>b.style.display='none');
 }
 
 function enhanceCargoModal(){
@@ -159,7 +176,7 @@ function enhanceCargoModal(){
     normalizeCargoInputs(modal);
     syncWeightBasis(modal).catch(()=>{});
 
-    const toggle=modal.querySelector('#v23-weight-each');
+    const toggle=modal.querySelector('#v23-weight-total');
     toggle?.addEventListener('change',()=>savePhysicalFields(modal).catch(console.warn));
 
     const photo=modal.querySelector('#c-photo');
@@ -173,6 +190,7 @@ function enhanceCargoModal(){
         const camera=window.NodaraWRCamera||window.NodaraWRMedia;
         if(!camera?.open)return alert('Cargo camera is still loading. Try again in a second.');
         camera.open({cargoId:id});
+        setTimeout(syncPhotoTags,80);
       },true);
     }
 
@@ -219,6 +237,7 @@ function fixBackButtons(){
       b.dataset.v24Back='1';
       b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();openReceiptList()};
     }
+    b.style.display='none';
   });
   const arrival=main.querySelector('.wr22-arrival');
   if(arrival&&!arrival.querySelector('.v24-arrival-back')){
@@ -228,7 +247,6 @@ function fixBackButtons(){
     b.onclick=e=>{e.preventDefault();openReceiptList()};
     arrival.prepend(b);
   }
-  editorBackState();
 }
 
 async function syncActiveWRId(){
@@ -279,6 +297,7 @@ async function run(){
   await syncActiveWRId();
   simplifyMobileCargo();
   enhanceCargoModal();
+  syncPhotoTags();
   fixBackButtons();
   fixOutputs();
   fixDriverCapture();
