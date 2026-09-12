@@ -7,7 +7,7 @@ let childNavBusy=false;
 if(!document.querySelector('link[data-wr23-css]')){
   const l=document.createElement('link');
   l.rel='stylesheet';
-  l.href='./wr-canonical-v23.css?v=20260912-v24';
+  l.href='./wr-canonical-v23.css?v=20260912-v26';
   l.dataset.wr23Css='1';
   document.head.appendChild(l);
 }
@@ -58,13 +58,21 @@ async function savePhysicalFields(modal){
   const height=numberValue(modal.querySelector('#c-h'));
   const weightUnit=modal.querySelector('#c-wu')?.value||'LB';
   const dimUnit=modal.querySelector('#c-du')?.value||'IN';
-  const each=modal.querySelector('#v23-weight-each')?.checked||false;
+  const each=modal.querySelector('#v23-weight-each')?.checked!==false;
   const lb=weight==null?null:(weightUnit==='KG'?weight*2.2046226218:weight);
   const inch=v=>v==null?null:(dimUnit==='CM'?v/2.54:v);
   const {data:row}=await supabase.from('cargo_units').select('metadata').eq('id',id).maybeSingle();
   const metadata={...(row?.metadata||{}),weight_basis:each?'EACH':'TOTAL',input_weight_unit:weightUnit,input_dimension_unit:dimUnit};
   const {error}=await supabase.from('cargo_units').update({weight_lb:lb,weight_kg:lb==null?null:lb*0.45359237,length_in:inch(length),width_in:inch(width),height_in:inch(height),metadata}).eq('id',id);
   if(error)throw error;
+}
+
+async function syncWeightBasis(modal){
+  const id=await resolveCargoId();
+  if(!id)return;
+  const {data}=await supabase.from('cargo_units').select('metadata').eq('id',id).maybeSingle();
+  const toggle=modal.querySelector('#v23-weight-each');
+  if(toggle)toggle.checked=String(data?.metadata?.weight_basis||'EACH').toUpperCase()!=='TOTAL';
 }
 
 function normalizeCargoInputs(modal){
@@ -84,7 +92,7 @@ function normalizeCargoInputs(modal){
     if(!modal.querySelector('#v23-weight-each')){
       const toggle=document.createElement('label');
       toggle.className='v23-weight-toggle';
-      toggle.innerHTML='<input type="checkbox" id="v23-weight-each"><span></span><b>Total</b><em>Each</em>';
+      toggle.innerHTML='<input type="checkbox" id="v23-weight-each" checked><span></span><b>Total</b><em>Each</em>';
       weightHolder.insertAdjacentElement('afterend',toggle);
     }
   }
@@ -107,33 +115,52 @@ async function injectChildNavigation(modal){
   if(!nav)return;
   childNavBusy=true;
   try{
-    const {data}=await supabase.from('cargo_units').select('id,package_type,handling_unit_code,parent_id').eq('parent_id',activeCargoId).order('created_at');
-    for(const child of data||[]){
-      if(nav.querySelector(`[data-v24-child="${child.id}"]`))continue;
+    const {data:current}=await supabase.from('cargo_units').select('id,parent_id').eq('id',activeCargoId).maybeSingle();
+    const parentId=current?.parent_id||null;
+    const scopeId=parentId||activeCargoId;
+    let rows=[];
+    if(parentId){
+      const {data}=await supabase.from('cargo_units').select('id,package_type,handling_unit_code,parent_id').or(`id.eq.${parentId},parent_id.eq.${parentId}`).order('created_at');
+      rows=data||[];
+    }else{
+      const {data}=await supabase.from('cargo_units').select('id,package_type,handling_unit_code,parent_id').or(`id.eq.${activeCargoId},parent_id.eq.${activeCargoId}`).order('created_at');
+      rows=data||[];
+    }
+    for(const row of rows){
+      if(row.id===activeCargoId||nav.querySelector(`[data-v24-child="${row.id}"]`))continue;
       const b=document.createElement('button');
-      b.dataset.v24Child=child.id;
-      b.textContent=`↳ ${child.handling_unit_code||child.package_type||'Cargo'}`;
+      b.dataset.v24Child=row.id;
+      b.textContent=row.id===scopeId?`← ${row.handling_unit_code||row.package_type||'Parent'}`:`↳ ${row.handling_unit_code||row.package_type||'Cargo'}`;
       const inside=nav.querySelector('[data-inside-editor]');
       nav.insertBefore(b,inside||null);
       b.onclick=e=>{
         e.preventDefault();e.stopPropagation();
-        activeCargoId=child.id;
+        activeCargoId=row.id;
         document.querySelector('.wr22-modalback')?.remove();
         modal.remove();
-        const edit=main.querySelector(`[data-edit-cargo="${child.id}"]`);
+        const edit=main.querySelector(`[data-edit-cargo="${row.id}"]`);
         if(edit)edit.click();
-        else main.querySelector(`[data-cargo-select="${child.id}"]`)?.closest('tr')?.click();
+        else main.querySelector(`[data-cargo-select="${row.id}"]`)?.closest('tr')?.click();
       };
     }
   }finally{childNavBusy=false}
 }
 
+function editorBackState(){
+  const cargoModal=document.querySelector('.wr22-modal')?.querySelector('#c-weight')?.closest('.wr22-modal');
+  document.querySelectorAll('.wr22-back').forEach(b=>b.classList.toggle('v24-editor-back',!!cargoModal));
+}
+
 function enhanceCargoModal(){
   const modal=document.querySelector('.wr22-modal');
-  if(!modal||!modal.querySelector('#c-weight'))return;
+  if(!modal||!modal.querySelector('#c-weight')){editorBackState();return}
   if(!modal.dataset.v24Cargo){
     modal.dataset.v24Cargo='1';
     normalizeCargoInputs(modal);
+    syncWeightBasis(modal).catch(()=>{});
+
+    const toggle=modal.querySelector('#v23-weight-each');
+    toggle?.addEventListener('change',()=>savePhysicalFields(modal).catch(console.warn));
 
     const photo=modal.querySelector('#c-photo');
     if(photo){
@@ -157,6 +184,7 @@ function enhanceCargoModal(){
     }
   }
   injectChildNavigation(modal);
+  editorBackState();
 }
 
 function simplifyMobileCargo(){
@@ -187,9 +215,10 @@ function openReceiptList(){
 
 function fixBackButtons(){
   document.querySelectorAll('.wr22-back').forEach(b=>{
-    if(b.dataset.v24Back)return;
-    b.dataset.v24Back='1';
-    b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();openReceiptList()};
+    if(!b.dataset.v24Back){
+      b.dataset.v24Back='1';
+      b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();openReceiptList()};
+    }
   });
   const arrival=main.querySelector('.wr22-arrival');
   if(arrival&&!arrival.querySelector('.v24-arrival-back')){
@@ -199,6 +228,7 @@ function fixBackButtons(){
     b.onclick=e=>{e.preventDefault();openReceiptList()};
     arrival.prepend(b);
   }
+  editorBackState();
 }
 
 async function syncActiveWRId(){
@@ -238,9 +268,9 @@ function fixDriverCapture(){
 }
 
 function rememberCargoClick(e){
-  const b=e.target.closest?.('[data-edit-cargo],[data-inside],[data-add-cargo],[data-nav]');
+  const b=e.target.closest?.('[data-edit-cargo],[data-inside],[data-add-cargo],[data-nav],[data-v24-child]');
   if(!b)return;
-  activeCargoId=b.dataset.editCargo||b.dataset.inside||b.dataset.nav||activeCargoId;
+  activeCargoId=b.dataset.editCargo||b.dataset.inside||b.dataset.nav||b.dataset.v24Child||activeCargoId;
 }
 document.addEventListener('click',rememberCargoClick,true);
 
