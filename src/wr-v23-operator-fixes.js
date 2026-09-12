@@ -2,11 +2,12 @@ import { supabase } from './supabase-client.js';
 
 const main=document.getElementById('main');
 let activeCargoId=null;
+let childNavBusy=false;
 
 if(!document.querySelector('link[data-wr23-css]')){
   const l=document.createElement('link');
   l.rel='stylesheet';
-  l.href='./wr-canonical-v23.css?v=20260912-v23';
+  l.href='./wr-canonical-v23.css?v=20260912-v24';
   l.dataset.wr23Css='1';
   document.head.appendChild(l);
 }
@@ -28,6 +29,7 @@ function ensureEvidenceContext(){
   }
   bridge.textContent=n;
   window.__nodaraActiveWRNumber=n;
+  if(!window.NodaraWRMedia&&window.NodaraWRCamera)window.NodaraWRMedia=window.NodaraWRCamera;
 }
 
 async function resolveCargoId(){
@@ -50,83 +52,122 @@ function numberValue(el){
 async function savePhysicalFields(modal){
   const id=await resolveCargoId();
   if(!id)return;
-  const w=numberValue(modal.querySelector('#c-weight'));
-  const l=numberValue(modal.querySelector('#c-l'));
-  const wi=numberValue(modal.querySelector('#c-w'));
-  const h=numberValue(modal.querySelector('#c-h'));
-  const weightUnit=modal.querySelector('#c-weight-unit')?.value||modal.querySelector('[data-weight-unit]')?.value||'KG';
-  const dimUnit=modal.querySelector('#c-dim-unit')?.value||modal.querySelector('[data-dim-unit]')?.value||'IN';
+  const weight=numberValue(modal.querySelector('#c-weight'));
+  const length=numberValue(modal.querySelector('#c-l'));
+  const width=numberValue(modal.querySelector('#c-w'));
+  const height=numberValue(modal.querySelector('#c-h'));
+  const weightUnit=modal.querySelector('#c-wu')?.value||'LB';
+  const dimUnit=modal.querySelector('#c-du')?.value||'IN';
   const each=modal.querySelector('#v23-weight-each')?.checked||false;
-  const weightLb=w==null?null:(weightUnit==='KG'?w/0.45359237:w);
+  const lb=weight==null?null:(weightUnit==='KG'?weight*2.2046226218:weight);
   const inch=v=>v==null?null:(dimUnit==='CM'?v/2.54:v);
   const {data:row}=await supabase.from('cargo_units').select('metadata').eq('id',id).maybeSingle();
-  const metadata={...(row?.metadata||{}),weight_basis:each?'EACH':'TOTAL',entered_weight_unit:weightUnit,entered_dimension_unit:dimUnit};
-  const {error}=await supabase.from('cargo_units').update({weight_lb:weightLb,length_in:inch(l),width_in:inch(wi),height_in:inch(h),metadata}).eq('id',id);
+  const metadata={...(row?.metadata||{}),weight_basis:each?'EACH':'TOTAL',input_weight_unit:weightUnit,input_dimension_unit:dimUnit};
+  const {error}=await supabase.from('cargo_units').update({weight_lb:lb,weight_kg:lb==null?null:lb*0.45359237,length_in:inch(length),width_in:inch(width),height_in:inch(height),metadata}).eq('id',id);
   if(error)throw error;
 }
 
-function enhanceCargoModal(){
-  const modal=document.querySelector('.wr22-modal');
-  if(!modal||modal.dataset.v23Cargo)return;
-  if(!modal.querySelector('#c-weight')&&!modal.querySelector('#c-l'))return;
-  modal.dataset.v23Cargo='1';
-
+function normalizeCargoInputs(modal){
   const weight=modal.querySelector('#c-weight');
-  const length=modal.querySelector('#c-l');
-  const width=modal.querySelector('#c-w');
-  const height=modal.querySelector('#c-h');
+  const wu=modal.querySelector('#c-wu');
+  const l=modal.querySelector('#c-l');
+  const w=modal.querySelector('#c-w');
+  const h=modal.querySelector('#c-h');
+  const du=modal.querySelector('#c-du');
 
-  if(weight){
-    const holder=weight.closest('.wr22-pill')||weight.parentElement;
-    holder?.classList.add('v23-weight-row');
+  const weightHolder=weight?.closest('.wr22-pill');
+  if(weightHolder){
+    weightHolder.classList.add('v24-weight-pill');
+    weight?.setAttribute('inputmode','decimal');
+    weight?.setAttribute('placeholder','0');
+    wu?.setAttribute('aria-label','Weight unit');
     if(!modal.querySelector('#v23-weight-each')){
       const toggle=document.createElement('label');
       toggle.className='v23-weight-toggle';
       toggle.innerHTML='<input type="checkbox" id="v23-weight-each"><span></span><b>Total</b><em>Each</em>';
-      holder?.insertAdjacentElement('afterend',toggle);
+      weightHolder.insertAdjacentElement('afterend',toggle);
     }
   }
 
-  if(length&&width&&height){
-    const blocks=[length,width,height].map(x=>x.closest('.wr22-pill')||x.parentElement).filter(Boolean);
-    const first=blocks[0];
-    if(first&&!first.parentElement?.classList.contains('v23-dims-row')){
-      const row=document.createElement('div');
-      row.className='v23-dims-row';
-      first.parentNode.insertBefore(row,first);
-      blocks.forEach((b,i)=>{b.classList.add('v23-dim-box');b.dataset.label=['L','W','H'][i];row.appendChild(b)});
+  const dimHolder=l?.closest('.wr22-pill');
+  if(dimHolder&&w&&h&&du){
+    dimHolder.classList.add('v24-dims-pill');
+    [[l,'L'],[w,'W'],[h,'H']].forEach(([el,label])=>{
+      el.setAttribute('placeholder',label);
+      el.setAttribute('inputmode','decimal');
+      el.dataset.dimLabel=label;
+    });
+    du.setAttribute('aria-label','Dimension unit');
+  }
+}
+
+async function injectChildNavigation(modal){
+  if(childNavBusy||!activeCargoId||!modal?.isConnected)return;
+  const nav=modal.querySelector('.wr22-cargonav');
+  if(!nav)return;
+  childNavBusy=true;
+  try{
+    const {data}=await supabase.from('cargo_units').select('id,package_type,handling_unit_code,parent_id').eq('parent_id',activeCargoId).order('created_at');
+    for(const child of data||[]){
+      if(nav.querySelector(`[data-v24-child="${child.id}"]`))continue;
+      const b=document.createElement('button');
+      b.dataset.v24Child=child.id;
+      b.textContent=`↳ ${child.handling_unit_code||child.package_type||'Cargo'}`;
+      const inside=nav.querySelector('[data-inside-editor]');
+      nav.insertBefore(b,inside||null);
+      b.onclick=e=>{
+        e.preventDefault();e.stopPropagation();
+        activeCargoId=child.id;
+        document.querySelector('.wr22-modalback')?.remove();
+        modal.remove();
+        const edit=main.querySelector(`[data-edit-cargo="${child.id}"]`);
+        if(edit)edit.click();
+        else main.querySelector(`[data-cargo-select="${child.id}"]`)?.closest('tr')?.click();
+      };
+    }
+  }finally{childNavBusy=false}
+}
+
+function enhanceCargoModal(){
+  const modal=document.querySelector('.wr22-modal');
+  if(!modal||!modal.querySelector('#c-weight'))return;
+  if(!modal.dataset.v24Cargo){
+    modal.dataset.v24Cargo='1';
+    normalizeCargoInputs(modal);
+
+    const photo=modal.querySelector('#c-photo');
+    if(photo){
+      photo.addEventListener('click',async e=>{
+        e.preventDefault();e.stopImmediatePropagation();
+        ensureEvidenceContext();
+        try{await savePhysicalFields(modal)}catch(err){console.warn('Physical field save before photo failed',err)}
+        const id=await resolveCargoId();
+        if(!id)return alert('Could not identify this cargo record.');
+        const camera=window.NodaraWRCamera||window.NodaraWRMedia;
+        if(!camera?.open)return alert('Cargo camera is still loading. Try again in a second.');
+        camera.open({cargoId:id});
+      },true);
+    }
+
+    const done=modal.querySelector('#c-done');
+    if(done){
+      done.addEventListener('click',async()=>{
+        try{await savePhysicalFields(modal)}catch(err){console.error('Physical field save',err);alert('Could not save weight/dimensions: '+err.message)}
+      },true);
     }
   }
-
-  const photo=modal.querySelector('[data-photo],#c-photo');
-  if(photo){
-    photo.onclick=async e=>{
-      e.preventDefault();e.stopPropagation();
-      ensureEvidenceContext();
-      const id=await resolveCargoId();
-      if(!id)return alert('Save the cargo draft first.');
-      window.NodaraWRMedia?.openCargoCamera?.({cargoId:id});
-    };
-  }
-
-  const done=[...modal.querySelectorAll('button')].find(b=>/^(Done|Add cargo|Save)$/i.test(b.textContent.trim()));
-  if(done){
-    done.addEventListener('click',async()=>{
-      try{await savePhysicalFields(modal)}catch(err){console.error('v23 physical save',err);alert('Could not save weight/dimensions: '+err.message)}
-    },true);
-  }
+  injectChildNavigation(modal);
 }
 
 function simplifyMobileCargo(){
   if(!matchMedia('(max-width:760px)').matches)return;
   main.querySelectorAll('.wr22-table tbody tr').forEach(row=>{
-    if(row.dataset.v23Card)return;
-    row.dataset.v23Card='1';
+    if(row.dataset.v24Card)return;
+    row.dataset.v24Card='1';
     const edit=row.querySelector('[data-edit-cargo]');
     if(!edit)return;
     row.dataset.openCargo=edit.dataset.editCargo;
-    const actions=row.querySelector('.wr22-rowactions');
-    if(actions)actions.style.display='none';
+    row.querySelector('.wr22-rowactions')?.setAttribute('hidden','');
     row.addEventListener('click',e=>{
       if(e.target.closest('input,button,a'))return;
       activeCargoId=row.dataset.openCargo;
@@ -135,32 +176,84 @@ function simplifyMobileCargo(){
   });
 }
 
-function fixBackButton(){
+function openReceiptList(){
+  document.querySelector('.wr22-modalback')?.remove();
+  document.querySelector('.wr22-modal')?.remove();
+  if(typeof window.nodaraWRList==='function')return window.nodaraWRList();
+  const nav=[...document.querySelectorAll('[data-go="wr"],[data-module="wr"]')][0];
+  if(nav)return nav.click();
+  window.nodaraSetActive?.('wr');
+}
+
+function fixBackButtons(){
   document.querySelectorAll('.wr22-back').forEach(b=>{
-    if(b.dataset.v23Back)return;
-    b.dataset.v23Back='1';
-    b.onclick=e=>{
-      e.preventDefault();e.stopPropagation();
-      if(typeof window.nodaraWRList==='function')window.nodaraWRList();
-      else if(typeof window.nodaraSetActive==='function')window.nodaraSetActive('wr');
-    };
+    if(b.dataset.v24Back)return;
+    b.dataset.v24Back='1';
+    b.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();openReceiptList()};
+  });
+  const arrival=main.querySelector('.wr22-arrival');
+  if(arrival&&!arrival.querySelector('.v24-arrival-back')){
+    const b=document.createElement('button');
+    b.className='v24-arrival-back';
+    b.innerHTML='← Warehouse receipts';
+    b.onclick=e=>{e.preventDefault();openReceiptList()};
+    arrival.prepend(b);
+  }
+}
+
+async function syncActiveWRId(){
+  const n=receiptNumber();
+  if(!n)return;
+  if(window.__nodaraActiveWRNumber===n&&window.__nodaraActiveWRId)return;
+  const {data}=await supabase.from('warehouse_receipts').select('id').eq('receipt_number',n).maybeSingle();
+  if(data?.id){window.__nodaraActiveWRNumber=n;window.__nodaraActiveWRId=data.id}
+}
+
+function fixOutputs(){
+  main.querySelectorAll('[data-out]').forEach(b=>{
+    if(b.dataset.v24Out)return;
+    b.dataset.v24Out='1';
+    b.addEventListener('click',e=>{
+      e.preventDefault();e.stopImmediatePropagation();
+      const api=window.NodaraWROutput,id=window.__nodaraActiveWRId;
+      if(!api||!id)return alert('WR output tools are still loading. Try again in a second.');
+      if(b.dataset.out==='pdf')api.warehouseReceiptPDF?.(id);
+      else if(b.dataset.out==='4x6')api.labels4x6?.(id);
+      else api.labels2x1?.(id);
+    },true);
   });
 }
 
-function rememberCargoClick(e){
-  const b=e.target.closest?.('[data-edit-cargo],[data-inside],[data-add-cargo]');
-  if(!b)return;
-  activeCargoId=b.dataset.editCargo||b.dataset.inside||null;
+function fixDriverCapture(){
+  const b=main.querySelector('[data-driver-id]');
+  if(!b||b.dataset.v24Driver)return;
+  b.dataset.v24Driver='1';
+  b.addEventListener('click',e=>{
+    e.preventDefault();e.stopImmediatePropagation();
+    ensureEvidenceContext();
+    const scanner=window.NodaraWRScanner;
+    if(!scanner?.open)return alert('ID capture is still loading. Try again in a second.');
+    scanner.open({category:'DRIVER_ID',kind:'DRIVER_ID',analyze:false});
+  },true);
 }
 
+function rememberCargoClick(e){
+  const b=e.target.closest?.('[data-edit-cargo],[data-inside],[data-add-cargo],[data-nav]');
+  if(!b)return;
+  activeCargoId=b.dataset.editCargo||b.dataset.inside||b.dataset.nav||activeCargoId;
+}
 document.addEventListener('click',rememberCargoClick,true);
 
-function run(){
+async function run(){
   ensureEvidenceContext();
+  await syncActiveWRId();
   simplifyMobileCargo();
   enhanceCargoModal();
-  fixBackButton();
+  fixBackButtons();
+  fixOutputs();
+  fixDriverCapture();
 }
-new MutationObserver(()=>requestAnimationFrame(run)).observe(document.body,{childList:true,subtree:true});
-setInterval(run,1000);
-run();
+
+new MutationObserver(()=>requestAnimationFrame(()=>run().catch(console.warn))).observe(document.body,{childList:true,subtree:true});
+setInterval(()=>run().catch(()=>{}),900);
+run().catch(()=>{});
