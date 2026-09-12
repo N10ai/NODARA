@@ -1,6 +1,7 @@
 import './document-intelligence.js?v=20260912-ocr1';
 import './document-intelligence-bridge.js?v=20260912-ocr1';
 import './wr-mobile-ux-v20.js?v=20260912-ux1';
+import './wr-flow-fixes-v20.js?v=20260912-ux1';
 
 const main=document.getElementById('main');
 let opening=false,bundlePromise=null;
