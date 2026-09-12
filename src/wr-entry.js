@@ -3,6 +3,7 @@ import './document-intelligence-bridge.js?v=20260912-ocr1';
 import './wr-v23-operator-fixes.js?v=20260912-v28';
 import './wr-photo-tag-config.js?v=20260912-v28';
 import './wr-cargo-metrics-v29.js?v=20260912-v29';
+import './output-template-settings.js?v=20260912-v30';
 
 if(!document.querySelector('link[data-wr30-desktop]')){
   const l=document.createElement('link');
