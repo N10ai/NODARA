@@ -3,6 +3,7 @@ import { supabase } from './supabase-client.js';
 const main=document.getElementById('main');
 let cache={key:null,at:0,data:null};
 let scheduled=false;
+let observer=null;
 
 const LB_PER_KG=2.2046226218;
 const FT3_PER_M3=35.3146667215;
@@ -110,11 +111,14 @@ function tableMetrics(data){
   });
 }
 function addStyles(){if(document.getElementById('v29-metric-styles'))return;const s=document.createElement('style');s.id='v29-metric-styles';s.textContent=`.wr22-metrics{grid-template-columns:repeat(4,minmax(0,1fr))!important}.wr22-metric b,.v29-metric-stat b{font-size:12px!important;line-height:1.35}.v29-metric-stat{min-width:135px}.wr22-table td[data-v29-vol],.wr22-table td[data-v29-chg]{white-space:nowrap;font-size:11px}@media(max-width:760px){.wr22-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.v29-metric-stat{min-width:145px}}`;document.head.appendChild(s)}
+function observe(){observer?.observe(document.body,{childList:true,subtree:true})}
 async function run(force=false){
-  addStyles();const data=await loadData(force);if(!data)return;summaryMetrics(data);tableMetrics(data);const modal=document.querySelector('.wr22-modal');if(modal?.querySelector('#c-weight'))editorMetrics(modal,data);
+  observer?.disconnect();
+  try{addStyles();const data=await loadData(force);if(!data)return;summaryMetrics(data);tableMetrics(data);const modal=document.querySelector('.wr22-modal');if(modal?.querySelector('#c-weight'))editorMetrics(modal,data)}
+  finally{observe()}
 }
 function schedule(force=false){if(scheduled)return;scheduled=true;setTimeout(()=>{scheduled=false;run(force).catch(console.warn)},100)}
-new MutationObserver(()=>schedule(false)).observe(document.body,{childList:true,subtree:true});
+observer=new MutationObserver(()=>schedule(false));observe();
 document.addEventListener('click',e=>{if(e.target.closest?.('#c-done,[data-edit-cargo],[data-add-cargo],[data-delete-cargo]'))setTimeout(()=>{cache.at=0;schedule(true)},500)},true);
 document.addEventListener('change',e=>{if(e.target.closest?.('.wr22-modal'))setTimeout(()=>schedule(false),420)},true);
 schedule(true);
