@@ -1,3 +1,5 @@
+import './document-intelligence.js?v=20260912-ocr1';
+
 const main=document.getElementById('main');
 let opening=false,bundlePromise=null;
 function showLoadError(err){document.body.classList.remove('wr-canonical-loading');main.style.visibility='visible';console.error('NODARA Receiving failed to load',err);main.innerHTML=`<div style="max-width:760px;margin:30px auto;padding:20px"><div class="eyebrow">WAREHOUSE RECEIVING</div><h1 class="title">Receiving could not start</h1><div class="notice warning" style="margin-top:16px">${String(err?.message||err||'Unknown module error').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}</div><button class="primary wide" style="margin-top:16px" onclick="location.reload()">Reload NODARA</button></div>`}
