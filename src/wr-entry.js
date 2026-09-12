@@ -4,6 +4,14 @@ import './wr-v23-operator-fixes.js?v=20260912-v28';
 import './wr-photo-tag-config.js?v=20260912-v28';
 import './wr-cargo-metrics-v29.js?v=20260912-v29';
 
+if(!document.querySelector('link[data-wr30-desktop]')){
+  const l=document.createElement('link');
+  l.rel='stylesheet';
+  l.href='./wr-cargo-desktop-v30.css?v=20260912-v30';
+  l.dataset.wr30Desktop='1';
+  document.head.appendChild(l);
+}
+
 const main=document.getElementById('main');
 let opening=false,bundlePromise=null;
 function showLoadError(err){document.body.classList.remove('wr-canonical-loading');main.style.visibility='visible';console.error('NODARA Receiving failed to load',err);main.innerHTML=`<div style="max-width:760px;margin:30px auto;padding:20px"><div class="eyebrow">WAREHOUSE RECEIVING</div><h1 class="title">Receiving could not start</h1><div class="notice warning" style="margin-top:16px">${String(err?.message||err||'Unknown module error').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}</div><button class="primary wide" style="margin-top:16px" onclick="location.reload()">Reload NODARA</button></div>`}
