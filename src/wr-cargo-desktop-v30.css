@@ -1,0 +1,91 @@
+/* NODARA WR desktop cargo metrics + hierarchy polish */
+@media (min-width: 761px){
+  .wr22-head .wr22-summary{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(120px,1fr))!important;
+    gap:10px!important;
+    align-items:stretch!important;
+  }
+  .wr22-head .wr22-stat{
+    min-width:0!important;
+    padding:12px 14px!important;
+  }
+  .wr22-head .wr22-stat b{
+    display:block;
+    white-space:normal!important;
+    line-height:1.3!important;
+    font-size:13px!important;
+  }
+  .wr22-head .v29-metric-stat{
+    min-width:0!important;
+  }
+
+  .wr22-modal .wr22-metrics{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(150px,1fr))!important;
+    gap:10px!important;
+  }
+  .wr22-modal .wr22-metric{
+    min-width:0!important;
+    padding:12px 14px!important;
+  }
+  .wr22-modal .wr22-metric b{
+    white-space:normal!important;
+    font-size:13px!important;
+    line-height:1.35!important;
+  }
+
+  .wr22-tablewrap{
+    overflow:auto!important;
+    border-radius:18px!important;
+  }
+  .wr22-table{
+    min-width:1280px!important;
+    table-layout:auto!important;
+  }
+  .wr22-table th{
+    white-space:nowrap!important;
+  }
+  .wr22-table td{
+    vertical-align:middle!important;
+  }
+  .wr22-table td:nth-child(4),
+  .wr22-table td:nth-child(5),
+  .wr22-table td[data-v29-vol],
+  .wr22-table td[data-v29-chg]{
+    white-space:nowrap!important;
+    font-variant-numeric:tabular-nums;
+  }
+  .wr22-table td[data-v29-vol],
+  .wr22-table td[data-v29-chg]{
+    min-width:150px!important;
+  }
+
+  .wr22-table .wr22-indent.child{
+    padding-left:18px!important;
+    position:relative;
+  }
+  .wr22-table .wr22-indent.child:before{
+    content:"";
+    position:absolute;
+    left:2px;
+    top:-18px;
+    bottom:50%;
+    width:10px;
+    border-left:1px solid rgba(93,171,255,.34);
+    border-bottom:1px solid rgba(93,171,255,.34);
+    border-bottom-left-radius:8px;
+  }
+}
+
+@media (min-width: 1180px){
+  .wr22-head .wr22-summary{
+    grid-template-columns:repeat(10,minmax(92px,1fr))!important;
+  }
+  .wr22-head .wr22-stat{
+    padding:10px 12px!important;
+  }
+  .wr22-head .wr22-stat b{
+    font-size:12px!important;
+  }
+}
