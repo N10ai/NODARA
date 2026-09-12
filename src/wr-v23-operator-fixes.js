@@ -57,11 +57,11 @@ async function savePhysicalFields(modal){
   const weightUnit=modal.querySelector('#c-weight-unit')?.value||modal.querySelector('[data-weight-unit]')?.value||'KG';
   const dimUnit=modal.querySelector('#c-dim-unit')?.value||modal.querySelector('[data-dim-unit]')?.value||'IN';
   const each=modal.querySelector('#v23-weight-each')?.checked||false;
-  const kg=w==null?null:(weightUnit==='LB'?w*0.45359237:w);
+  const weightLb=w==null?null:(weightUnit==='KG'?w/0.45359237:w);
   const inch=v=>v==null?null:(dimUnit==='CM'?v/2.54:v);
   const {data:row}=await supabase.from('cargo_units').select('metadata').eq('id',id).maybeSingle();
-  const metadata={...(row?.metadata||{}),weight_basis:each?'EACH':'TOTAL'};
-  const {error}=await supabase.from('cargo_units').update({weight_kg:kg,weight_lb:kg==null?null:kg/0.45359237,length_in:inch(l),width_in:inch(wi),height_in:inch(h),metadata}).eq('id',id);
+  const metadata={...(row?.metadata||{}),weight_basis:each?'EACH':'TOTAL',entered_weight_unit:weightUnit,entered_dimension_unit:dimUnit};
+  const {error}=await supabase.from('cargo_units').update({weight_lb:weightLb,length_in:inch(l),width_in:inch(wi),height_in:inch(h),metadata}).eq('id',id);
   if(error)throw error;
 }
 
