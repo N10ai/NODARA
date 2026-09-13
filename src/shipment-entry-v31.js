@@ -1,12 +1,12 @@
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId, listEntities } from './live-data.js';
 import { openShipments } from './operations-core.js?v=20260906-core4';
-import { mountRecordResolver } from './nodara-record-resolver.js?v=20260913-v42';
-import './shipment-native-v42.js?v=20260913-v42';
-import './shipment-air-execution-v33.js?v=20260913-v42';
-import './shipment-stability-v34.js?v=20260913-v42';
+import { mountRecordResolver } from './nodara-record-resolver.js?v=20260913-v43';
+import './shipment-native-v42.js?v=20260913-v43';
+import './shipment-air-execution-v33.js?v=20260913-v43';
+import './shipment-stability-v34.js?v=20260913-v43';
 
-if(!document.querySelector('link[data-shipment-entry-v35]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./shipment-entry-v31.css?v=20260913-v42';l.dataset.shipmentEntryV35='';document.head.appendChild(l)}
+if(!document.querySelector('link[data-shipment-entry-v35]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./shipment-entry-v31.css?v=20260913-v43';l.dataset.shipmentEntryV35='';document.head.appendChild(l)}
 
 const main=document.getElementById('main');
 const gen=mode=>`${mode==='OCEAN'?'OCN':mode==='GROUND'?'GRD':'AIR'}-${new Date().toISOString().slice(2,10).replaceAll('-','')}-${String(Date.now()).slice(-4)}`;
