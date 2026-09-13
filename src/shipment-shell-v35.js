@@ -92,9 +92,17 @@ async function renderActive(force=false){
  }catch(e){c.panel.innerHTML=`<div class="txw-empty">Unable to load ${esc(c.tab)}: ${esc(e.message||e)}</div>`}finally{busy=false}
 }
 
+function guidedTab(code){return({PLAN:'parties',BOOK:'execution',EXECUTE:'execution',TRACK:'execution',CLOSE:'documents'})[String(code||'').toUpperCase()]||'overview'}
+function activate(tab){const b=context()?.shell.querySelector(`[data-txw-tab="${tab}"]`);b?.click()}
 document.addEventListener('click',e=>{
+ const c=context();if(!c)return;
+ const guide=e.target.closest?.('.tx-guidance [data-tx-step],.tx-guidance [data-tx-continue]');
+ if(guide){
+  const step=guide.dataset.txStep||c.shell.querySelector('.tx-guidance .tx-step.current')?.dataset.txStep;
+  if(step){e.preventDefault();e.stopImmediatePropagation();activate(guidedTab(step));return}
+ }
  const tab=e.target.closest?.('[data-txw-tab]');
- if(tab&&context())setTimeout(()=>renderActive(true),0);
+ if(tab)setTimeout(()=>renderActive(true),0);
 },true);
 
 const observer=new MutationObserver(records=>{
