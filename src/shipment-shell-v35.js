@@ -10,6 +10,7 @@ const ROLES=[
  ['INTERMEDIATE_BROKER','Intermediate Broker',false],
  ['BILLING_PARTY','Bill To',false]
 ];
+const CORE_ROLE_FIELDS={CUSTOMER:'customer_id',SHIPPER:'shipper_id',CONSIGNEE:'consignee_id'};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let entitiesPromise=null,busy=false,lastKey='';
 
@@ -34,23 +35,31 @@ async function parties(txId){
  const{data,error}=await supabase.from('transaction_parties').select('*').eq('transaction_id',txId).eq('is_primary',true).order('created_at');
  if(error)throw error;return data||[];
 }
+async function shipmentPartyProjection(id){
+ const{data,error}=await supabase.from('shipments').select('customer_id,shipper_id,consignee_id').eq('id',id).single();
+ if(error)throw error;return data||{};
+}
 function partyFor(rows,role){return rows.find(x=>String(x.role_code).toUpperCase()===role)||null}
 function options(rows,current){return `<option value="">Not set</option>${rows.map(x=>`<option value="${x.id}" ${x.id===current?'selected':''}>${esc(x.name)}${x.code?` · ${esc(x.code)}`:''}</option>`).join('')}`}
 
 async function renderParties(c){
- const [txId,ents]=await Promise.all([registry(c.id),entities()]);
+ const [txId,ents,projection]=await Promise.all([registry(c.id),entities(),shipmentPartyProjection(c.id)]);
  if(!txId){c.panel.innerHTML='<div class="txw-empty">Shipment party registry is not ready yet.</div>';return}
  const ps=await parties(txId);
  c.panel.innerHTML=`<div class="sh35-parties">
   <div class="sh35-panel-head"><div><b>Shipment parties</b><small>Set the forwarding roles directly. No generic “add party” step.</small></div></div>
-  <div class="sh35-party-grid">${ROLES.map(([role,label,required])=>{const p=partyFor(ps,role);return `<label class="sh35-party-slot"><span>${esc(label)}${required?' · Required':''}</span><select data-sh35-role="${role}" data-current-party="${p?.id||''}">${options(ents,p?.entity_id||'')}</select><small>${role==='BILLING_PARTY'&&!p?'Defaults operationally to Customer until set.':p?.party_name_snapshot?esc(p.party_name_snapshot):required?'Select the entity used for this shipment.':'Optional'}</small></label>`}).join('')}</div>
+  <div class="sh35-party-grid">${ROLES.map(([role,label,required])=>{const p=partyFor(ps,role),coreField=CORE_ROLE_FIELDS[role],entityId=coreField?projection[coreField]:(p?.entity_id||'');return `<label class="sh35-party-slot"><span>${esc(label)}${required?' · Required':''}</span><select data-sh35-role="${role}" data-current-party="${p?.id||''}">${options(ents,entityId||'')}</select><small>${role==='BILLING_PARTY'&&!p?'Defaults operationally to Customer until set.':required?'Primary '+esc(label.toLowerCase())+' for this shipment.':'Optional'}</small></label>`}).join('')}</div>
   <div class="sh35-ref-note"><b>References</b><span>Customer reference, HAWB/MAWB and booking belong in the shipment file/Execution tab. They no longer need a second generic add form here.</span></div>
  </div>`;
  c.panel.querySelectorAll('[data-sh35-role]').forEach(sel=>sel.onchange=async()=>{
-  const role=sel.dataset.sh35Role,currentParty=sel.dataset.currentParty,value=sel.value;sel.disabled=true;
+  const role=sel.dataset.sh35Role,currentParty=sel.dataset.currentParty,value=sel.value,coreField=CORE_ROLE_FIELDS[role];sel.disabled=true;
   try{
-   if(!value){if(currentParty){const{error}=await supabase.rpc('nodara_remove_transaction_party',{p_party_id:currentParty,p_provenance:{source_type:'USER',surface:'SHIPMENT_PARTIES'}});if(error)throw error}}
-   else{const{error}=await supabase.rpc('nodara_add_transaction_party',{p_transaction_id:txId,p_role_code:role,p_entity_id:value,p_contact_id:null,p_address_id:null,p_is_primary:true,p_provenance:{source_type:'USER',surface:'SHIPMENT_PARTIES'},p_metadata:{}});if(error)throw error}
+   if(!value){
+    if(coreField){const{error}=await supabase.from('shipments').update({[coreField]:null,updated_at:new Date().toISOString()}).eq('id',c.id);if(error)throw error}
+    if(currentParty){const{error}=await supabase.rpc('nodara_remove_transaction_party',{p_party_id:currentParty,p_provenance:{source_type:'USER',surface:'SHIPMENT_PARTIES'}});if(error)throw error}
+   }else{
+    const{error}=await supabase.rpc('nodara_add_transaction_party',{p_transaction_id:txId,p_role_code:role,p_entity_id:value,p_contact_id:null,p_address_id:null,p_is_primary:true,p_provenance:{source_type:'USER',surface:'SHIPMENT_PARTIES'},p_metadata:{}});if(error)throw error
+   }
    window.nodaraTransactionWorkspace?.invalidate?.('SHIPMENT',c.id);
    await renderParties(c);
   }catch(e){alert(e.message||'Could not update shipment party');sel.disabled=false}
