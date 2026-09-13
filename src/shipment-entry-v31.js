@@ -1,10 +1,11 @@
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId, listEntities } from './live-data.js';
 import { openShipments } from './operations-core.js?v=20260906-core4';
-import './shipment-cargo-canonical-v32.js?v=20260913-v33';
-import './shipment-air-execution-v33.js?v=20260913-v33';
+import './shipment-cargo-canonical-v32.js?v=20260913-v34';
+import './shipment-air-execution-v33.js?v=20260913-v34';
+import './shipment-stability-v34.js?v=20260913-v34';
 
-if(!document.querySelector('link[data-shipment-entry-v32]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./shipment-entry-v31.css?v=20260913-v32';l.dataset.shipmentEntryV32='';document.head.appendChild(l)}
+if(!document.querySelector('link[data-shipment-entry-v32]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./shipment-entry-v31.css?v=20260913-v34';l.dataset.shipmentEntryV32='';document.head.appendChild(l)}
 
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]||c));
@@ -72,6 +73,8 @@ function cleanRecord(){
 
 function intercept(e){const b=e.target.closest?.('#ops-new-shipment');if(!b)return;e.preventDefault();e.stopImmediatePropagation();renderCreate()}
 document.addEventListener('click',intercept,true);
-new MutationObserver(()=>queueMicrotask(cleanRecord)).observe(main,{childList:true,subtree:true});
+// Route-level DOM changes are enough to detect shipment screens. Watching every
+// nested render was repeatedly re-running cleanup during tab/form updates.
+new MutationObserver(()=>queueMicrotask(cleanRecord)).observe(main,{childList:true});
 queueMicrotask(cleanRecord);
 window.nodaraNewShipment=renderCreate;
