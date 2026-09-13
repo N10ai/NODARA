@@ -7,6 +7,11 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 
 function descriptor(){
  if(!main)return null;
+ // Native Shipment owns its own workflow. Never mount the generic transaction guide on top of it.
+ if(main.querySelector('.sh44-shell,[data-shipment-native]')){
+  main.querySelector('.tx-guidance')?.remove();
+  return null;
+ }
  if(main.dataset.wrNativeCanonical==='1'){
   const number=main.querySelector('.wr-native-shell .txw-title')?.textContent?.trim();
   if(number)return{type:'WAREHOUSE_RECEIPT',table:'warehouse_receipts',field:'receipt_number',number};
@@ -71,7 +76,7 @@ async function mount(force=false){
  }catch(e){console.warn('[NODARA] guided workflow unavailable',e)}finally{busy=false}
 }
 let timer;function schedule(records){
- const relevant=!records||records.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('[data-txw-shell],.tx-guidance,.record-header,.cr-record-head,.wr-native-shell')||n.querySelector?.('[data-txw-shell],.tx-guidance,.record-header,.cr-record-head,.wr-native-shell'))));
+ const relevant=!records||records.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('[data-txw-shell],.tx-guidance,.record-header,.cr-record-head,.wr-native-shell,.sh44-shell')||n.querySelector?.('[data-txw-shell],.tx-guidance,.record-header,.cr-record-head,.wr-native-shell,.sh44-shell'))));
  if(!relevant)return;clearTimeout(timer);timer=setTimeout(()=>mount(false),50)
 }
 if(main)new MutationObserver(schedule).observe(main,{childList:true,subtree:true});setTimeout(()=>mount(true),250);
