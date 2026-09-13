@@ -1,6 +1,9 @@
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId, listEntities } from './live-data.js';
 import { openShipments } from './operations-core.js?v=20260906-core4';
+import './shipment-cargo-canonical-v32.js?v=20260913-v32';
+
+if(!document.querySelector('link[data-shipment-entry-v32]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./shipment-entry-v31.css?v=20260913-v32';l.dataset.shipmentEntryV32='';document.head.appendChild(l)}
 
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
