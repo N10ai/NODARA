@@ -16,24 +16,33 @@ async function renderCreate(){
    <div class="record-commandbar"><button class="secondary compact-btn" id="sh31-cancel">‹ Shipments</button></div>
    <div class="sh31-create-card">
     <div class="eyebrow">New forwarding file</div><h1 class="title">New Shipment</h1>
-    <p class="muted">Start the file now. Routing, parties, cargo, booking and documents can be completed inside the shipment.</p>
+    <p class="muted">Create the file with its identity. Routing, parties, cargo, booking and documents are completed inside the shipment.</p>
     <div class="sh31-mode" role="group" aria-label="Shipment mode">
      <button class="active" data-sh31-mode="AIR">Air</button><button data-sh31-mode="OCEAN">Ocean</button><button data-sh31-mode="GROUND">Ground</button>
+    </div>
+    <div class="sh31-direction-block">
+     <span>Direction</span>
+     <div class="sh31-direction" role="group" aria-label="Shipment direction">
+      <button class="active" data-sh31-direction="EXPORT">Export</button>
+      <button data-sh31-direction="IMPORT">Import</button>
+      <button data-sh31-direction="CROSS_TRADE">Foreign → Foreign</button>
+      <button data-sh31-direction="DOMESTIC">Domestic</button>
+     </div>
     </div>
     <div class="sh31-fields">
      <label><span>Customer</span><select id="sh31-customer"><option value="">Choose customer…</option>${opts}</select></label>
      <label><span id="sh31-ref-label">AWB / customer reference</span><input id="sh31-ref" autocomplete="off" placeholder="Optional — can be added later"></label>
     </div>
-    <div class="sh31-more"><button class="subtle" id="sh31-more">+ Direction</button><label id="sh31-direction-wrap" hidden><span>Direction</span><select id="sh31-direction"><option value="">Not set</option><option>EXPORT</option><option>IMPORT</option><option>DOMESTIC</option><option>CROSS_TRADE</option></select></label></div>
-    <div class="sh31-footer"><span class="muted">Only Customer is needed to start.</span><button class="primary" id="sh31-create">Create shipment →</button></div>
+    <div class="sh31-footer"><span class="muted">Customer + direction establish the forwarding file.</span><button class="primary" id="sh31-create">Create shipment →</button></div>
    </div></div>`;
-  let mode='AIR';
+  let mode='AIR',direction='EXPORT';
   main.querySelectorAll('[data-sh31-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.sh31Mode;main.querySelectorAll('[data-sh31-mode]').forEach(x=>x.classList.toggle('active',x===b));document.getElementById('sh31-ref-label').textContent=mode==='AIR'?'AWB / customer reference':mode==='OCEAN'?'BL / customer reference':'BOL / customer reference'});
+  main.querySelectorAll('[data-sh31-direction]').forEach(b=>b.onclick=()=>{direction=b.dataset.sh31Direction;main.querySelectorAll('[data-sh31-direction]').forEach(x=>x.classList.toggle('active',x===b))});
   document.getElementById('sh31-cancel').onclick=()=>openShipments();
-  document.getElementById('sh31-more').onclick=()=>{document.getElementById('sh31-direction-wrap').hidden=false;document.getElementById('sh31-more').hidden=true};
   document.getElementById('sh31-create').onclick=async e=>{
-   const btn=e.currentTarget,customer=document.getElementById('sh31-customer').value,ref=document.getElementById('sh31-ref').value.trim(),direction=document.getElementById('sh31-direction').value||null;
+   const btn=e.currentTarget,customer=document.getElementById('sh31-customer').value,ref=document.getElementById('sh31-ref').value.trim();
    if(!customer)return alert('Choose the customer.');
+   if(!direction)return alert('Choose the shipment direction.');
    btn.disabled=true;btn.textContent='Creating…';
    try{
     const org=await getCurrentOrganizationId(),number=gen(mode),payload={organization_id:org,shipment_number:number,mode,direction,status:'DRAFT',customer_id:customer,reference:ref||null,weight_unit:'KG',updated_at:new Date().toISOString()};
