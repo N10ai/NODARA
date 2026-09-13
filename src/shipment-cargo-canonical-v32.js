@@ -65,5 +65,7 @@ async function tick(){
 }
 
 document.addEventListener('click',e=>{if(e.target.closest?.('[data-txw-tab="cargo"]'))setTimeout(tick,0)},true);
-new MutationObserver(()=>queueMicrotask(tick)).observe(main,{childList:true,subtree:true});
+// Only watch route-level replacement/insertion. Observing the whole subtree caused
+// every cargo render to trigger another pass and made Safari noticeably sluggish.
+new MutationObserver(()=>queueMicrotask(tick)).observe(main,{childList:true});
 queueMicrotask(tick);
