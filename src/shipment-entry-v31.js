@@ -4,6 +4,7 @@ import { openShipments } from './operations-core.js?v=20260906-core4';
 import { mountRecordResolver } from './nodara-record-resolver.js?v=20260913-v39';
 import './shipment-shell-v37.js?v=20260913-v37';
 import './shipment-v38-fix.js?v=20260913-v39';
+import './shipment-parties-v40.js?v=20260913-v40';
 import './shipment-air-execution-v33.js?v=20260913-v35';
 import './shipment-stability-v34.js?v=20260913-v35';
 
