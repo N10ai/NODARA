@@ -1,12 +1,13 @@
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId, listEntities } from './live-data.js';
 import { openShipments } from './operations-core.js?v=20260906-core4';
-import './shipment-cargo-canonical-v32.js?v=20260913-v32';
+import './shipment-cargo-canonical-v32.js?v=20260913-v33';
+import './shipment-air-execution-v33.js?v=20260913-v33';
 
 if(!document.querySelector('link[data-shipment-entry-v32]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./shipment-entry-v31.css?v=20260913-v32';l.dataset.shipmentEntryV32='';document.head.appendChild(l)}
 
 const main=document.getElementById('main');
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]||c));
 const gen=mode=>`${mode==='OCEAN'?'OCN':mode==='GROUND'?'GRD':'AIR'}-${new Date().toISOString().slice(2,10).replaceAll('-','')}-${String(Date.now()).slice(-4)}`;
 let installing=false;
 
