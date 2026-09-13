@@ -1,7 +1,7 @@
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId, listEntities } from './live-data.js';
 import { openShipments } from './operations-core.js?v=20260906-core4';
-import './shipment-shell-v35.js?v=20260913-v35';
+import './shipment-shell-v35.js?v=20260913-v36';
 import './shipment-air-execution-v33.js?v=20260913-v35';
 import './shipment-stability-v34.js?v=20260913-v35';
 
