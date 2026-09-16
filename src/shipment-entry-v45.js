@@ -1,2 +1,3 @@
-import './shipment-entry.js?v=20260915-v48';
-import './shipment-cohesion-v48.js?v=20260915-v48';
+import './shipment-entry.js?v=20260916-v50';
+import './shipment-cohesion-v48.js?v=20260916-v50';
+import './shipment-stability-v50.js?v=20260916-v50';
