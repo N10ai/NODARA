@@ -1,6 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { mountCargoWorkspace } from './cargo-workspace.js';
-import './transaction-cargo-table-polish.js';
+import './transaction-cargo-table-polish.js?v=20260915-v49';
 import './transaction-workspace-shell.js?v=20260908-native2';
 import './transaction-documents-enhancer.js?v=20260907-docs1';
 
