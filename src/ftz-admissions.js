@@ -52,15 +52,16 @@ async function createScreen(){
 }
 function createReceiptForAdmission(id){
  sessionStorage.setItem('nodara:ftz-return-admission',id);
- if(typeof window.nodaraNewCanonicalWR==='function') return window.nodaraNewCanonicalWR();
- throw new Error('Receiving workspace is not ready.');
+ const open=window.nodaraReceive||window.nodaraNewReceipt||window.nodaraOpenNewWR||window.nodaraNewCanonicalWR;
+ if(typeof open==='function') return open();
+ alert('Receiving workspace is still loading. Please try again.');
 }
 async function linkReceiptScreen(id){
  const {data:rows,error}=await supabase.rpc('nodara_ftz_receipt_candidates',{p_admission_id:id,p_search:null});if(error)throw error;
  main().innerHTML=`<div class="eyebrow">FTZ · Receiving</div><div class="ftz-head"><div><h1 class="title">Receiving record.</h1><p class="muted">Create the WR here when the cargo has not been received yet, or link an existing WR when receiving already started elsewhere.</p></div><button class="primary" id="ftz-create-wr">+ Create WR</button></div><div class="card ftz-list">${rows?.length?rows.map(w=>`<button class="ftz-row" data-wr="${w.id}"><div><strong>${esc(w.receipt_number)}</strong><small>${esc(w.status||'')}</small></div><i>›</i></button>`).join(''):'<div class="empty">No warehouse receipts available.</div>'}</div><button class="secondary" id="ftz-link-back">Back</button>`;
  document.getElementById('ftz-link-back').onclick=()=>detail(id);document.getElementById('ftz-create-wr').onclick=()=>createReceiptForAdmission(id);document.querySelectorAll('[data-wr]').forEach(b=>b.onclick=async()=>{const {error:e}=await supabase.rpc('nodara_link_ftz_receipt',{p_admission_id:id,p_warehouse_receipt_id:b.dataset.wr});if(e)throw e;await detail(id)});
 }
-async function reconcile(id){const {error}=await supabase.rpc('nodara_ftz_reconcile_admission',{p_admission_id:id});if(error)throw error;await detail(id)}
+async function reconcile(id){const b=document.getElementById('adm-reconcile');if(b){b.disabled=true;b.textContent='Reconciling…'}try{const {error}=await supabase.rpc('nodara_ftz_reconcile_admission',{p_admission_id:id});if(error)throw error;await detail(id)}catch(e){alert('Reconciliation could not run: '+(e?.message||e));if(b){b.disabled=false;b.textContent='Reconcile receiving'}}}
 async function postInventory(id){const {error}=await supabase.rpc('nodara_post_ftz_admission_inventory',{p_admission_id:id});if(error)throw error;await detail(id)}
 async function detail(id){
  const [{data:a,error},{data:wrs},{data:rec},{data:timeline},{data:docs}]=await Promise.all([supabase.from('ftz_admission_workspace').select('*').eq('id',id).single(),supabase.from('ftz_admission_receipt_workspace').select('*').eq('admission_id',id),supabase.from('ftz_admission_reconciliation').select('*').eq('admission_id',id),supabase.from('ftz_admission_timeline').select('*').eq('admission_id',id).order('event_at',{ascending:false}),supabase.from('ftz_document_casefile').select('*').eq('admission_id',id).order('document_date',{ascending:false})]);if(error)throw error;
