@@ -7,7 +7,7 @@ begin
  if v_org is null then raise exception 'FTZ admission not found'; end if;
  if not public.nodara_is_org_member(v_org) then raise exception 'Workspace access denied'; end if;
  select (public.create_warehouse_receipt_shell_v1('FTZ_ADMISSION',v_ref,'FTZ_ADMISSION',p_admission_id,
-   jsonb_build_object('source','FTZ_ADMISSION','admission_id',p_admission_id,'reference',v_ref))).warehouse_receipt_id into v_wr;
+   jsonb_build_object('source','FTZ_ADMISSION','admission_id',p_admission_id,'reference',v_ref))->>'warehouse_receipt_id')::uuid into v_wr;
  select job_id into v_job from public.warehouse_receipts where id=v_wr;
  update public.warehouse_receipts set status='draft',processing_status='pending',started_at=null,
    expected_source_type='FTZ_ADMISSION',expected_source_id=p_admission_id,
