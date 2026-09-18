@@ -1,0 +1,66 @@
+import { supabase } from './supabase-client.js';
+
+const main=()=>document.getElementById('main');
+const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+let orgId=null;
+
+async function workspaceOrg(){
+  if(orgId)return orgId;
+  const {data,error}=await supabase.rpc('bootstrap_workspace',{p_name:'NODARA Workspace'});
+  if(error)throw error;
+  orgId=typeof data==='string'?data:(data?.organization_id||data?.id||data);
+  return orgId;
+}
+async function settings(){
+  const o=await workspaceOrg();
+  let {data,error}=await supabase.from('ftz_settings').select('*').eq('organization_id',o).maybeSingle();
+  if(error)throw error;
+  if(!data){const r=await supabase.from('ftz_settings').insert({organization_id:o}).select().single();if(r.error)throw r.error;data=r.data}
+  return data;
+}
+async function saveSettings(){
+  const o=await workspaceOrg();
+  const payload={organization_id:o,inventory_identification_method:document.getElementById('ftz-id-method').value,identity_numbering_method:document.getElementById('ftz-number-method').value,depletion_method:document.getElementById('ftz-depletion').value,updated_at:new Date().toISOString()};
+  const {error}=await supabase.from('ftz_settings').upsert(payload);if(error)throw error;
+  document.getElementById('ftz-save-state').textContent='Saved';
+}
+async function list(){
+  const o=await workspaceOrg();
+  const [{data:cfg},{data:rows,error}]=await Promise.all([supabase.from('ftz_settings').select('*').eq('organization_id',o).maybeSingle(),supabase.from('ftz_admission_workspace').select('*').eq('organization_id',o).order('created_at',{ascending:false})]);
+  if(error)throw error;
+  main().innerHTML=`<div class="eyebrow">Customs & Compliance · FTZ</div><div class="ftz-head"><div><h1 class="title">Admissions</h1><p class="muted">Admission control, inventory identity and receiving reconciliation.</p></div><button class="primary" id="ftz-new">+ Admission</button></div>
+  <div class="ftz-config-strip"><span>Control method</span><b>${esc(cfg?.inventory_identification_method||'Not configured')}</b><span>Depletion</span><b>${esc(cfg?.depletion_method||'—')}</b><button class="subtle" id="ftz-config">Configure</button></div>
+  <div class="card ftz-list">${rows?.length?rows.map(a=>`<button class="ftz-row" data-id="${a.id}"><div><strong>${esc(a.admission_number)}</strong><small>${esc(a.source_reference||'No source reference')}</small></div><div><span class="ftz-pill">${esc(a.admission_status.replaceAll('_',' '))}</span><small>${esc(a.identity_type||'Identity pending')} · ${esc(a.identity_number||'—')}</small></div><i>›</i></button>`).join(''):'<div class="empty"><b>No FTZ admissions yet.</b><p>Create the first admission when cargo is expected for the zone.</p></div>'}</div>`;
+  document.getElementById('ftz-new').onclick=createScreen;document.getElementById('ftz-config').onclick=configScreen;document.querySelectorAll('.ftz-row').forEach(x=>x.onclick=()=>detail(x.dataset.id));
+}
+async function configScreen(){
+ const c=await settings();main().innerHTML=`<div class="eyebrow">FTZ · Configuration</div><h1 class="title">Inventory control.</h1><p class="muted">Operator policy, not a NODARA hard-coded assumption.</p><div class="card ftz-form">
+ <label>Inventory identification method<select id="ftz-id-method"><option value="ZONE_LOT">Zone Lot</option><option value="UIN">Unique Identification Number (UIN)</option><option value="OTHER">Other approved method</option></select></label>
+ <label>Identity numbering<select id="ftz-number-method"><option value="ADMISSION_NUMBER">Use Admission Number</option><option value="INDEPENDENT_SEQUENCE">Independent sequence</option><option value="MANUAL">Manual</option></select></label>
+ <label>Allocation / depletion<select id="ftz-depletion"><option value="SPECIFIC_IDENTITY">Specific identity / lot</option><option value="FIFO">FIFO</option><option value="OTHER">Other configured rule</option></select></label>
+ <div id="ftz-save-state" class="muted"></div><div class="actions"><button class="secondary" id="ftz-back">Back</button><button class="primary" id="ftz-save">Save configuration</button></div></div>`;
+ document.getElementById('ftz-id-method').value=c.inventory_identification_method;document.getElementById('ftz-number-method').value=c.identity_numbering_method;document.getElementById('ftz-depletion').value=c.depletion_method;document.getElementById('ftz-back').onclick=list;document.getElementById('ftz-save').onclick=async()=>{try{await saveSettings()}catch(e){document.getElementById('ftz-save-state').textContent=e.message}};
+}
+async function createScreen(){
+ const c=await settings();main().innerHTML=`<div class="eyebrow">FTZ · Admission</div><h1 class="title">Start admission.</h1><p class="muted">Capture the regulatory transaction first. Receiving remains a linked warehouse event.</p><div class="card ftz-form">
+ <label>Admission number<input id="adm-number" placeholder="Leave blank for NODARA numbering"></label>
+ <label>Source reference<input id="adm-ref" placeholder="BOL, AWB, 7512, PO or client reference"></label>
+ <label>Requested FTZ status<select id="adm-status"><option value="">Not selected</option><option value="PF">Privileged Foreign (PF)</option><option value="NPF">Nonprivileged Foreign (NPF)</option><option value="DOMESTIC">Domestic</option><option value="ZR">Zone Restricted (ZR)</option></select></label>
+ <div class="ftz-preview"><span>Inventory identity</span><b>${esc(c.inventory_identification_method)}</b><small>${c.identity_numbering_method==='ADMISSION_NUMBER'?'Will automatically use the Admission Number.':'Will be assigned according to this operator’s configuration.'}</small></div>
+ <div id="adm-state"></div><div class="actions"><button class="secondary" id="adm-back">Cancel</button><button class="primary" id="adm-create">Create admission</button></div></div>`;
+ document.getElementById('adm-back').onclick=list;document.getElementById('adm-create').onclick=async()=>{const b=document.getElementById('adm-create');b.disabled=true;try{const o=await workspaceOrg();const {data,error}=await supabase.rpc('nodara_create_ftz_admission',{p_organization_id:o,p_admission_number:document.getElementById('adm-number').value.trim()||null,p_source_reference:document.getElementById('adm-ref').value.trim()||null,p_requested_ftz_status:document.getElementById('adm-status').value||null});if(error)throw error;await detail(data)}catch(e){b.disabled=false;document.getElementById('adm-state').innerHTML=`<p class="warning">${esc(e.message)}</p>`}};
+}
+async function linkReceiptScreen(id){
+ const {data:rows,error}=await supabase.rpc('nodara_ftz_receipt_candidates',{p_admission_id:id,p_search:null});if(error)throw error;
+ main().innerHTML=`<div class="eyebrow">FTZ · Receiving</div><h1 class="title">Link warehouse receipt.</h1><p class="muted">The WR remains the physical receiving record. This connects it to the regulatory admission.</p><div class="card ftz-list">${rows?.length?rows.map(w=>`<button class="ftz-row" data-wr="${w.id}"><div><strong>${esc(w.receipt_number)}</strong><small>${esc(w.status||'')}</small></div><i>›</i></button>`).join(''):'<div class="empty">No warehouse receipts available.</div>'}</div><button class="secondary" id="ftz-link-back">Back</button>`;
+ document.getElementById('ftz-link-back').onclick=()=>detail(id);document.querySelectorAll('[data-wr]').forEach(b=>b.onclick=async()=>{const {error:e}=await supabase.rpc('nodara_link_ftz_receipt',{p_admission_id:id,p_warehouse_receipt_id:b.dataset.wr});if(e)throw e;await detail(id)});
+}
+async function reconcile(id){const {error}=await supabase.rpc('nodara_ftz_reconcile_admission',{p_admission_id:id});if(error)throw error;await detail(id)}
+async function postInventory(id){const {error}=await supabase.rpc('nodara_post_ftz_admission_inventory',{p_admission_id:id});if(error)throw error;await detail(id)}
+async function detail(id){
+ const [{data:a,error},{data:wrs},{data:rec},{data:timeline},{data:audit},{data:docs}]=await Promise.all([supabase.from('ftz_admission_workspace').select('*').eq('id',id).single(),supabase.from('ftz_admission_receipt_workspace').select('*').eq('admission_id',id),supabase.from('ftz_admission_reconciliation').select('*').eq('admission_id',id),supabase.from('ftz_admission_timeline').select('*').eq('admission_id',id).order('event_at',{ascending:false}),supabase.from('ftz_audit_log').select('id,occurred_at,action,record_type,actor_id').eq('admission_id',id).order('occurred_at',{ascending:false}).limit(100),supabase.from('ftz_document_casefile').select('*').eq('admission_id',id).order('document_date',{ascending:false})]);if(error)throw error;
+ main().innerHTML=`<div class="eyebrow">FTZ · Admission</div><div class="ftz-head"><div><h1 class="title">${esc(a.admission_number)}</h1><p class="muted">${esc(a.source_reference||'No source reference')}</p></div><span class="ftz-pill">${esc(a.admission_status.replaceAll('_',' '))}</span></div>
+ <div class="ftz-summary"><div><span>Inventory control</span><b>${esc(a.identity_type||'Pending')}</b></div><div><span>Identity</span><b>${esc(a.identity_number||'Not assigned')}</b></div><div><span>FTZ status</span><b>${esc(a.requested_ftz_status||'Not selected')}</b></div><div><span>Linked WRs</span><b>${a.linked_receipts||0}</b></div></div>
+ <div class="card"><h2>Receiving records</h2>${wrs?.length?wrs.map(w=>`<div class="status"><span>${esc(w.receipt_number)}</span><b>${esc(w.receipt_status||'Linked')}</b></div>`).join(''):'<div class="empty">No WR linked yet.</div>'}<div class="actions"><button class="secondary" id="adm-link-wr">Link WR</button><button class="secondary" id="adm-reconcile" ${!wrs?.length?'disabled':''}>Reconcile receiving</button></div></div><div class="card"><h2>Inventory control posting</h2><div class="status"><span>Reconciliation lines</span><b>${rec?.length||0}</b></div><div class="status"><span>Open variances</span><b>${rec?.filter(x=>x.resolution_status==='OPEN').length||0}</b></div><p class="muted">Cargo is posted to the configured Zone Lot/UIN only after receiving reconciliation has no unresolved variance.</p><button class="primary wide" id="adm-post" ${!rec?.length||rec.some(x=>x.resolution_status==='OPEN')||a.admission_status==='CLOSED'?'disabled':''}>Post FTZ inventory & close admission</button></div><div class="card"><h2>Documents</h2><p class="muted">Case-file organization stays usable even when an admission accumulates dozens of 7512s, invoices and evidence files.</p><div class="ftz-doc-groups">${docs?.length?Object.entries(docs.reduce((g,d)=>((g[d.category]??=[]).push(d),g),{})).map(([cat,items])=>`<details class="ftz-doc-group" ${items.some(x=>x.is_key_document)?'open':''}><summary><b>${esc(cat.replaceAll('_',' '))}</b><span>${items.length}</span></summary>${items.map(d=>`<div class="ftz-doc-row"><div><b>${esc(d.display_name||d.file_name||d.document_type)}</b><small>${esc(d.document_number||d.record_type||'Supporting document')}</small></div><time>${d.document_date?new Date(d.document_date).toLocaleDateString():new Date(d.created_at).toLocaleDateString()}</time></div>`).join('')}</details>`).join(''):'<div class="empty">No documents linked to this admission yet.</div>'}</div></div><div class="card"><h2>Chronological activity</h2><p class="muted">Operational events and linked records are preserved in sequence.</p><div class="ftz-timeline">${timeline?.length?timeline.map(e=>`<div class="ftz-event"><time>${new Date(e.event_at).toLocaleString()}</time><div><b>${esc(e.title)}</b><small>${esc(e.detail||e.event_type)}</small></div></div>`).join(''):'<div class="empty">No activity yet.</div>'}</div></div><div class="card"><h2>Audit trail</h2><p class="muted">System history is separate from the human-readable activity timeline.</p>${audit?.length?audit.slice(0,12).map(x=>`<div class="status"><span>${new Date(x.occurred_at).toLocaleString()} · ${esc(x.record_type)}</span><b>${esc(x.action)}</b></div>`).join(''):'<div class="empty">No audit records yet.</div>'}</div><div class="card"><h2>Admission lifecycle</h2><div class="ftz-flow"><b>Prepare</b><span>→</span><b>Authorize</b><span>→</span><b>Receive</b><span>→</span><b>Reconcile</b><span>→</span><b>Close</b></div><button class="secondary" id="adm-list">Back to admissions</button></div>`;document.getElementById('adm-list').onclick=list;document.getElementById('adm-link-wr').onclick=()=>linkReceiptScreen(id);document.getElementById('adm-reconcile').onclick=()=>reconcile(id);document.getElementById('adm-post').onclick=()=>postInventory(id);
+}
+window.nodaraFTZ={list,config:configScreen,newAdmission:createScreen,detail,linkReceipt:linkReceiptScreen,reconcile,postInventory};
