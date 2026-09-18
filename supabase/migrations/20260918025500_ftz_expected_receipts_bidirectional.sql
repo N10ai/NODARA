@@ -3,7 +3,7 @@ create or replace function public.nodara_create_ftz_expected_receipt(p_admission
 returns uuid language plpgsql security definer set search_path=public as $$
 declare v_org uuid; v_ref text; v_customer uuid; v_wr uuid; v_job uuid;
 begin
- select organization_id,coalesce(source_reference,admission_number),customer_entity_id into v_org,v_ref,v_customer from public.ftz_admissions where id=p_admission_id;
+ select organization_id,admission_number,customer_entity_id into v_org,v_ref,v_customer from public.ftz_admissions where id=p_admission_id;
  if v_org is null then raise exception 'FTZ admission not found'; end if;
  if not public.nodara_is_org_member(v_org) then raise exception 'Workspace access denied'; end if;
  select (public.create_warehouse_receipt_shell_v1('FTZ_ADMISSION',v_ref,'FTZ_ADMISSION',p_admission_id,
