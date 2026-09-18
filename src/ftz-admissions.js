@@ -35,14 +35,14 @@ async function list(){
  main().innerHTML=`<div class="eyebrow">Customs & Compliance · FTZ</div><div class="ftz-head"><div><h1 class="title">Admissions</h1><p class="muted">Admission control, inventory identity and receiving reconciliation.</p></div><button class="primary" id="ftz-new">+ Admission</button></div>
  <div class="ftz-config-strip"><span>Control method</span><b>${esc(cfg?.inventory_identification_method||'Not configured')}</b><span>Depletion</span><b>${esc(cfg?.depletion_method||'—')}</b><button class="subtle" id="ftz-config">Configure</button></div><div id="ftz-admissions-grid"></div>`;
  const cols=[
-  {key:'admission_number',label:'Admission #',render:v=>`<strong>${esc(v)}</strong>`},
-  {key:'admission_status',label:'Status',render:v=>`<span class="ftz-pill">${esc(String(v||'').replaceAll('_',' '))}</span>`},
-  {key:'source_reference',label:'Source reference'},{key:'requested_ftz_status',label:'FTZ status'},
-  {key:'identity_type',label:'Inventory method'},{key:'identity_number',label:'Inventory identity'},
-  {key:'wr_numbers',label:'WR #s'},{key:'linked_wr_count',label:'Linked WRs'},{key:'expected_quantity',label:'Expected qty',render:(v,r)=>esc(v??0)+' '+esc(r.expected_uom||'')},{key:'received_quantity',label:'Received qty',render:(v,r)=>esc(v??0)+' '+esc(r.received_uom||'')},{key:'variance_quantity',label:'Variance'},{key:'open_variances',label:'Open variances'},{key:'created_at',label:'Created',render:v=>v?new Date(v).toLocaleDateString():'—'},
-  {key:'updated_at',label:'Updated',render:v=>v?new Date(v).toLocaleDateString():'—'}
+  {key:'admission_number',label:'Admission #',type:'text',source:'Admission',render:v=>`<strong>${esc(v)}</strong>`},
+  {key:'admission_status',label:'Status',type:'text',source:'Admission',render:v=>`<span class="ftz-pill">${esc(String(v||'').replaceAll('_',' '))}</span>`},
+  {key:'source_reference',label:'Source reference',type:'text',source:'Admission'},{key:'requested_ftz_status',label:'FTZ status',type:'text',source:'Admission'},
+  {key:'identity_type',label:'Inventory method',type:'text',source:'Inventory identity'},{key:'identity_number',label:'Inventory identity',type:'text',source:'Inventory identity'},
+  {key:'wr_numbers',label:'WR #s',type:'text',source:'Related WRs'},{key:'linked_wr_count',label:'Linked WRs',type:'number',source:'Related WRs'},{key:'expected_quantity',label:'Expected qty',type:'number',source:'Expected cargo',render:(v,r)=>esc(v??0)+' '+esc(r.expected_uom||'')},{key:'received_quantity',label:'Received qty',type:'number',source:'Reconciliation',render:(v,r)=>esc(v??0)+' '+esc(r.received_uom||'')},{key:'variance_quantity',label:'Variance',type:'number',source:'Calculated'},{key:'open_variances',label:'Open variances',type:'number',source:'Reconciliation'},{key:'created_at',label:'Created',type:'date',source:'Admission',render:v=>v?new Date(v).toLocaleDateString():'—'},
+  {key:'updated_at',label:'Updated',type:'date',source:'Admission',render:v=>v?new Date(v).toLocaleDateString():'—'}
  ];
- renderGrid(document.getElementById('ftz-admissions-grid'),{id:'ftz-admissions',rows:rows||[],columns:cols,defaultColumns:['admission_number','admission_status','source_reference','requested_ftz_status','identity_number','wr_numbers','expected_quantity','received_quantity','variance_quantity'],onOpen:detail});
+ renderGrid(document.getElementById('ftz-admissions-grid'),{id:'ftz-admissions',rows:rows||[],columns:cols,defaultColumns:['admission_number','admission_status','source_reference','requested_ftz_status','identity_number','wr_numbers','expected_quantity','received_quantity','variance_quantity'],onOpen:detail,onSaveView:async v=>{const name=prompt('Name this view');if(!name?.trim())return;const {error}=await supabase.from('nodara_saved_views').insert({organization_id:o,resource_type:'ftz_admissions',name:name.trim(),columns:v.columns,filters:v.filters,sort:v.sort?[v.sort]:[]});if(error)return alert(error.message);alert('View saved: '+name.trim())}});
  document.getElementById('ftz-new').onclick=createScreen;document.getElementById('ftz-config').onclick=configScreen;
 }
 async function configScreen(){
