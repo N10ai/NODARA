@@ -30,7 +30,7 @@ async function saveSettings(){
 async function list(){
  ftzBack('More',()=>{clearFtzBack();document.querySelector('[data-view="more"],[data-go="more"],[data-route="more"]')?.click()||history.back()});
  const o=await workspaceOrg();
- const [{data:cfg},{data:rows,error}]=await Promise.all([supabase.from('ftz_settings').select('*').eq('organization_id',o).maybeSingle(),supabase.from('ftz_admission_workspace').select('*').eq('organization_id',o).order('created_at',{ascending:false})]);
+ const [{data:cfg},{data:rows,error}]=await Promise.all([supabase.from('ftz_settings').select('*').eq('organization_id',o).maybeSingle(),supabase.from('ftz_admission_grid').select('*').eq('organization_id',o).order('created_at',{ascending:false})]);
  if(error)throw error;
  main().innerHTML=`<div class="eyebrow">Customs & Compliance · FTZ</div><div class="ftz-head"><div><h1 class="title">Admissions</h1><p class="muted">Admission control, inventory identity and receiving reconciliation.</p></div><button class="primary" id="ftz-new">+ Admission</button></div>
  <div class="ftz-config-strip"><span>Control method</span><b>${esc(cfg?.inventory_identification_method||'Not configured')}</b><span>Depletion</span><b>${esc(cfg?.depletion_method||'—')}</b><button class="subtle" id="ftz-config">Configure</button></div><div id="ftz-admissions-grid"></div>`;
@@ -39,10 +39,10 @@ async function list(){
   {key:'admission_status',label:'Status',render:v=>`<span class="ftz-pill">${esc(String(v||'').replaceAll('_',' '))}</span>`},
   {key:'source_reference',label:'Source reference'},{key:'requested_ftz_status',label:'FTZ status'},
   {key:'identity_type',label:'Inventory method'},{key:'identity_number',label:'Inventory identity'},
-  {key:'linked_receipts',label:'Linked WRs'},{key:'created_at',label:'Created',render:v=>v?new Date(v).toLocaleDateString():'—'},
+  {key:'wr_numbers',label:'WR #s'},{key:'linked_wr_count',label:'Linked WRs'},{key:'expected_quantity',label:'Expected qty',render:(v,r)=>esc(v??0)+' '+esc(r.expected_uom||'')},{key:'received_quantity',label:'Received qty',render:(v,r)=>esc(v??0)+' '+esc(r.received_uom||'')},{key:'variance_quantity',label:'Variance'},{key:'open_variances',label:'Open variances'},{key:'created_at',label:'Created',render:v=>v?new Date(v).toLocaleDateString():'—'},
   {key:'updated_at',label:'Updated',render:v=>v?new Date(v).toLocaleDateString():'—'}
  ];
- renderGrid(document.getElementById('ftz-admissions-grid'),{id:'ftz-admissions',rows:rows||[],columns:cols,defaultColumns:['admission_number','admission_status','source_reference','requested_ftz_status','identity_number','linked_receipts'],onOpen:detail});
+ renderGrid(document.getElementById('ftz-admissions-grid'),{id:'ftz-admissions',rows:rows||[],columns:cols,defaultColumns:['admission_number','admission_status','source_reference','requested_ftz_status','identity_number','wr_numbers','expected_quantity','received_quantity','variance_quantity'],onOpen:detail});
  document.getElementById('ftz-new').onclick=createScreen;document.getElementById('ftz-config').onclick=configScreen;
 }
 async function configScreen(){
