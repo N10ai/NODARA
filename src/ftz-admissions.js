@@ -1,8 +1,9 @@
 import { supabase } from './supabase-client.js';
-import { renderInto as renderGrid } from './nodara-data-grid.js';
+import { renderInto as renderGrid } from './nodara-data-grid.js?v=20260919-ftzfix';
 
 const main=()=>document.getElementById('main');
 window.__nodaraFTZModuleLoaded=true;
+window.__nodaraFTZModuleError=null;
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 let orgId=null;const ftzSelected=new Map();
 let ftzBackContext=null;
