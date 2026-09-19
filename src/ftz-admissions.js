@@ -2,6 +2,7 @@ import { supabase } from './supabase-client.js';
 import { renderInto as renderGrid } from './nodara-data-grid.js';
 
 const main=()=>document.getElementById('main');
+window.__nodaraFTZModuleLoaded=true;
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 let orgId=null;const ftzSelected=new Map();
 let ftzBackContext=null;
@@ -110,3 +111,4 @@ async function auditTrail(id){
  main().innerHTML=`${ftzScreenNav('FTZ Admission','Audit Trail')}<div class="eyebrow">FTZ · System record</div><div class="ftz-head"><div><h1 class="title">Audit trail</h1><p class="muted">Detailed system evidence. Loaded only on demand.</p></div><button class="secondary" id="audit-back">Back</button></div><div class="card ftz-list">${data?.length?data.map(x=>`<div class="ftz-doc-row"><div><b>${esc(x.action)} · ${esc(x.record_type)}</b><small>${esc(x.record_id||'')}</small></div><time>${new Date(x.occurred_at).toLocaleString()}</time></div>`).join(''):'<div class="empty">No audit records.</div>'}</div><p class="muted">Showing the newest 100 records. Additional pages will be loaded only when requested.</p>`;bindFtzNav();document.getElementById('audit-back').onclick=()=>detail(id);
 }
 window.nodaraFTZ={list,config:configScreen,newAdmission:createScreen,detail,createExpectedReceipt,startReceiving:startReceivingForAdmission,linkReceipt:linkReceiptScreen,reconcile,postInventory,auditTrail};
+window.dispatchEvent(new CustomEvent('nodara:ftz-ready'));
