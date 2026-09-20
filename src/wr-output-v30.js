@@ -30,7 +30,7 @@ async function context(wrId){
   const customer=entities.find(e=>e.id===job?.customer_id)||null;
   return{wr,job,cargo,parties,visit,locs,refs,units,org,templates,entities,addresses,contacts,customer};
 }
-const isSavedCargo=x=>String(x.processing_status||'').toLowerCase()==='processed'||x.metadata?.editor_draft!==true;const roots=rows=>rows.filter(x=>!x.parent_id&&isSavedCargo(x));
+const isSavedCargo=x=>String(x.status||'').toLowerCase()==='received'||String(x.processing_status||'').toLowerCase()==='processed'||x.metadata?.editor_draft!==true;const roots=rows=>rows.filter(x=>!x.parent_id&&isSavedCargo(x));
 const loc=(c,row)=>c.locs.find(x=>x.id===(row.current_location_id||row.warehouse_location_id))?.code||'PENDING';
 const partyRow=(c,role)=>c.parties.find(x=>String(x.role||'').toUpperCase()===role)||null;
 const partyEntity=(c,p)=>p?.entity_id?c.entities.find(e=>e.id===p.entity_id):null;
