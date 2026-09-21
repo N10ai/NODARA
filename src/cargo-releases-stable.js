@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { listCR as listLegacy, openCR } from './cargo-releases-core-v2.js?v=20260920-crtabs1';
+import { listCR as listLegacy, openCR } from './cargo-releases-core-v2.js?v=20260920-crdocs1';
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const terminal=new Set(['RELEASED','SHIPPED','DELETED','VOID','CANCELLED']);
