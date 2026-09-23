@@ -62,7 +62,7 @@ async function openTransportOrder(id,initialTab='overview'){
  document.getElementById('to-delete').onclick=async()=>{if(!confirm(`Delete ${r.order_number}?`))return;const{error}=await supabase.from('transport_orders').delete().eq('id',r.id);if(error)return alert(error.message);openTransportOrders()}
 }
 async function editTransportOrder(r,em){
- try{const m=await import('./transport-order-editor.js?v=operator-2');return m.editTransportOrder(r,em)}catch(err){console.error(err);main.innerHTML=`<div class="notice warning"><b>Transport Order editor could not open.</b><br>${esc(err?.message||err)}</div>`}
+ try{const m=await import('./transport-order-editor.js?v=operator-3');return m.editTransportOrder(r,em)}catch(err){console.error(err);main.innerHTML=`<div class="notice warning"><b>Transport Order editor could not open.</b><br>${esc(err?.message||err)}</div>`}
 }
 
 window.nodaraOperations={shipments:openShipments,transportOrders:openTransportOrders,openTransportOrder};
