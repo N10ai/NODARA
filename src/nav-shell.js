@@ -20,3 +20,9 @@ function install(){renderSidebar();renderMobile();renderSubnav();if(window.__nod
 // Defensive cleanup for stale/legacy shell injectors: configuration never belongs in operational module sheets.
 const cleanLegacyMenus=()=>{document.querySelectorAll('.mobile-sheet,.rail-flyout').forEach(sheet=>{const title=sheet.querySelector('h3')?.textContent?.trim()||'';if(title==='Settings')return;sheet.querySelectorAll('button').forEach(b=>{if(LEGACY_CONFIG_LABELS.has(b.textContent.trim()))b.remove()})})};
 new MutationObserver(cleanLegacyMenus).observe(document.body,{childList:true,subtree:true});
+
+// Single navigation authority. Legacy shell/menu scripts may still render older configuration shortcuts;
+// rebuild the shell after startup and whenever either nav root is rewritten.
+let authorityTimer=null;const enforceAuthority=()=>{if(!window.__nodaraAuthenticated)return;clearTimeout(authorityTimer);authorityTimer=setTimeout(()=>{const bad=[...document.querySelectorAll('.mobile-sheet,.rail-flyout')].some(s=>{const title=s.querySelector('h3')?.textContent?.trim();return title!=='Settings'&&[...s.querySelectorAll('button')].some(b=>LEGACY_CONFIG_LABELS.has(b.textContent.trim()))});if(bad){document.querySelectorAll('.mobile-sheet,.rail-flyout').forEach(x=>x.remove());install()}},0)};
+const navRoots=[document.getElementById('nav'),document.getElementById('mobile')].filter(Boolean);navRoots.forEach(root=>new MutationObserver(()=>{if(window.__nodaraAuthenticated&&root.querySelector('[data-go]'))install()}).observe(root,{childList:true,subtree:true}));
+setTimeout(()=>{if(window.__nodaraAuthenticated)install()},1200);
