@@ -1,0 +1,8 @@
+create or replace function public.nodara_vendor_qualification(p_organization_id uuid,p_vendor_id uuid)
+returns jsonb language sql stable security invoker as $$
+with p as(select coalesce((select approval_status from public.vendor_profiles where organization_id=p_organization_id and entity_id=p_vendor_id),'REVIEW') approval),
+c as(select count(*) filter(where status in ('REQUIRED','MISSING'))::int missing,count(*) filter(where expires_on<current_date and status not in ('WAIVED','VOID'))::int expired,count(*) filter(where expires_on between current_date and current_date+30 and status not in ('WAIVED','VOID'))::int expiring from public.entity_compliance_requirements where organization_id=p_organization_id and entity_id=p_vendor_id)
+select jsonb_build_object('approval_status',p.approval,'missing',c.missing,'expired',c.expired,'expiring_30',c.expiring,
+'qualification',case when p.approval in ('SUSPENDED','INACTIVE') then 'BLOCKED' when c.expired>0 or c.missing>0 then 'BLOCKED' when p.approval='APPROVED' and c.expiring>0 then 'CONDITIONAL' when p.approval='APPROVED' then 'QUALIFIED' else 'REVIEW' end,
+'reason',case when p.approval in ('SUSPENDED','INACTIVE') then 'Vendor status is '||p.approval when c.expired>0 then c.expired||' compliance requirement(s) expired' when c.missing>0 then c.missing||' compliance requirement(s) missing' when c.expiring>0 then c.expiring||' requirement(s) expire within 30 days' when p.approval<>'APPROVED' then 'Vendor approval is '||p.approval else 'Approved and compliant' end) from p,c;
+$$;
