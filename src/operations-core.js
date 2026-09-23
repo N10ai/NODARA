@@ -37,6 +37,7 @@ export async function openTransportOrders(type='ALL'){
 }
 
 async function openTransportOrder(id,initialTab='overview'){
+ try{const m=await import('./transport-order-detail.js?v=unified-1');return m.openTransportOrderDetail(id,{back:()=>openTransportOrders(),edit:(r,em)=>editTransportOrder(r,em)})}catch(e){console.error('Transport detail fallback',e)}
  const{data:r,error}=await supabase.from('transport_orders').select('*').eq('id',id).single();if(error)return alert(error.message);
  const em=await entityMap();window.nodaraSetActive?.('ops_pickups');
  const customer=party(em,r.customer_id),shipper=party(em,r.shipper_id),consignee=party(em,r.consignee_id),carrierName=party(em,r.carrier_id);
@@ -61,7 +62,7 @@ async function openTransportOrder(id,initialTab='overview'){
  document.getElementById('to-delete').onclick=async()=>{if(!confirm(`Delete ${r.order_number}?`))return;const{error}=await supabase.from('transport_orders').delete().eq('id',r.id);if(error)return alert(error.message);openTransportOrders()}
 }
 async function editTransportOrder(r,em){
- try{const m=await import('./transport-order-editor.js?v=route-doc-1');return m.editTransportOrder(r,em)}catch(err){console.error(err);main.innerHTML=`<div class="notice warning"><b>Transport Order editor could not open.</b><br>${esc(err?.message||err)}</div>`}
+ try{const m=await import('./transport-order-editor.js?v=operator-2');return m.editTransportOrder(r,em)}catch(err){console.error(err);main.innerHTML=`<div class="notice warning"><b>Transport Order editor could not open.</b><br>${esc(err?.message||err)}</div>`}
 }
 
 window.nodaraOperations={shipments:openShipments,transportOrders:openTransportOrders,openTransportOrder};
