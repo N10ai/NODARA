@@ -1,3 +1,3 @@
-export { listCR, createCR, openCR } from './cargo-releases-stable.js?v=20260919-cr8';
-import './cargo-releases-stable.js?v=20260919-cr8';
-// Canonical transaction detail remains non-critical progressive enhancement.
+export { listCR, createCR, openCR } from './cargo-releases-core-v2.js?v=20260924-canonical-cr2';
+import { listCR, createCR, openCR } from './cargo-releases-core-v2.js?v=20260924-canonical-cr2';
+window.nodaraRelease=listCR;window.nodaraCRNew=createCR;window.nodaraCROpen=openCR;
