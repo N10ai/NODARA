@@ -29,3 +29,15 @@
 
 .record-modal{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:18px}.record-modal-backdrop{position:absolute;inset:0;border:0;background:rgba(0,0,0,.62);backdrop-filter:blur(10px)}.record-modal-panel{position:relative;width:min(620px,100%);max-height:min(760px,90vh);overflow:auto;background:var(--panel,#0b1018);border:1px solid var(--line,#263241);border-radius:22px;padding:20px;box-shadow:0 28px 80px rgba(0,0,0,.45)}.relationship-results{display:grid;gap:6px;margin-top:8px;max-height:280px;overflow:auto}.relationship-results button{text-align:left;border:1px solid var(--line,#263241);background:transparent;border-radius:12px;padding:10px 12px;color:inherit;display:flex;justify-content:space-between;gap:12px}.relationship-results button.selected{outline:2px solid currentColor}.relationship-results small{color:var(--muted,#8d98aa)}
 .rail-flyout-group+.rail-flyout-group,.mobile-sheet-group+.mobile-sheet-group{margin-top:14px}.rail-flyout-group>small,.mobile-sheet-group>small{display:block;padding:8px 12px 5px;color:var(--muted,#7f8a9b);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+
+/* Canonical Cargo Release allocation workspace */
+html.cr-modal-open,html.cr-modal-open body{overflow:hidden}
+.cr-allocation-overlay{position:fixed;inset:0;z-index:10040;background:rgba(4,8,15,.78);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:clamp(14px,3vw,36px)}
+.cr-allocation-panel{width:min(1080px,100%);max-height:min(820px,calc(100dvh - 40px));overflow:hidden;display:flex;flex-direction:column;gap:16px;padding:clamp(18px,2.5vw,30px);border:1px solid rgba(132,164,205,.24);border-radius:24px;background:linear-gradient(180deg,rgba(18,29,44,.98),rgba(8,15,25,.99));box-shadow:0 28px 90px rgba(0,0,0,.55)}
+.cr-allocation-panel>.section-heading{flex:0 0 auto;margin:0}.cr-allocation-panel>.inventory-searchbox,.cr-allocation-panel>.cr-inventory-filters{flex:0 0 auto}
+.cr-allocation-panel #cr-add-results{min-height:180px;overflow:auto;padding-right:4px;overscroll-behavior:contain}
+.cr-allocation-panel .cr-inventory-choice{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:18px;padding:14px 4px;border-bottom:1px solid rgba(132,164,205,.12)}
+.cr-allocation-panel .cr-inventory-choice>span:first-child{min-width:0}.cr-allocation-panel .cr-inventory-choice small{display:block;margin-top:4px;color:#8ea2bb}
+.cr-allocation-panel .cr-inventory-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cr-allocation-panel .cr-inventory-filters select{width:100%;min-height:46px}
+@media(max-width:760px){.cr-allocation-overlay{padding:0;align-items:stretch}.cr-allocation-panel{width:100%;max-height:100dvh;height:100dvh;border-radius:0;border:0;padding:18px 14px 24px}.cr-allocation-panel .cr-inventory-filters{grid-template-columns:1fr}.cr-allocation-panel #cr-add-results{flex:1;min-height:0}.cr-allocation-panel .cr-inventory-choice{grid-template-columns:1fr}.cr-allocation-panel .cr-inventory-choice .row{justify-content:space-between}.cr-allocation-panel .cr-inventory-choice input{flex:1!important;width:auto!important}}
