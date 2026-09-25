@@ -1,4 +1,4 @@
-import { recordField, bindRecordFields, readRecordField } from './record-field.js';
+import { recordField, bindRecordFields, readRecordField } from './record-field.js?v=20260924-parserfix1';
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId } from './live-data.js';
 import { mountDataView } from './data-view.js?v=20260902-0035';
