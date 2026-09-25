@@ -5,7 +5,9 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmt=v=>v?new Date(v).toLocaleString():'Not scheduled';
 const money=(v,c='USD')=>v==null?'—':new Intl.NumberFormat(undefined,{style:'currency',currency:c}).format(Number(v)||0);
 export async function openTransportOrderDetail(id,api={}){
+ await supabase.rpc('nodara_link_transport_order_sources',{p_transport_order_id:id});
  const [{data:r,error},{data:cargo},{data:refs}]=await Promise.all([supabase.from('transport_orders').select('*').eq('id',id).single(),supabase.from('transport_order_cargo').select('*').eq('transport_order_id',id).order('line_no'),supabase.from('transport_order_references').select('*').eq('transport_order_id',id).order('created_at')]);if(error)return alert(error.message);
+ const {data:journey}=await supabase.rpc('nodara_operational_journey',{p_organization_id:r.organization_id,p_record_type:'TRANSPORT_ORDER',p_record_id:id});
  const entities=await listEntities(''),em=new Map(entities.map(x=>[x.id,x])),party=x=>em.get(x)?.name||'—';
  const customer=party(r.customer_id),shipper=party(r.shipper_id),consignee=party(r.consignee_id),carrier=party(r.carrier_id),lines=cargo||[],references=refs||[];
  const stages=[['Requested',true],['Scheduled',!!r.scheduled_start],['Dispatched',['DISPATCHED','PICKED_UP','IN_TRANSIT','DELIVERED','COMPLETED'].includes(String(r.status).toUpperCase())],['Picked up',!!r.actual_pickup_at],['Delivered',!!r.actual_delivery_at]];
@@ -17,6 +19,7 @@ export async function openTransportOrderDetail(id,api={}){
  <div class="tod-state"><b>${esc(r.status)}</b><div class="tod-progress">${stages.map(([n,on])=>`<div class="${on?'done':''}"><i></i><span>${n}</span></div>`).join('')}</div></div>
  <section class="tod-map"><div class="tod-grid"></div><svg viewBox="0 0 600 230" preserveAspectRatio="none"><path d="M50 165 C155 75 230 195 340 108 S480 45 550 80"/></svg><div class="tod-pin a">A</div><div class="tod-pin b">B</div><div class="tod-map-info"><small>ROUTE</small><b>${esc(routeA)} → ${esc(routeB)}</b><span>${fmt(r.scheduled_start)} · ${fmt(r.scheduled_end)}</span></div></section>
  <div class="tod-grid-layout"><main>
+  <section class="tod-card"><div class="tod-head"><div><small>RELATED RECORDS</small><h2>Journey</h2></div></div><div id="tod-journey"></div></section>
   <section class="tod-card"><div class="tod-head"><div><small>ROUTE</small><h2>Movement plan</h2></div><button id="tod-route-edit">Edit route</button></div>
    <div class="tod-stop"><i>A</i><div><small>PICKUP FROM</small><h3>${esc(r.pickup_name||shipper)}</h3><p>${esc(r.pickup_address||'Address required')}</p><span>${fmt(r.scheduled_start)}</span></div></div>
    <div class="tod-stop"><i>B</i><div><small>DELIVER TO</small><h3>${esc(r.delivery_name||consignee)}</h3><p>${esc(r.delivery_address||'Address required')}</p><span>${fmt(r.scheduled_end)}</span></div></div>
@@ -33,6 +36,7 @@ export async function openTransportOrderDetail(id,api={}){
   <section class="tod-card"><small>COMMERCIAL</small><div class="tod-rows"><div><span>Sell</span><b>${money(r.sell_amount,r.currency)}</b></div><div><span>Buy</span><b>${money(r.buy_amount,r.currency)}</b></div></div></section>
   <section class="tod-card"><small>INSTRUCTIONS</small><p>${esc(r.instructions||'No special instructions.')}</p></section>
  </aside></div></div>`;
+ window.NodaraJourney?.mountJourney?.(document.getElementById('tod-journey'),journey||[],(type,rid)=>{if(['CR','CARGO_RELEASE'].includes(type))window.nodaraCROpen?.(rid);else if(['WR','WAREHOUSE_RECEIPT'].includes(type))window.nodaraWROpen?.(rid);else if(type==='SHIPMENT')window.nodaraOperations?.openShipment?.(rid)});
  const edit=()=>api.edit?.(r,em);document.getElementById('tod-back').onclick=()=>api.back?.();document.getElementById('tod-edit').onclick=edit;document.getElementById('tod-route-edit').onclick=edit;document.getElementById('tod-cargo-edit').onclick=edit;
  document.getElementById('tod-docs').onclick=()=>window.NodaraDocuments?.open?.({type:'TRANSPORT_ORDER',id:r.id,reference:r.order_number,label:r.order_number+' · Documents',backLabel:r.order_number,onBack:()=>openTransportOrderDetail(id,api)});
  document.getElementById('tod-pdf').onclick=()=>printTransport(r,lines,{customer,shipper,consignee,carrier,references});
