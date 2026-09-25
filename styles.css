@@ -83,3 +83,20 @@ html.cr-modal-open,html.cr-modal-open body{overflow:hidden}
 @media(max-width:760px){.cr-cargo-row.cr-allocation-line{grid-template-columns:28px minmax(0,1fr) auto!important;gap:8px!important;min-height:0}.cr-line-identity{grid-column:2/4!important}.cr-line-metrics{grid-column:2/4;display:grid;grid-template-columns:repeat(4,1fr);padding:7px 0;border-top:1px solid rgba(132,164,205,.1)}.cr-cargo-row.cr-allocation-line>.status-pill{grid-column:2!important;grid-row:auto!important;justify-self:start}.cr-line-actions{grid-column:3!important;grid-row:auto!important;justify-self:end}.cr-inventory-choice{grid-template-columns:28px minmax(0,1fr) 72px!important;align-items:center!important;padding:9px 2px!important;min-height:54px}.cr-choice-main{grid-column:2!important}.cr-choice-available{grid-column:3!important;grid-row:1!important;text-align:right}.cr-choice-qty{display:none}.cr-inventory-choice.selected .cr-choice-qty{display:block;grid-column:2/4!important;grid-row:2!important;margin-left:0;width:100%}.cr-inventory-choice.selected .cr-choice-qty input{width:100%!important}.cr-allocation-panel #cr-add-results{max-height:46vh!important;padding:0!important}.cr-allocation-panel{gap:12px!important}.cr-allocation-panel .inventory-searchbox{min-height:48px!important}.cr-allocation-panel .cr-inventory-filters select{min-height:48px!important}.cr-allocation-summary{padding:5px 0!important}}
 
 .cr-picker-group{border-bottom:1px solid rgba(132,164,205,.13);padding:5px 0}.cr-picker-group>header{display:flex;justify-content:space-between;align-items:end;gap:12px;padding:7px 8px;background:rgba(255,255,255,.018);border-radius:8px}.cr-picker-group>header span:last-child{text-align:right}.cr-picker-group>header small,.cr-picker-group>header b{display:block}.cr-picker-group>header small{font-size:7px;letter-spacing:.09em;color:#71849c}.cr-picker-group>header b{font-size:11px;color:#e8f2ff}.cr-inventory-filters{grid-template-columns:repeat(3,minmax(0,1fr))!important}@media(max-width:760px){.cr-inventory-filters{grid-template-columns:1fr!important;gap:8px!important}.cr-picker-group>header{position:sticky;top:0;z-index:2;background:#0d1b2a}.cr-picker-group .cr-inventory-choice{padding-left:8px!important}}
+
+/* CR allocation modal — desktop/tablet presentation */
+@media(min-width:761px){
+ .cr-allocation-overlay{inset:0!important;width:100vw!important;height:100dvh!important;display:grid!important;place-items:center!important;padding:32px!important;background:rgba(2,7,14,.72)!important;backdrop-filter:blur(16px) saturate(.8)!important}
+ .cr-allocation-panel{position:relative!important;width:min(980px,calc(100vw - 64px))!important;height:auto!important;max-height:min(760px,calc(100dvh - 64px))!important;margin:0!important;padding:24px!important;border-radius:22px!important;background:linear-gradient(180deg,#101d2c 0%,#09131f 100%)!important;border:1px solid rgba(137,174,220,.25)!important;box-shadow:0 30px 100px rgba(0,0,0,.72),0 0 0 1px rgba(255,255,255,.025) inset!important;overflow:hidden!important}
+ .cr-allocation-panel>.section-heading{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:24px!important}
+ .cr-allocation-panel>.section-heading h2{font-size:24px!important;margin:3px 0 4px!important}
+ .cr-allocation-panel>.section-heading .muted{font-size:11px!important}
+ .cr-allocation-panel .inventory-searchbox{width:100%!important;min-height:48px!important}
+ .cr-allocation-panel .cr-inventory-filters{grid-template-columns:1.15fr .85fr .85fr!important}
+ .cr-allocation-panel #cr-add-results{flex:1 1 auto!important;min-height:190px!important;max-height:390px!important;overflow:auto!important}
+ .cr-allocation-footer{padding-top:4px!important}
+}
+@media(min-width:761px) and (max-width:1100px){
+ .cr-allocation-overlay{padding:24px!important}
+ .cr-allocation-panel{width:min(900px,calc(100vw - 48px))!important;max-height:calc(100dvh - 48px)!important}
+}
