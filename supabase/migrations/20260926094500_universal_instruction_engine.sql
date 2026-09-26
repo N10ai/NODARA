@@ -142,6 +142,8 @@ begin
 end $$;
 
 grant execute on function public.nodara_create_instruction_request(text,uuid,text,text,text,text) to authenticated;
+revoke all on function public.nodara_public_instruction(uuid) from public;
+revoke all on function public.nodara_submit_public_instruction(uuid,jsonb,text,text,boolean,text) from public;
 grant execute on function public.nodara_public_instruction(uuid) to anon,authenticated;
 grant execute on function public.nodara_submit_public_instruction(uuid,jsonb,text,text,boolean,text) to anon,authenticated;
 
