@@ -3,14 +3,47 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const q=s=>document.querySelector(s);
 function publicUrl(token){const u=new URL(location.href);u.search='';u.hash='';u.searchParams.set('instruction',token);return u.toString()}
 async function listRequests(shipmentId){const{data,error}=await supabase.from('instruction_requests').select('id,request_number,status,recipient_name,recipient_email,current_version,created_at,submitted_at,secure_token').eq('source_type','SHIPMENT').eq('source_id',shipmentId).order('created_at',{ascending:false});if(error)throw error;return data||[]}
+async function openReview(root,requestId){
+ const panel=root.querySelector('[data-panel]');panel.innerHTML='<div class="ix-loading">Loading submission…</div>';
+ try{
+  const [{data:req,error:re},{data:ship,error:se}]=await Promise.all([
+   supabase.from('instruction_requests').select('*,instruction_submissions(*)').eq('id',requestId).single(),
+   supabase.from('shipments').select('*').eq('id',root.dataset.shipmentId).single()
+  ]);if(re)throw re;if(se)throw se;
+  const sub=(req.instruction_submissions||[]).sort((a,b)=>b.version-a.version)[0];if(!sub){panel.innerHTML='<div class="notice">No submission has been received yet.</div>';return}
+  const p=sub.payload||{},meta=ship.metadata||{},structure=meta.document_structure||'UNDECIDED';
+  const fields=[
+   ['structure','Document structure',structure,p.structure],
+   ['shipper_name','Shipper',ship.shipper_name,p.shipper_name],
+   ['consignee_name','Consignee',ship.consignee_name,p.consignee_name],
+   ['pieces','Pieces',ship.pieces,p.pieces],
+   ['weight','Gross weight',ship.weight,p.weight],
+   ['freight_terms','Air freight terms',meta.freight_terms,p.freight_terms],
+   ['other_charges','Other charges',meta.other_charges_terms,p.other_charges],
+   ['declared_carriage','Declared value / carriage',meta.declared_value_carriage,p.declared_carriage],
+   ['declared_customs','Declared value / customs',meta.declared_value_customs,p.declared_customs],
+   ['commodity','Commodity',meta.commodity_description,p.commodity],
+   ['handling','Handling instructions',meta.handling_instructions,p.handling]
+  ];
+  if(['HOUSE','CONSOLIDATION'].includes(p.structure)){fields.push(['house_shipper','House shipper','—',p.house_shipper],['house_consignee','House consignee','—',p.house_consignee],['house_notify','House notify','—',p.house_notify])}
+  panel.innerHTML=`<div class="ix-review-head"><button data-back>‹ Instructions</button><div><small>SUBMISSION REVIEW · VERSION ${sub.version}</small><h2>${esc(req.request_number)}</h2><p>Submitted by ${esc(sub.submitted_by_name||'Customer')} ${sub.submitted_by_title?'· '+esc(sub.submitted_by_title):''}</p></div><span class="ix-review-state">${esc(sub.review_status)}</span></div>
+  <div class="ix-review-summary"><div><small>CERTIFICATION</small><b>${sub.certification?'✓ Certified':'Not certified'}</b></div><div><small>SIGNATURE</small><b>${esc(sub.signature_name||'—')}</b></div><div><small>SUBMITTED</small><b>${new Date(sub.submitted_at).toLocaleString()}</b></div></div>
+  <section class="ix-compare"><header><div></div><b>Current shipment</b><b>Customer instruction</b><span>Apply</span></header>
+  ${fields.map(([key,label,current,incoming])=>{const changed=String(current??'')!==String(incoming??'');return `<article class="${changed?'changed':''}"><div><b>${label}</b>${changed?'<small>Changed</small>':'<small>Same</small>'}</div><p>${esc(current??'—')}</p><p>${esc(incoming??'—')}</p><label><input type="checkbox" data-apply="${key}" ${changed&&incoming!==undefined&&incoming!==''?'checked':''} ${incoming===undefined||incoming===''?'disabled':''}></label></article>`}).join('')}</section>
+  <div class="ix-review-actions"><label><span>Review note</span><textarea data-review-note rows="2" placeholder="Optional internal/revision note"></textarea></label><div><button data-revision>Request revision</button><button class="primary" data-approve>Approve selected & apply →</button></div></div>`;
+  panel.querySelector('[data-back]').onclick=()=>renderInstructions(root);
+  panel.querySelector('[data-approve]').onclick=async()=>{const selected=[...panel.querySelectorAll('[data-apply]:checked')].map(x=>x.dataset.apply);if(!selected.length&&!confirm('Approve this submission without applying any fields?'))return;const b=panel.querySelector('[data-approve]');b.disabled=true;b.textContent='Applying…';const{error}=await supabase.rpc('nodara_apply_instruction_submission',{p_submission_id:sub.id,p_fields:selected,p_review_notes:panel.querySelector('[data-review-note]').value.trim()||null});if(error){b.disabled=false;b.textContent='Approve selected & apply →';return alert(error.message)}await renderInstructions(root)};
+  panel.querySelector('[data-revision]').onclick=async()=>{const note=panel.querySelector('[data-review-note]').value.trim();if(!note)return alert('Add a revision note so the customer knows what needs to change.');const{error}=await supabase.rpc('nodara_request_instruction_revision',{p_submission_id:sub.id,p_notes:note});if(error)return alert(error.message);await renderInstructions(root)};
+ }catch(e){panel.innerHTML=`<div class="notice warning">${esc(e.message)}</div>`}
+}
 async function renderInstructions(root){
  const id=root.dataset.shipmentId,panel=root.querySelector('[data-panel]');if(!panel)return;
  panel.innerHTML='<div class="ix-loading">Loading instructions…</div>';
  try{const rows=await listRequests(id);panel.innerHTML=`<div class="ix-head"><div><small>EXTERNAL COLLABORATION</small><h2>Instructions</h2><p>Request structured instructions without giving outside parties access to NODARA.</p></div><button class="primary" data-ix-new>+ Request instructions</button></div>
  <div class="ix-template-strip"><button data-ix-new><i>✈</i><span><b>Air Shipping Instructions</b><small>Structure · parties · cargo · prepaid/collect · certification</small></span><em>Request →</em></button><button disabled><i>▤</i><span><b>SLI</b><small>Reusable engine template</small></span><em>Next</em></button><button disabled><i>◇</i><span><b>FTZ Instructions</b><small>Admission / transfer / transit-to-zone</small></span><em>Next</em></button></div>
- <section class="ix-list"><div class="ix-list-head"><b>Request history</b><span>${rows.length} total</span></div>${rows.length?rows.map(r=>`<article><div class="ix-status ${r.status.toLowerCase()}"></div><div><b>${esc(r.request_number)}</b><span>${esc(r.recipient_name||r.recipient_email||'Recipient not named')}</span><small>${new Date(r.created_at).toLocaleString()}</small></div><div><strong>${esc(r.status.replaceAll('_',' '))}</strong><small>Version ${r.current_version||0}</small></div><button data-copy="${r.secure_token}">Share link</button></article>`).join(''):'<div class="ix-empty">No instruction requests yet.<br><span>Start with Air Shipping Instructions.</span></div>'}</section>`;
+ <section class="ix-list"><div class="ix-list-head"><b>Request history</b><span>${rows.length} total</span></div>${rows.length?rows.map(r=>`<article><div class="ix-status ${r.status.toLowerCase()}"></div><div><b>${esc(r.request_number)}</b><span>${esc(r.recipient_name||r.recipient_email||'Recipient not named')}</span><small>${new Date(r.created_at).toLocaleString()}</small></div><div><strong>${esc(r.status.replaceAll('_',' '))}</strong><small>Version ${r.current_version||0}</small></div><button data-copy="${r.secure_token}">Share link</button>${['SUBMITTED','REVISION_REQUESTED','APPROVED'].includes(r.status)?`<button class="primary" data-review="${r.id}">${r.status==='APPROVED'?'View':'Review'}</button>`:''}</article>`).join(''):'<div class="ix-empty">No instruction requests yet.<br><span>Start with Air Shipping Instructions.</span></div>'}</section>`;
  panel.querySelectorAll('[data-ix-new]').forEach(b=>b.onclick=()=>openRequestModal(id,()=>renderInstructions(root)));
- panel.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{await navigator.clipboard.writeText(publicUrl(b.dataset.copy));b.textContent='Copied ✓';setTimeout(()=>b.textContent='Share link',1500)});
+ panel.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{await navigator.clipboard.writeText(publicUrl(b.dataset.copy));b.textContent='Copied ✓';setTimeout(()=>b.textContent='Share link',1500)});panel.querySelectorAll('[data-review]').forEach(b=>b.onclick=()=>openReview(root,b.dataset.review));
  }catch(e){panel.innerHTML=`<div class="notice warning">${esc(e.message)}</div>`}
 }
 function modalHtml(){return `<div class="ix-modal-backdrop" data-ix-modal><section class="ix-modal"><header><div><small>REQUEST</small><h2>Air Shipping Instructions</h2></div><button data-close>×</button></header><p class="muted">The customer receives a secure form. Shipment facts are prefilled; their submission is reviewed before anything changes the canonical record.</p><label><span>Recipient name</span><input data-name placeholder="Contact name"></label><label><span>Email</span><input data-email type="email" placeholder="name@company.com"></label><label><span>Message</span><textarea data-message rows="3" placeholder="Please complete the final shipping instructions for this shipment."></textarea></label><div class="ix-prefill"><b>Prefill from shipment</b><span>✓ Route</span><span>✓ Shipment number</span><span>✓ Existing cargo summary</span><span>✓ Customer reference</span></div><footer><button data-close>Cancel</button><button class="primary" data-create>Create secure request</button></footer></section></div>`}
