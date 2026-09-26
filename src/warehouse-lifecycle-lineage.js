@@ -58,25 +58,32 @@ async function enhanceInventory(){
 }
 
 async function enhanceWR(){
-  const recordNo=main.querySelector('.record-number')?.textContent?.trim();
+  const recordNo=main.querySelector('.wr-modern-title .title')?.textContent?.trim()||main.querySelector('.record-number')?.textContent?.trim()||main.querySelector('h1.title')?.textContent?.trim();
   if(!recordNo||!/^WR-/i.test(recordNo)||main.querySelector('#wr-lifecycle-section'))return false;
-  const {data:wr,error}=await supabase.from('warehouse_receipts').select('id,job_id,receipt_number,status,created_at,completed_at').eq('receipt_number',recordNo).maybeSingle();
+  const {data:wr,error}=await supabase.from('warehouse_receipts').select('id,organization_id,job_id,receipt_number,status,created_at,completed_at').eq('receipt_number',recordNo).maybeSingle();
   if(error||!wr)return false;
-  const {data:cargo,error:ce}=await supabase.from('cargo_units').select('id,parent_id,quantity,uom,status,part_number,sku,uin,handling_unit_code,package_type').eq('job_id',wr.job_id).limit(10000);
-  if(ce)throw ce;
-  const ids=(cargo||[]).map(x=>x.id),releaseByCargo=await releaseMapForCargo(ids),allLinks=[...releaseByCargo.values()].flat(),releaseGroups=new Map();
-  for(const x of allLinks){if(!x.release)continue;const g=releaseGroups.get(x.release.id)||{release:x.release,qty:0,picked:0,lines:0};g.qty+=Number(x.requested_quantity||0);g.picked+=Number(x.picked_quantity||0);g.lines++;releaseGroups.set(x.release.id,g)}
-  const releases=[...releaseGroups.values()],active=releases.filter(x=>!['RELEASED','CANCELLED'].includes(String(x.release.status||'').toUpperCase())),released=releases.filter(x=>x.release.status==='RELEASED'),liveCargo=(cargo||[]).filter(x=>!terminal(x.status)&&Number(x.quantity||0)>0),top=(cargo||[]).filter(x=>!x.parent_id),topLive=top.filter(x=>!terminal(x.status)&&Number(x.quantity||0)>0);
+  const [{data:cargo,error:ce},{data:journey,error:je},{data:quantityState,error:qe}]=await Promise.all([
+    supabase.from('cargo_units').select('id,parent_id,quantity,uom,status,part_number,sku,uin,handling_unit_code,package_type').eq('job_id',wr.job_id).limit(10000),
+    supabase.rpc('nodara_operational_journey',{p_organization_id:wr.organization_id,p_record_type:'WR',p_record_id:wr.id}),
+    supabase.rpc('nodara_record_quantity_state',{p_organization_id:wr.organization_id,p_record_type:'WR',p_record_id:wr.id})
+  ]);
+  if(ce)throw ce;if(je)console.warn('WR journey:',je);if(qe)console.warn('WR quantity state:',qe);
+  const terminalCargo=(cargo||[]).filter(x=>terminal(x.status)),liveCargo=(cargo||[]).filter(x=>!terminal(x.status)&&Number(x.quantity||0)>0),top=(cargo||[]).filter(x=>!x.parent_id),topLive=top.filter(x=>!terminal(x.status)&&Number(x.quantity||0)>0);
+  const rows=journey||[],crs=rows.filter(x=>x.record_type==='CARGO_RELEASE'),tos=rows.filter(x=>x.record_type==='TRANSPORT_ORDER'),shipments=rows.filter(x=>x.record_type==='SHIPMENT');
   const sec=document.createElement('section');sec.className='record-section lifecycle-section';sec.id='wr-lifecycle-section';
-  sec.innerHTML=`<div class="section-heading"><div><div class="eyebrow">LIFECYCLE</div><h3>Inventory & outbound activity</h3><span class="muted">Follow this receipt after receiving without leaving its record.</span></div></div><div class="wr-life-summary"><div><span>Received HUs</span><b>${top.length}</b><small>${topLive.length} still physically active</small></div><div><span>Inventory records</span><b>${liveCargo.length}</b><small>remaining in warehouse</small></div><div><span>Active CRs</span><b>${active.length}</b><small>allocated / picking / ready</small></div><div><span>Released CRs</span><b>${released.length}</b><small>completed outbound</small></div></div><div class="wr-life-flow"><span class="done">✓ Received</span><i></i><span class="${liveCargo.length?'active':'done'}">${liveCargo.length?'Inventory active':'✓ Inventory cleared'}</span><i></i><span class="${active.length?'active':released.length?'done':''}">${active.length?'Outbound in progress':released.length?'✓ Released':'No CR yet'}</span></div><div class="wr-outbound-list">${releases.length?releases.map(g=>`<button data-life-cr="${g.release.id}" class="wr-outbound-row"><div><span class="status-pill ${esc(g.release.status)}">${esc(g.release.status)}</span><b>${esc(g.release.release_number)}</b><small>${esc(g.release.reference||'No release reference')}</small></div><div><strong>${g.qty}</strong><small>release qty · ${g.picked} picked · ${g.lines} line${g.lines===1?'':'s'}</small></div><i>›</i></button>`).join(''):'<div class="empty compact">No Cargo Release has used inventory from this WR yet.</div>'}</div>`;
+  sec.innerHTML=`<div class="section-heading"><div><div class="eyebrow">JOURNEY</div><h3>Inventory & downstream activity</h3><span class="muted">This Warehouse Receipt remains the source record. Outbound transactions consume quantities without replacing its history.</span></div></div><div id="wr-journey"></div><div class="wr-life-summary"><div><span>Handling units</span><b>${top.length}</b><small>${topLive.length} physically active</small></div><div><span>Inventory records</span><b>${liveCargo.length}</b><small>${terminalCargo.length} departed / closed</small></div><div><span>Cargo Releases</span><b>${crs.length}</b><small>linked outbound authorizations</small></div><div><span>Transport / Shipments</span><b>${tos.length+shipments.length}</b><small>downstream movements</small></div></div>`;
   const cargoSection=main.querySelector('#wr-cargo-section');
-  if(cargoSection?.parentNode)cargoSection.insertAdjacentElement('afterend',sec);else main.appendChild(sec);
-  sec.querySelectorAll('[data-life-cr]').forEach(b=>b.onclick=()=>window.nodaraCROpen?.(b.dataset.lifeCr));
-  const activity=main.querySelector('#wr-tab-activity');
-  if(activity){activity.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();sec.scrollIntoView({behavior:'smooth',block:'start'})},true)}
+  const tabPanel=main.querySelector('[data-wr-core="1"]>div:nth-last-child(2)');
+  if(cargoSection?.parentNode)cargoSection.insertAdjacentElement('afterend',sec);
+  else if(tabPanel?.parentNode)tabPanel.insertAdjacentElement('afterend',sec);
+  else main.querySelector('[data-wr-core="1"]')?.appendChild(sec)||main.appendChild(sec);
+  window.NodaraJourney?.mountJourney?.(sec.querySelector('#wr-journey'),rows,(type,rid)=>{
+    if(type==='CARGO_RELEASE')window.nodaraCROpen?.(rid);
+    else if(type==='TRANSPORT_ORDER')window.nodaraOperations?.openTransportOrder?.(rid);
+    else if(type==='SHIPMENT')window.nodaraOperations?.openShipment?.(rid);
+  },quantityState||null);
   return true;
 }
-
 async function enhance(){
   if(enhancing)return;enhancing=true;
   try{
