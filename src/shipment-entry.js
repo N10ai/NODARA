@@ -2,7 +2,7 @@ import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId, listEntities } from './live-data.js';
 import { openShipments } from './operations-core.js?v=20260906-core4';
 import { mountRecordResolver } from './nodara-record-resolver.js?v=20260916-v52';
-import { openShipmentCanonical } from './shipment-canonical-v52.js?v=20260926-prof1';
+import { openShipmentCanonical } from './shipment-canonical-v52.js?v=20260926-visual2';
 
 const main=document.getElementById('main');
 const gen=mode=>`${mode==='OCEAN'?'OCN':mode==='GROUND'?'GRD':'AIR'}-${new Date().toISOString().slice(2,10).replaceAll('-','')}-${String(Date.now()).slice(-4)}`;
