@@ -7,7 +7,7 @@ const money=(v,c='USD')=>v==null?'—':new Intl.NumberFormat(undefined,{style:'c
 export async function openTransportOrderDetail(id,api={}){
  await supabase.rpc('nodara_link_transport_order_sources',{p_transport_order_id:id});
  const [{data:r,error},{data:cargo},{data:refs}]=await Promise.all([supabase.from('transport_orders').select('*').eq('id',id).single(),supabase.from('transport_order_cargo').select('*').eq('transport_order_id',id).order('line_no'),supabase.from('transport_order_references').select('*').eq('transport_order_id',id).order('created_at')]);if(error)return alert(error.message);
- const {data:journey}=await supabase.rpc('nodara_operational_journey',{p_organization_id:r.organization_id,p_record_type:'TRANSPORT_ORDER',p_record_id:id});
+ const [{data:journey},{data:journeyState}]=await Promise.all([supabase.rpc('nodara_operational_journey',{p_organization_id:r.organization_id,p_record_type:'TRANSPORT_ORDER',p_record_id:id}),supabase.rpc('nodara_record_quantity_state',{p_organization_id:r.organization_id,p_record_type:'TRANSPORT_ORDER',p_record_id:id})]);
  const entities=await listEntities(''),em=new Map(entities.map(x=>[x.id,x])),party=x=>em.get(x)?.name||'—';
  const customer=party(r.customer_id),shipper=party(r.shipper_id),consignee=party(r.consignee_id),carrier=party(r.carrier_id),lines=cargo||[],references=refs||[];
  const stages=[['Requested',true],['Scheduled',!!r.scheduled_start],['Dispatched',['DISPATCHED','PICKED_UP','IN_TRANSIT','DELIVERED','COMPLETED'].includes(String(r.status).toUpperCase())],['Picked up',!!r.actual_pickup_at],['Delivered',!!r.actual_delivery_at]];
@@ -36,7 +36,7 @@ export async function openTransportOrderDetail(id,api={}){
   <section class="tod-card"><small>COMMERCIAL</small><div class="tod-rows"><div><span>Sell</span><b>${money(r.sell_amount,r.currency)}</b></div><div><span>Buy</span><b>${money(r.buy_amount,r.currency)}</b></div></div></section>
   <section class="tod-card"><small>INSTRUCTIONS</small><p>${esc(r.instructions||'No special instructions.')}</p></section>
  </aside></div></div>`;
- window.NodaraJourney?.mountJourney?.(document.getElementById('tod-journey'),journey||[],(type,rid)=>{if(['CR','CARGO_RELEASE'].includes(type))window.nodaraCROpen?.(rid);else if(['WR','WAREHOUSE_RECEIPT'].includes(type))window.nodaraWROpen?.(rid);else if(type==='SHIPMENT')window.nodaraOperations?.openShipment?.(rid)});
+ window.NodaraJourney?.mountJourney?.(document.getElementById('tod-journey'),journey||[],(type,rid)=>{if(['CR','CARGO_RELEASE'].includes(type))window.nodaraCROpen?.(rid);else if(['WR','WAREHOUSE_RECEIPT'].includes(type))window.nodaraWROpen?.(rid);else if(type==='SHIPMENT')window.nodaraOperations?.openShipment?.(rid)},journeyState||null);
  const edit=()=>api.edit?.(r,em);document.getElementById('tod-back').onclick=()=>api.back?.();document.getElementById('tod-edit').onclick=edit;document.getElementById('tod-route-edit').onclick=edit;document.getElementById('tod-cargo-edit').onclick=edit;
  document.getElementById('tod-docs').onclick=()=>window.NodaraDocuments?.open?.({type:'TRANSPORT_ORDER',id:r.id,reference:r.order_number,label:r.order_number+' · Documents',backLabel:r.order_number,onBack:()=>openTransportOrderDetail(id,api)});
  document.getElementById('tod-pdf').onclick=()=>printTransport(r,lines,{customer,shipper,consignee,carrier,references});
