@@ -3,7 +3,7 @@ import { getCurrentOrganizationId, listEntities } from './live-data.js';
 import { mountRecordResolver } from './nodara-record-resolver.js?v=20260916-v52';
 import { mountCargoWorkspace } from './cargo-workspace.js?v=20260916-v52';
 import { mountShipmentDocumentStudio } from './shipment-document-studio.js?v=20260926-awb2';
-import { mountAirBooking,renderAirReadiness,mountAwbWorkspace } from './shipment-air-workspace.js?v=20260926-air2';
+import { mountAirBooking,renderAirReadiness,mountAwbWorkspace } from './shipment-air-workspace.js?v=20260926-air3';
 
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
