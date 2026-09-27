@@ -94,3 +94,8 @@
  .dts-mobile-reference .dts-two{grid-template-columns:repeat(2,minmax(0,1fr))}
  .dts-mobile-reference input,.dts-mobile-reference select{font-size:16px;min-height:40px}
 }
+
+/* Rich text + rotation controls */
+.dts-object.dts-text,.dts-object.dts-variable{display:flex;align-items:var(--va,flex-start)}
+.dts-object.dts-text>span,.dts-object.dts-variable>span{width:100%;min-width:0}
+.dts-properties [data-line-rotate]{min-height:36px;align-self:end}
