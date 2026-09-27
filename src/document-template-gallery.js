@@ -45,23 +45,23 @@ function awbStarter(){
  text(121,8,84,5,'Air Waybill Number',5,'400','right');variable(121,14,84,7,'shipment.number',11,'700','right');barcode(133,22,72,13,'booking.mawb_serial');
  // Parties
  box(X,39,97.5,30,'Shipper’s Name and Address','shipper.name');variable(X+2,51,92,14,'shipper.address',7,'400');
- box(107.5,39,97.5,30,'Shipper’s Account Number','shipment.number');
+ box(107.5,39,97.5,30,'Shipper’s Account Number','shipper.account');
  box(X,69,97.5,30,'Consignee’s Name and Address','consignee.name');variable(X+2,81,92,14,'consignee.address',7,'400');
- box(107.5,69,97.5,30,'Consignee’s Account Number','shipment.number');
+ box(107.5,69,97.5,30,'Consignee’s Account Number','consignee.account');
  // Agent/accounting
  box(X,99,97.5,24,'Issuing Carrier’s Agent Name and City','company.name');variable(X+2,111,92,8,'company.address',6,'400');
- frame(107.5,99,97.5,24);text(109.5,100,93,4,'Accounting Information',5);text(109.5,108,93,11,'Carrier / contract conditions text can be configured for the issuing carrier.',4.5,'400');
+ frame(107.5,99,97.5,24);text(109.5,100,93,4,'Accounting Information',5);variable(109.5,106,93,14,'awb.accounting_info',6,'400');
  // Routing top
  frame(X,123,W,29);
  text(12,124,27,4,'Airport of Departure',5);variable(12,130,28,7,'booking.origin',9,'700');
  text(42,124,22,4,'To',5);variable(42,130,22,7,'booking.destination',9,'700');
  text(66,124,30,4,'By First Carrier',5);variable(66,130,30,7,'booking.flight',8,'600');
- text(99,124,24,4,'Routing / To',5);text(125,124,24,4,'By',5);text(151,124,24,4,'To',5);text(177,124,26,4,'By',5);
- line(X,139,W);text(12,141,18,4,'Currency',5);text(32,141,18,4,'CHGS',5);text(52,141,25,4,'WT/VAL',5);text(79,141,25,4,'Other',5);text(106,141,44,4,'Declared Value for Carriage',5);text(152,141,51,4,'Declared Value for Customs',5);
+ text(99,124,24,4,'Routing / To',5);variable(99,130,24,7,'awb.route_1',7,'600');text(125,124,24,4,'By',5);variable(125,130,24,7,'awb.carrier_2',7,'600');text(151,124,24,4,'To',5);variable(151,130,24,7,'awb.route_2',7,'600');text(177,124,26,4,'By',5);variable(177,130,26,7,'awb.carrier_3',7,'600');
+ line(X,139,W);text(12,141,18,4,'Currency',5);variable(12,146,18,5,'awb.currency',7,'600');text(32,141,18,4,'CHGS',5);variable(32,146,18,5,'awb.charges_code',7,'600');text(52,141,25,4,'WT/VAL',5);variable(52,146,25,5,'awb.wt_val',6,'600');text(79,141,25,4,'Other',5);variable(79,146,25,5,'awb.other_ppd_coll',6,'600');text(106,141,44,4,'Declared Value for Carriage',5);variable(106,146,44,5,'awb.declared_carriage',7,'600','center');text(152,141,51,4,'Declared Value for Customs',5);variable(152,146,51,5,'awb.declared_customs',7,'600','center');
  // Destination/flight
- frame(X,152,W,18);text(12,153,38,4,'Airport of Destination',5);variable(12,159,38,7,'booking.destination',9,'700');text(52,153,32,4,'Requested Flight/Date',5);variable(52,159,46,7,'booking.flight',8,'600');variable(101,159,48,7,'booking.etd',7,'400');text(152,153,51,4,'Amount of Insurance',5);
+ frame(X,152,W,18);text(12,153,38,4,'Airport of Destination',5);variable(12,159,38,7,'booking.destination',9,'700');text(52,153,32,4,'Requested Flight/Date',5);variable(52,159,46,7,'booking.flight',8,'600');variable(101,159,48,7,'booking.etd',7,'400');text(152,153,51,4,'Amount of Insurance',5);variable(152,159,51,7,'awb.insurance',7,'600','center');
  // Handling
- frame(X,170,W,22);text(12,171,60,4,'Handling Information',5);variable(12,177,189,11,'cargo.description',7,'400');
+ frame(X,170,W,22);text(12,171,60,4,'Handling Information',5);variable(12,177,189,11,'awb.handling',7,'400');
  // Cargo grid
  frame(X,192,W,47);
  const cols=[20,24,27,25,28,71];let xx=X;cols.forEach((v,i)=>{if(i>0)frame(xx,192,.2,47,.5);xx+=v});
