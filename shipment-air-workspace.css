@@ -156,3 +156,22 @@
 .nds-template-line{border-top:1px solid #111!important;height:1px!important}.nds-template-table{width:100%;height:100%;display:grid}.nds-template-table>i{border:1px solid #111;font-style:normal;overflow:hidden}
 .nds-template-barcode{height:100%;display:flex;align-items:center;justify-content:center;border-top:8px double #111;border-bottom:8px double #111;font-family:monospace;letter-spacing:2px}
 @media(max-width:800px){.nds-workspace:not(.fields-mode) .nds-template-paper{transform:scale(calc((100vw - 28px)/816));transform-origin:top left!important;margin:0!important}.nds-workspace:not(.fields-mode) .nds-canvas:has(.nds-template-paper){height:calc(1056px * ((100vw - 28px)/816) + 16px)!important;overflow:hidden!important}}
+
+/* Mobile document viewport: scale to the actual workspace width, never the browser width */
+@media(max-width:800px){
+ .nds-workspace{min-width:0!important;width:100%!important;max-width:100%!important;overflow:hidden!important}
+ .nds-workspace .nds-toolbar,.nds-workspace .nds-view-toggle{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+ .nds-workspace .nds-canvas{width:100%!important;max-width:100%!important;min-width:0!important;overflow:hidden!important;padding:10px!important;box-sizing:border-box!important}
+ .nds-workspace:not(.fields-mode) .nds-template-paper{
+   --nds-paper-scale:calc((100vw - 52px)/816);
+   transform:scale(var(--nds-paper-scale))!important;
+   transform-origin:top left!important;
+   margin:0!important;
+   flex:none!important;
+ }
+ .nds-workspace:not(.fields-mode) .nds-canvas:has(.nds-template-paper){
+   height:calc(1056px * ((100vw - 52px)/816) + 20px)!important;
+   min-height:0!important;
+ }
+ .shipment-air-panel,.shipment-air-panel>*{min-width:0}
+}
