@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { mountShipmentDocumentStudio } from './shipment-document-studio.js?v=20260927-templateconnect3';
+import { mountShipmentDocumentStudio } from './shipment-document-studio.js?v=20260927-viewer-template4';
 
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
