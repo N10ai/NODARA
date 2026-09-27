@@ -89,13 +89,16 @@ function studioPage(doc,s,state){const field=(key,label,wide=false)=>`<div class
  <div class="am-rbody"><div>${txt('pieces')}</div><div>${txt('weight')}</div><div>${txt('weight_unit')||'KG'}</div><div>${txt('rate_class')}</div><div>${txt('chargeable_weight')}</div><div>${txt('rate_charge')}</div><div>${txt('cargo_total')}</div><div class="am-nature">${txt('cargo_description')}<br><br>${lines}<br>${txt('dimensions')}<br><br>${txt('aes_itn')}<br>${txt('remarks')}</div></div>
  <div class="am-rtotal"><span>${txt('pieces')}</span><span>${txt('weight')}</span><span>${txt('weight_unit')||'KG'}</span><span></span><span></span><span></span><span>${txt('cargo_total')}</span><span></span></div>
 </section>
-<section class="am-lower">
+<section class="am-lower am-lower-v2">
  <div class="am-chargebox">
-  <div class="am-pwc"><span>Prepaid</span><span>Weight Charge</span><span>Collect</span></div><div class="am-amount">${txt('weight_charge')}</div>
-  <label>Valuation Charge</label><div class="am-amount">${txt('valuation_charge')}</div><label>Tax</label><div class="am-amount">${txt('tax')}</div>
-  <label>Total Other Charges Due Agent</label><div class="am-amount">${txt('other_agent')}</div><label>Total Other Charges Due Carrier</label><div class="am-amount">${txt('other_carrier')}</div>
-  <div class="am-totalheads"><span>Total Prepaid</span><span>Total Collect</span></div><div class="am-totalvals"><b>${txt('total_prepaid')}</b><b>${txt('total_collect')}</b></div>
-  <div class="am-totalheads"><span>Currency Conversion Rates</span><span>CC Charges in Dest. Currency</span></div><div class="am-totalheads gray"><span>For Carrier's Use only at Destination</span><span>Charges at Destination</span></div>
+  <div class="am-pwc am-notch3"><span>Prepaid</span><span>Weight Charge</span><span>Collect</span></div><div class="am-amount">${txt('weight_charge')}</div>
+  <div class="am-notch one"><span>Valuation Charge</span></div><div class="am-amount">${txt('valuation_charge')}</div>
+  <div class="am-notch one"><span>Tax</span></div><div class="am-amount">${txt('tax')}</div>
+  <div class="am-notch one wide"><span>Total Other Charges Due Agent</span></div><div class="am-amount">${txt('other_agent')}</div>
+  <div class="am-notch one wide"><span>Total Other Charges Due Carrier</span></div><div class="am-amount">${txt('other_carrier')}</div>
+  <div class="am-totalheads am-notch2"><span>Total Prepaid</span><span>Total Collect</span></div><div class="am-totalvals"><b>${txt('total_prepaid')}</b><b>${txt('total_collect')}</b></div>
+  <div class="am-totalheads am-notch2"><span>Currency Conversion Rates</span><span>CC Charges in Dest. Currency</span></div>
+  <div class="am-destsettle"><div class="carrier-use">For Carrier's Use only<br>at Destination</div><div><div class="am-notch one"><span>Charges at Destination</span></div><b>${txt('destination_charges')}</b></div><div><div class="am-notch one"><span>Total Collect Charges</span></div><b>${txt('collect_total')}</b></div></div>
  </div>
  <div class="am-othercert">
   <div class="am-other"><label>Other Charges</label><div>${txt('other_charges')}</div></div>
