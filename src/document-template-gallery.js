@@ -55,7 +55,12 @@ function awbStarter(){
  line(112,296,91);text(112,297,91,4,'Executed on / Place / Signature of Issuing Carrier or Agent',5,'400','center');
  text(12,305,80,4,'For operational use — verify carrier-required wording and fields before issue.',4.5);
  variable(126,304,77,7,'shipment.number',9,'700','right');
- // Fit the industry AWB architecture cleanly on US Letter while preserving editable geometry.\n O.forEach(o=>{o.y=+(o.y*.855).toFixed(2);o.h=+(Math.max(o.type==='line'?.3:o.h*.855,.3)).toFixed(2)});\n return {zoom:.72,testMode:false,grid:1,snap:true,mobilePanel:null,pagePreset:'LETTER',pageW:215.9,pageH:279.4,pageColor:'#ffffff',pageOrientation:'portrait',marginTop:6,marginRight:10,marginBottom:6,marginLeft:10,mobileInspector:'properties',inspectorExpanded:false,selected:[],objects:O,name:'Air Waybill — Professional Starter',background:null,bgOpacity:.42,bgLocked:true,bgX:0,bgY:0,bgW:215.9,bgH:279.4,bgFit:'fill',guidesX:[],guidesY:[]};
+ // Fit the industry AWB architecture cleanly on US Letter while preserving editable geometry.
+ O.forEach(o=>{
+   o.y=+(o.y*.855).toFixed(2);
+   o.h=+(Math.max(o.type==='line' ? .3 : o.h*.855,.3)).toFixed(2);
+ });
+ return {zoom:.72,testMode:false,grid:1,snap:true,mobilePanel:null,pagePreset:'LETTER',pageW:215.9,pageH:279.4,pageColor:'#ffffff',pageOrientation:'portrait',marginTop:6,marginRight:10,marginBottom:6,marginLeft:10,mobileInspector:'properties',inspectorExpanded:false,selected:[],objects:O,name:'Air Waybill — Professional Starter',background:null,bgOpacity:.42,bgLocked:true,bgX:0,bgY:0,bgW:215.9,bgH:279.4,bgFit:'fill',guidesX:[],guidesY:[]};
 }
 function ensureStarters(){
  let a=templates();if(a.some(t=>t.id===starterId))return;
