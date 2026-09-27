@@ -113,3 +113,23 @@
  .nds-workspace:not(.fields-mode) .awb-iata-v2{width:920px!important;min-width:920px!important;height:1190px!important;margin:0!important;transform:scale(calc((100vw - 28px)/920));transform-origin:top left!important}
  .nds-workspace:not(.fields-mode) .nds-canvas:has(.awb-iata-v2){height:calc(1190px * ((100vw - 28px)/920) + 16px)!important}
 }
+
+/* AWB reference calibration v3: fixed print geometry, proportions traced from supplied reference */
+.awb-iata-v2{height:1120px!important;padding:12px 22px 10px!important;font-size:9px!important}
+.awb-iata-v2 .ai2-number{height:28px!important;font-size:17px!important;padding-bottom:3px!important}
+.awb-iata-v2 .ai2-head{height:260px!important;grid-template-rows:78px 24px 52px 34px 72px!important}
+.awb-iata-v2 .ai2-title strong{font-size:23px!important}.awb-iata-v2 .ai2-title>div{font-size:14px!important}
+.awb-iata-v2 .ai2-party>div{font-size:11px!important}.awb-iata-v2 .ai2-agent footer{margin-top:20px!important}
+.awb-iata-v2 .ai2-depart{height:37px!important}.awb-iata-v2 .ai2-routing{height:45px!important}.awb-iata-v2 .ai2-flight{height:42px!important}
+.awb-iata-v2 .ai2-handling{height:70px!important}
+.awb-iata-v2 .ai2-rating{height:270px!important}.awb-iata-v2 .ai2-rating header{height:38px!important}.awb-iata-v2 .ai2-rating main{height:205px!important}.awb-iata-v2 .ai2-rating footer{height:27px!important}
+.awb-iata-v2 .ai2-lower-ref{height:356px!important;grid-template-columns:37.7% 62.3%!important}
+.awb-iata-v2 .lr-left{grid-template-rows:46px 40px 40px 48px 46px 35px 48px 43px 10px!important}
+.awb-iata-v2 .lr-right{grid-template-rows:137px 111px 60px 48px!important}
+.awb-iata-v2 .lr-tab{font-size:7px!important}.awb-iata-v2 .lr-weight>b,.awb-iata-v2 .lr-row>b{font-size:16px!important}
+.awb-iata-v2 .lr-other>div{font-size:15px!important}.awb-iata-v2 .lr-cert p{font-size:7px!important}.awb-iata-v2 .lr-agent-sign{font-size:15px!important}
+.awb-iata-v2 .lr-execution b{font-size:14px!important}.awb-iata-v2 .lr-awb-bottom{font-size:17px!important}
+@media(max-width:800px){
+ .nds-workspace:not(.fields-mode) .awb-iata-v2{height:1120px!important;transform:scale(calc((100vw - 28px)/920))!important}
+ .nds-workspace:not(.fields-mode) .nds-canvas:has(.awb-iata-v2){height:calc(1120px * ((100vw - 28px)/920) + 16px)!important}
+}
