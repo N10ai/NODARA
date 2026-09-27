@@ -149,3 +149,10 @@
 .nds-ready-items>div>span{background:#2b3038!important;color:#d7dce4!important}.nds-ready-items .ready>span{background:#153c2a!important;color:#72e0a7!important}.nds-ready-items .missing>span{background:#4a3512!important;color:#ffc766!important}
 .nds-ready-items b{color:#f8fafc!important}.nds-ready-items small{color:#98a2b3!important}
 .nds-generated-list .danger{color:#ff8a8a!important}
+
+/* Canonical Template Studio document rendered inside Shipment Studio */
+.nds-template-paper{position:relative!important;box-sizing:border-box!important;overflow:hidden!important;margin:0 auto!important;box-shadow:0 12px 36px rgba(0,0,0,.28);color:#111}
+.nds-template-object{position:absolute;box-sizing:border-box;overflow:hidden;white-space:pre-wrap;line-height:1.15}.nds-template-object>span{display:block;width:100%;height:100%}
+.nds-template-line{border-top:1px solid #111!important;height:1px!important}.nds-template-table{width:100%;height:100%;display:grid}.nds-template-table>i{border:1px solid #111;font-style:normal;overflow:hidden}
+.nds-template-barcode{height:100%;display:flex;align-items:center;justify-content:center;border-top:8px double #111;border-bottom:8px double #111;font-family:monospace;letter-spacing:2px}
+@media(max-width:800px){.nds-workspace:not(.fields-mode) .nds-template-paper{transform:scale(calc((100vw - 28px)/816));transform-origin:top left!important;margin:0!important}.nds-workspace:not(.fields-mode) .nds-canvas:has(.nds-template-paper){height:calc(1056px * ((100vw - 28px)/816) + 16px)!important;overflow:hidden!important}}
