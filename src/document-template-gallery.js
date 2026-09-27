@@ -43,8 +43,7 @@ function awbStarter(){
  frame(X,170,W,22);text(12,171,60,4,'Handling Information',5);variable(12,177,189,11,'cargo.description',7,'400');
  // Cargo grid
  frame(X,192,W,47);
- const cols=[20,24,27,25,28,71];let xx=X;cols.slice(0,-1).forEach(v=>{xx+=v;line(xx,192,0)}); // verticals added below as frames
- xx=X;cols.forEach((v,i)=>{if(i>0)frame(xx,192,.2,47,.5);xx+=v});
+ const cols=[20,24,27,25,28,71];let xx=X;cols.forEach((v,i)=>{if(i>0)frame(xx,192,.2,47,.5);xx+=v});
  const labels=['No. of Pieces','Gross Weight','kg/lb','Rate Class','Chargeable Weight','Rate / Charge / Total / Nature and Quantity of Goods'];
  xx=X;cols.forEach((v,i)=>{text(xx+1,194,v-2,8,labels[i],4.8,'600','center');xx+=v});
  variable(12,207,16,9,'cargo.total_pieces',9,'700','center');variable(32,207,20,9,'cargo.gross_weight',8,'600','center');text(57,207,10,8,'KG',7,'600','center');variable(83,207,24,9,'cargo.chargeable_weight',8,'600','center');variable(136,205,66,24,'cargo.description',6,'400');
