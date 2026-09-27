@@ -140,3 +140,12 @@
 .nds-ready-items{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:8px}.nds-ready-items>div{min-height:68px;padding:9px;border-radius:12px;background:#f7f8fa;display:grid;grid-template-columns:22px 1fr;grid-template-rows:auto auto;align-items:center}.nds-ready-items>div>span{grid-row:1/3;width:19px;height:19px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:#e5e7eb}.nds-ready-items .ready>span{background:#dcfce7}.nds-ready-items .missing>span{background:#fef3c7}.nds-ready-items b{font-size:12px}.nds-ready-items small{font-size:10px;color:#667085}
 .nds-active-template,.nds-toolbar-template,.nds-template-assigned{display:inline-flex;margin-top:5px;padding:3px 7px;border-radius:999px;background:#f0f4ff;color:#344054;font-size:10px;font-weight:700}
 @media(max-width:900px){.nds-ready-items{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}.nds-ready-items>div{min-width:145px;scroll-snap-align:start}.nds-readiness{padding:13px}}
+
+/* Shipment readiness — dark workspace native treatment */
+.nds-readiness{background:#101318!important;border-color:#2b3038!important;box-shadow:none!important;color:#f8fafc!important}
+.nds-readiness-head small{color:#8f98a8!important}.nds-readiness-head h3{color:#fff!important}
+.nds-ready-ring{background:conic-gradient(#5b8cff var(--ready),#292e36 0)!important;color:#fff!important}.nds-ready-ring:before{background:#101318!important}
+.nds-ready-items>div{background:#171b21!important;border:1px solid #282d35!important;color:#f8fafc!important}
+.nds-ready-items>div>span{background:#2b3038!important;color:#d7dce4!important}.nds-ready-items .ready>span{background:#153c2a!important;color:#72e0a7!important}.nds-ready-items .missing>span{background:#4a3512!important;color:#ffc766!important}
+.nds-ready-items b{color:#f8fafc!important}.nds-ready-items small{color:#98a2b3!important}
+.nds-generated-list .danger{color:#ff8a8a!important}
