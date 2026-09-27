@@ -29,7 +29,7 @@ export function applicableTemplates(ctx={}){return templates().filter(t=>t.statu
 export function upsertTemplate(t){const a=templates(),i=a.findIndex(x=>x.id===t.id);if(i<0)a.unshift(t);else a[i]=t;saveTemplates(a);return t}
 
 // Built-in editable starters. Seeded once into the local registry; users can freely duplicate/edit them.
-const starterId='starter-awb-professional-v2';
+const starterId='starter-awb-professional-v3';
 const oid=(p,i)=>starterId+'-'+p+'-'+i;
 function awbStarter(){
  const O=[];let n=0;
