@@ -204,3 +204,40 @@
    min-height:1076px!important;
  }
 }
+
+/* Mobile AWB pan surface — final override. The app stays fixed; only the paper viewport pans. */
+@media(max-width:800px){
+ html,body{max-width:100%;overflow-x:hidden}
+ .nds-workspace:not(.fields-mode){overflow:hidden!important;max-width:100%!important}
+ .nds-workspace:not(.fields-mode) .nds-canvas{
+   position:relative!important;
+   display:block!important;
+   width:100%!important;
+   max-width:100%!important;
+   height:min(68vh,720px)!important;
+   min-height:520px!important;
+   overflow-x:scroll!important;
+   overflow-y:scroll!important;
+   touch-action:pan-x pan-y!important;
+   -webkit-overflow-scrolling:touch!important;
+   overscroll-behavior:contain!important;
+   scrollbar-width:auto;
+   padding:10px!important;
+ }
+ .nds-workspace:not(.fields-mode) .nds-template-paper,
+ .nds-workspace:not(.fields-mode) .awb-iata-v2{
+   display:block!important;
+   width:816px!important;
+   min-width:816px!important;
+   max-width:none!important;
+   height:1056px!important;
+   min-height:1056px!important;
+   transform:none!important;
+   margin:0!important;
+ }
+ .nds-workspace:not(.fields-mode) .nds-canvas:has(.nds-template-paper),
+ .nds-workspace:not(.fields-mode) .nds-canvas:has(.awb-iata-v2){
+   height:min(68vh,720px)!important;
+   min-height:520px!important;
+ }
+}
