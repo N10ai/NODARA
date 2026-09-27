@@ -175,3 +175,32 @@
  }
  .shipment-air-panel,.shipment-air-panel>*{min-width:0}
 }
+
+/* Phone AWB viewport — fixed application width with a horizontally pannable full-size document */
+@media(max-width:800px){
+ .shipment-air-panel,.shipment-air-panel>*,.nds-workspace,.nds-workspace>*{max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+ .nds-workspace{width:100%!important;overflow:hidden!important}
+ .nds-workspace .nds-canvas{
+   display:block!important;
+   width:100%!important;
+   max-width:100%!important;
+   overflow-x:auto!important;
+   overflow-y:visible!important;
+   -webkit-overflow-scrolling:touch;
+   overscroll-behavior-x:contain;
+   padding:10px!important;
+   box-sizing:border-box!important;
+ }
+ .nds-workspace:not(.fields-mode) .nds-template-paper{
+   width:816px!important;
+   min-width:816px!important;
+   height:1056px!important;
+   transform:none!important;
+   transform-origin:initial!important;
+   margin:0!important;
+ }
+ .nds-workspace:not(.fields-mode) .nds-canvas:has(.nds-template-paper){
+   height:auto!important;
+   min-height:1076px!important;
+ }
+}
