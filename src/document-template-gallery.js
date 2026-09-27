@@ -8,7 +8,7 @@ export function applicableTemplates(ctx={}){return templates().filter(t=>t.statu
 export function upsertTemplate(t){const a=templates(),i=a.findIndex(x=>x.id===t.id);if(i<0)a.unshift(t);else a[i]=t;saveTemplates(a);return t}
 
 // Built-in editable starters. Seeded once into the local registry; users can freely duplicate/edit them.
-const starterId='starter-awb-professional-v1';
+const starterId='starter-awb-professional-v2';
 const oid=(p,i)=>starterId+'-'+p+'-'+i;
 function awbStarter(){
  const O=[];let n=0;
@@ -20,7 +20,7 @@ function awbStarter(){
  const box=(x,y,w,h,label,binding)=>{frame(x,y,w,h);text(x+2,y+1,w-4,4,label,5,'400');if(binding)variable(x+2,y+6,w-4,h-7,binding,8,'600')};
  const W=195,X=10;
  // Header
- text(X,8,80,7,'AIR WAYBILL',15,'700');text(X,16,95,5,'Issued by',5);variable(X,21,95,7,'company.name',8,'600');
+ text(X,8,80,7,'AIR WAYBILL',15,'700');text(X,16,95,5,'Not Negotiable',5,'600');text(X,21,95,5,'Issued by',5);variable(X,26,95,7,'company.name',8,'600');
  text(121,8,84,5,'Air Waybill Number',5,'400','right');variable(121,14,84,7,'shipment.number',11,'700','right');barcode(133,22,72,13,'booking.mawb_serial');
  // Parties
  box(X,39,97.5,30,'Shipper’s Name and Address','shipper.name');variable(X+2,51,92,14,'shipper.address',7,'400');
@@ -29,7 +29,7 @@ function awbStarter(){
  box(107.5,69,97.5,30,'Consignee’s Account Number','shipment.number');
  // Agent/accounting
  box(X,99,97.5,24,'Issuing Carrier’s Agent Name and City','company.name');variable(X+2,111,92,8,'company.address',6,'400');
- frame(107.5,99,97.5,24);text(109.5,100,93,4,'Accounting Information',5);
+ frame(107.5,99,97.5,24);text(109.5,100,93,4,'Accounting Information',5);text(109.5,108,93,11,'Carrier / contract conditions text can be configured for the issuing carrier.',4.5,'400');
  // Routing top
  frame(X,123,W,29);
  text(12,124,27,4,'Airport of Departure',5);variable(12,130,28,7,'booking.origin',9,'700');
@@ -55,10 +55,11 @@ function awbStarter(){
  line(112,296,91);text(112,297,91,4,'Executed on / Place / Signature of Issuing Carrier or Agent',5,'400','center');
  text(12,305,80,4,'For operational use — verify carrier-required wording and fields before issue.',4.5);
  variable(126,304,77,7,'shipment.number',9,'700','right');
- return {zoom:.72,testMode:false,grid:1,snap:true,mobilePanel:null,pagePreset:'CUSTOM',pageW:215.9,pageH:320,pageColor:'#ffffff',pageOrientation:'portrait',marginTop:8,marginRight:10,marginBottom:8,marginLeft:10,mobileInspector:'properties',inspectorExpanded:false,selected:[],objects:O,name:'Air Waybill — Professional Starter',background:null,bgOpacity:.42,bgLocked:true,bgX:0,bgY:0,bgW:215.9,bgH:320,bgFit:'fill',guidesX:[],guidesY:[]};
+ // Fit the industry AWB architecture cleanly on US Letter while preserving editable geometry.\n O.forEach(o=>{o.y=+(o.y*.855).toFixed(2);o.h=+(Math.max(o.type==='line'?.3:o.h*.855,.3)).toFixed(2)});\n return {zoom:.72,testMode:false,grid:1,snap:true,mobilePanel:null,pagePreset:'LETTER',pageW:215.9,pageH:279.4,pageColor:'#ffffff',pageOrientation:'portrait',marginTop:6,marginRight:10,marginBottom:6,marginLeft:10,mobileInspector:'properties',inspectorExpanded:false,selected:[],objects:O,name:'Air Waybill — Professional Starter',background:null,bgOpacity:.42,bgLocked:true,bgX:0,bgY:0,bgW:215.9,bgH:279.4,bgFit:'fill',guidesX:[],guidesY:[]};
 }
 function ensureStarters(){
- const a=templates();if(a.some(t=>t.id===starterId))return;
+ let a=templates();if(a.some(t=>t.id===starterId))return;
+ a=a.filter(t=>!(t.builtin&&t.name==='Air Waybill — Professional Starter'));
  a.push({id:starterId,name:'Air Waybill — Professional Starter',status:'draft',version:1,category:'Air',placements:[{module:'Shipments',mode:'Air',recordType:'MAWB',surface:'Generate only'}],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),design:awbStarter(),builtin:true});
  saveTemplates(a);
 }
