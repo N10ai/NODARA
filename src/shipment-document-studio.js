@@ -43,12 +43,21 @@ function printDoc(doc,s,issue){if(['HAWB','MAWB_DATA'].includes(doc.code))return
 
 async function ensurePdfTools(){if(!window.html2canvas)await new Promise((r,j)=>{const x=document.createElement('script');x.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';x.onload=r;x.onerror=j;document.head.appendChild(x)});if(!window.jspdf?.jsPDF)await new Promise((r,j)=>{const x=document.createElement('script');x.src='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';x.onload=r;x.onerror=j;document.head.appendChild(x)});return window.jspdf.jsPDF}
 function templateBindingValue(binding,state,s){
- const map={
-  'shipment.number':'shipment_number','booking.mawb_serial':'master_reference','booking.mawb_number':'master_reference','booking.origin':'origin','booking.destination':'destination','booking.flight':'flight_1','booking.etd':'etd','booking.eta':'eta',
-  'shipper.name':'shipper','shipper.address':'shipper','consignee.name':'consignee','consignee.address':'consignee','company.name':'issuing_agent','company.address':'issuing_agent',
-  'cargo.total_pieces':'pieces','cargo.gross_weight':'weight','cargo.chargeable_weight':'chargeable_weight','cargo.description':'cargo_description'
+ const b=String(binding||''), map={
+  'shipment.number':'shipment_number','shipment.reference':'shipment_number',
+  'booking.mawb_serial':'master_reference','booking.mawb_number':'master_reference','booking.hawb_number':'house_reference','booking.reference':'booking_reference',
+  'booking.origin':'origin','booking.destination':'destination','booking.flight':'flight_1','booking.flight_date':'flight_date','booking.etd':'etd','booking.eta':'eta','booking.first_carrier':'first_carrier',
+  'shipper.name':'shipper','shipper.address':'shipper','shipper.account':'shipper_account','consignee.name':'consignee','consignee.address':'consignee','consignee.account':'consignee_account',
+  'company.name':'issuing_agent','company.address':'issuing_agent','agent.name':'issuing_agent','agent.iata_code':'agent_iata','agent.account':'agent_account',
+  'awb.accounting_info':'accounting_info','awb.route_1':'route_1','awb.route_2':'route_2','awb.carrier_2':'carrier_2','awb.carrier_3':'carrier_3','awb.currency':'currency','awb.charges_code':'charges_code',
+  'awb.wt_val':'wt_val','awb.other_ppd_coll':'other_ppd_coll','awb.declared_carriage':'declared_carriage','awb.declared_customs':'declared_customs','awb.insurance':'insurance','awb.handling':'handling','awb.aes_itn':'aes_itn','awb.sci':'sci',
+  'cargo.total_pieces':'pieces','cargo.gross_weight':'weight','cargo.weight_unit':'weight_unit','cargo.volume_cbm':'volume_cbm','cargo.chargeable_weight':'chargeable_weight','cargo.description':'cargo_description','cargo.dimensions':'dimensions','cargo.rate_class':'rate_class','cargo.rate_charge':'rate_charge','cargo.total':'cargo_total',
+  'charges.weight':'weight_charge','charges.valuation':'valuation_charge','charges.tax':'tax','charges.other_agent':'other_agent','charges.other_carrier':'other_carrier','charges.other':'other_charges','charges.total_prepaid':'total_prepaid','charges.total_collect':'total_collect','charges.conversion_rate':'conversion_rate','charges.destination':'destination_charges','charges.collect_total':'collect_total',
+  'execution.authorized_agent':'authorized_agent','execution.place':'execution_place','execution.date':'execution_date','awb.remarks':'remarks'
  };
- const k=map[binding]||binding?.replace(/^awb\./,''); return state[k]??s[k]??'';
+ const k=map[b]||b.replace(/^awb\./,'');let v=state[k]??s[k]??'';
+ if(b==='booking.mawb_serial'&&v){const m=String(v).replace(/\s/g,'').match(/^\d{3}-?(.*)$/);v=m?.[1]||v}
+ return Array.isArray(v)?v.join(' · '):v;
 }
 function renderAssignedTemplate(template,state,s){
  const d=template?.design;if(!d||!Array.isArray(d.objects)||!d.objects.length)return null;
