@@ -81,3 +81,16 @@
 
 .dts-object-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.dts-object-actions button{background:#142238;border:1px solid #304762;color:#dce7f5;border-radius:8px;padding:7px 9px;font-size:10px}.dts-object-actions button.danger{color:#ff8c96;border-color:#713640;background:#2a171d}
 @media(max-width:900px){.dts-inspector-content .dts-object-actions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:sticky;top:0;z-index:5;background:#0d141e;padding:5px 0 9px}.dts-inspector-content .dts-object-actions button{min-height:42px!important;padding:5px 3px!important;font-size:10px}.dts-inspector-content .dts-object-actions .danger{font-weight:700}}
+
+/* Page setup + editable reference controls */
+.dts-margin-box{position:absolute;pointer-events:none;z-index:2;border:1px dashed #6b9fe055;box-sizing:border-box}
+.dts-reference{inset:auto!important;position:absolute!important}
+.dts-reference-panel .dts-two,.dts-mobile-reference .dts-two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.dts-reference-panel input[type=number],.dts-reference-panel select,.dts-mobile-reference input[type=number],.dts-mobile-reference select{width:100%;box-sizing:border-box;background:#101a27;border:1px solid #2b3b51;color:#edf4fd;border-radius:8px;padding:7px}
+.dts-page-panel>b:not(:first-child){margin-top:6px;color:#9fb0c5;font-size:10px}
+@media(max-width:900px){
+ .dts-inspector-tabs{grid-template-columns:repeat(4,minmax(0,1fr)) auto!important}
+ .dts-inspector-tabs button{min-width:0;padding:0 5px;font-size:10px}
+ .dts-mobile-reference .dts-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .dts-mobile-reference input,.dts-mobile-reference select{font-size:16px;min-height:40px}
+}
