@@ -361,3 +361,27 @@
 /* Parties v10: relationship layout */
 .shx-party-flow{display:grid;grid-template-columns:1fr 72px 1fr;align-items:center;gap:10px;margin:14px 6px 10px}.shx-flow-label{display:flex;gap:6px;align-items:center}.shx-flow-label small{font-size:7px;letter-spacing:.16em;color:#60778b}.shx-flow-label b{font-size:10px;letter-spacing:.08em;color:#a2b4c3}.shx-flow-to{justify-content:flex-end}.shx-flow-route{display:flex;align-items:center;gap:5px;color:#69a8f7}.shx-flow-route i{display:block;flex:1;height:1px;background:#397fca}.shx-document-party-cards{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:10px!important;align-items:start}.shx-document-party-cards>.shx-party-card{margin:0!important}.shx-shipper-card .shx-party-card-head small{color:#77aef1!important}.shx-consignee-card .shx-party-card-head small{color:#83c7b9!important}
 @media(max-width:760px){.shx-party-flow{grid-template-columns:1fr 38px 1fr;gap:4px;margin:10px 3px 7px}.shx-flow-label{gap:3px}.shx-flow-label small{font-size:6px}.shx-flow-label b{font-size:8px}.shx-document-party-cards{gap:7px!important}.shx-document-party-cards>.shx-party-card{padding:11px 8px 9px!important;border-radius:18px!important;min-width:0}.shx-document-party-cards .shx-party-card-head{margin-bottom:7px!important}.shx-document-party-cards .shx-party-card-head b{font-size:12px!important}.shx-document-party-cards .shx-party-card-head small{font-size:6px!important}.shx-document-party-cards .shx-party-linked{padding:3px 5px!important;font-size:6px!important}.shx-document-party-cards .shx-party-identity{grid-template-columns:32px minmax(0,1fr)!important;gap:6px!important;min-height:0!important;padding:7px!important}.shx-document-party-cards .shx-party-avatar{width:32px!important;height:32px!important;border-radius:10px!important;font-size:10px!important}.shx-document-party-cards .shx-party-identity-copy strong{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.shx-document-party-cards .shx-party-identity-copy span{font-size:7px!important}.shx-document-party-cards .shx-change-entity{grid-column:1/-1;width:100%;min-height:27px!important;height:27px!important;font-size:8px!important}.shx-document-party-cards .shx-party-summary{margin-top:7px!important}.shx-document-party-cards .shx-profile-row{grid-template-columns:21px minmax(0,1fr) 8px 19px!important;gap:4px!important;min-height:44px!important;padding:3px 0!important}.shx-document-party-cards .shx-profile-icon{width:21px!important;height:21px!important;border-radius:7px!important;font-size:8px!important}.shx-document-party-cards .shx-profile-copy small{font-size:6px!important}.shx-document-party-cards .shx-profile-copy strong{font-size:9px!important}.shx-document-party-cards .shx-profile-copy span{font-size:7px!important}.shx-document-party-cards .shx-profile-row>button{width:19px!important;height:19px!important;font-size:14px!important}}
+
+/* Parties v11 — Transport Order inspired lane */
+.shx-document-party-section{border:1px solid rgba(120,159,190,.15);border-radius:24px;padding:18px 18px 20px;background:rgba(6,15,23,.42)}
+.shx-document-party-section>.shx-party-section-title{padding:0 2px 14px!important}
+.shx-party-flow{position:relative;margin:0 0 4px!important;grid-template-columns:1fr 46px 1fr!important}
+.shx-flow-label{display:block!important}.shx-flow-label small{display:block;font-size:8px!important;font-weight:750;letter-spacing:.2em!important;color:#73899d!important}.shx-flow-label b{display:block;margin-top:3px;font-size:19px!important;font-weight:700!important;letter-spacing:-.025em!important;color:#eef4f8!important}.shx-flow-to{text-align:right}
+.shx-flow-route{align-self:end;margin-bottom:5px}.shx-flow-route i{height:1px;background:#438fe5;opacity:.8}.shx-flow-route span{font-size:15px}
+.shx-document-party-cards{position:relative;gap:18px!important}.shx-document-party-cards:before{content:"";position:absolute;left:50%;top:8px;bottom:8px;width:1px;background:rgba(111,151,183,.11)}
+.shx-document-party-cards>.shx-party-card{background:transparent!important;border:0!important;box-shadow:none!important;padding:10px 4px!important;border-radius:0!important}.shx-document-party-cards>.shx-party-card:before{display:none}
+.shx-document-party-cards .shx-party-card-head{display:none!important}
+.shx-document-party-cards .shx-party-identity{border:0!important;background:transparent!important;box-shadow:none!important;padding:7px 0 11px!important}
+.shx-document-party-cards .shx-party-summary{border-top:1px solid rgba(130,163,190,.1)!important}
+@media(max-width:760px){
+ .shx-document-party-section{margin-left:0!important;margin-right:0!important;padding:15px 13px 17px;border-radius:22px}
+ .shx-document-party-section>.shx-party-section-title{padding:0 1px 12px!important}
+ .shx-party-flow{grid-template-columns:1fr 30px 1fr!important;margin:0 1px 2px!important}
+ .shx-flow-label small{font-size:7px!important}.shx-flow-label b{font-size:17px!important}
+ .shx-flow-route span{font-size:11px}.shx-document-party-cards{gap:12px!important}
+ .shx-document-party-cards>.shx-party-card{padding:5px 1px!important}
+ .shx-document-party-cards .shx-party-identity{grid-template-columns:30px minmax(0,1fr)!important;padding:6px 0 9px!important}
+ .shx-document-party-cards .shx-party-avatar{width:30px!important;height:30px!important}
+ .shx-document-party-cards .shx-party-identity-copy strong{font-size:12px!important}
+ .shx-document-party-cards .shx-change-entity{margin-top:3px!important}
+}
