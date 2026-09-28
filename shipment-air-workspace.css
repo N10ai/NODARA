@@ -477,3 +477,27 @@
  .shx-customer-defaults strong{font-size:11px!important;font-weight:450!important;color:#9aa8b7!important}
  .shx-customer-defaults span{font-size:9px!important;color:#647688!important}
 }
+
+/* Parties v16 — compact movement plan */
+@media(max-width:760px){
+ .shx-document-party-section{padding:14px 14px 15px!important;border-radius:20px!important}
+ .shx-document-party-section>.shx-party-section-title{padding-bottom:8px!important}
+ .shx-document-party-cards{padding-left:31px!important}
+ .shx-document-party-cards:before{left:8px!important;top:22px!important;bottom:22px!important}
+ .shx-document-party-cards>.shx-party-card{padding:6px 0 10px!important}
+ .shx-document-party-cards>.shx-party-card:after{left:-28px!important;top:19px!important;width:11px!important;height:11px!important}
+ .shx-document-party-cards>.shx-party-card+ .shx-party-card{margin-top:7px!important;padding-top:14px!important}
+ .shx-document-party-cards>.shx-party-card+ .shx-party-card:after{top:25px!important}
+ .shx-document-party-cards .shx-party-card-head{margin-bottom:3px!important}
+ .shx-document-party-cards .shx-party-card-head>div b{font-size:11px!important}
+ .shx-document-party-cards .shx-party-identity{padding:0 0 3px!important}
+ .shx-document-party-cards .shx-party-identity-copy strong{font-size:18px!important}
+ .shx-document-party-cards .shx-change-entity{margin:3px 0 1px!important;min-height:23px!important}
+ .shx-document-party-cards .shx-profile-row{padding:2px 0!important}
+ .shx-document-party-cards .shx-profile-copy strong{font-size:11px!important}
+ .shx-document-party-cards .shx-profile-copy span{font-size:8px!important}
+ .shx-account-card{padding:13px 15px!important;border-radius:20px!important}
+ .shx-account-card .shx-party-identity-copy strong{font-size:18px!important}
+ .shx-account-card .shx-change-entity{padding:3px 0!important;min-height:24px!important}
+ .shx-customer-defaults div{margin-top:2px!important}
+}
