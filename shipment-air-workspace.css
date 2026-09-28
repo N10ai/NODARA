@@ -332,3 +332,28 @@
 .shx-profile-row>button:hover{background:rgba(73,145,235,.1)!important}.shx-profile-row>button:after{content:none!important}
 .shx-picker-sheet{width:min(540px,100%)}.shx-selection-list{display:grid;gap:7px}.shx-selection-list>button{width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) 22px;align-items:center;gap:11px;padding:12px;border:1px solid rgba(119,158,191,.12);border-radius:15px;background:rgba(3,10,16,.35);text-align:left;color:#dfe9f1}.shx-selection-list>button>i{width:30px;height:30px;border-radius:10px;background:rgba(52,112,166,.09);border:1px solid rgba(91,146,193,.1)}.shx-selection-list b{display:block;font-size:11px;font-weight:600}.shx-selection-list small{display:block;margin-top:3px;color:#708497;font-size:9px}.shx-selection-list em{opacity:0;color:#79b2ff;font-size:14px;font-style:normal}.shx-selection-list>button.selected{border-color:rgba(73,145,235,.38);background:rgba(44,112,191,.09)}.shx-selection-list>button.selected em{opacity:1}.shx-selection-list>button:active{transform:scale(.995)}
 @media(max-width:760px){.shx-profile-row{grid-template-columns:32px minmax(0,1fr) 16px 30px;gap:9px;min-height:66px}.shx-profile-copy strong{font-size:14px}.shx-profile-copy span{font-size:10px}.shx-party-modal .shx-picker-sheet{max-height:82vh}}
+
+/* Parties v9 — compact mobile density without losing hierarchy */
+@media(max-width:760px){
+  .shx-party-cards{gap:14px!important}
+  .shx-party-card{padding:18px 18px 15px!important;border-radius:24px!important}
+  .shx-party-card-head{margin-bottom:13px!important}
+  .shx-party-card-head b{font-size:16px!important}
+  .shx-party-identity{min-height:72px!important;padding:11px 12px!important;border-radius:18px!important}
+  .shx-party-avatar{width:48px!important;height:48px!important;border-radius:15px!important;font-size:16px!important}
+  .shx-party-identity-copy strong{font-size:16px!important}
+  .shx-party-identity-copy span{font-size:10px!important;margin-top:2px!important}
+  .shx-change-entity{min-height:38px!important;padding:0 13px!important;border-radius:13px!important;font-size:11px!important}
+  .shx-party-summary{margin-top:10px!important;padding-top:2px!important}
+  .shx-profile-row{min-height:57px!important;padding:6px 0!important;grid-template-columns:29px minmax(0,1fr) 13px 27px!important;gap:8px!important}
+  .shx-profile-icon{width:27px!important;height:27px!important;border-radius:9px!important;font-size:10px!important}
+  .shx-profile-copy small{font-size:7px!important;margin-bottom:2px!important}
+  .shx-profile-copy strong{font-size:12.5px!important}
+  .shx-profile-copy span{font-size:8.5px!important;margin-top:2px!important}
+  .shx-profile-chevron{font-size:18px!important}
+  .shx-profile-row>button{width:27px!important;height:27px!important;font-size:18px!important}
+  .shx-party-section,.shx-account-section{margin-top:22px!important}
+  .shx-party-section-title{padding:0 8px 10px!important}
+  .shx-party-section-title b{font-size:15px!important}
+  .shx-party-section-title span{font-size:10px!important}
+}
