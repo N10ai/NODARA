@@ -188,10 +188,17 @@ function ensureStarters(){
   ['nodara-system-20260928-arrival','Arrival Notice / Invoice — Air — NODARA Base','Air','portrait','arrival',[{module:'Shipments',mode:'Air',recordType:'ARRIVAL_NOTICE',surface:'Documents'}]]
  ];
  defs.forEach(([id,name,category,orientation,kind,placements])=>{
-   if(a.some(t=>t.id===id))return;
    const design=kind==='awb'?awbStarter():systemDocDesign(id,name,orientation,kind);
    design.name=name;
-   a.push({id,name,status:'published',version:1,category,placements,createdAt:now,updatedAt:now,publishedAt:now,design,builtin:true,source:'Magaya reference template supplied 2026-09-28'});
+   const existing=a.find(t=>t.id===id);
+   if(existing){
+     // Built-in system templates are code-owned. Refresh their geometry when NODARA ships a new base version.
+     existing.name=name; existing.category=category; existing.placements=placements; existing.design=design;
+     existing.status='published'; existing.builtin=true; existing.systemRevision='20260928.3';
+     existing.updatedAt=now; existing.publishedAt=now; existing.source='Magaya reference template supplied 2026-09-28';
+   }else{
+     a.push({id,name,status:'published',version:1,category,placements,createdAt:now,updatedAt:now,publishedAt:now,design,builtin:true,systemRevision:'20260928.3',source:'Magaya reference template supplied 2026-09-28'});
+   }
  });
  saveTemplates(a);
 }
