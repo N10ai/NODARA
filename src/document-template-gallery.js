@@ -29,7 +29,7 @@ export function applicableTemplates(ctx={}){return templates().filter(t=>t.statu
 export function upsertTemplate(t){const a=templates(),i=a.findIndex(x=>x.id===t.id);if(i<0)a.unshift(t);else a[i]=t;saveTemplates(a);return t}
 
 // Built-in editable starters. Seeded once into the local registry; users can freely duplicate/edit them.
-const starterId='starter-awb-professional-v3';
+const starterId='nodara-system-20260928-awb';
 const oid=(p,i)=>starterId+'-'+p+'-'+i;
 function awbStarter(){
  const O=[];let n=0;
@@ -141,8 +141,12 @@ function systemDocDesign(id,name,orientation='portrait',kind='generic'){
   field(10,58,64,15,'Origin','booking.origin');field(74,58,64,15,'Destination','booking.destination');field(138,58,67,15,'Date','execution.date');
   field(10,73,97,15,'Master Airway Bill No.','booking.mawb_number');field(107,73,48,15,'Number of Pieces','cargo.total_pieces');field(155,73,50,15,'Weight Kg','cargo.gross_weight');
   field(10,88,195,18,'Name of IAC / Authorized Agent employee tendering cargo','execution.authorized_agent');
-  text(10,112,195,64,kind==='tsa'?'MIP Cargo Express is in compliance with its TSA-approved security program and applicable security directives. Review and maintain the approved security-program wording for this certification before issue.':'',7,'400');
+  const passenger=/Passenger/i.test(name);
+  text(10,112,195,10,passenger?'INDIRECT AIR CARRIER WRITTEN CERTIFICATION FOR A PASSENGER AIR CARRIER':'INDIRECT AIR CARRIER WRITTEN CERTIFICATION FOR AN ALL CARGO AIRCRAFT ONLY',8,'700','center');
+  text(10,126,195,48,passenger?'MIP Cargo Express is in compliance with its TSA-approved security program and all applicable security directives. All cargo tendered with this certification must meet the applicable TSA acceptance and transfer requirements.':'MIP Cargo Express is in compliance with its TSA-approved security program and all applicable security directives. This shipment contains cargo originating from an UNKNOWN SHIPPER not exempted by TSA. This shipment must be transported ONLY ON ALL-CARGO AIRCRAFT.',6.5,'400');
+  if(passenger){field(10,178,96,14,'Number of Known Shipper','shipper.account');field(106,178,99,14,'Items less than 16 oz.','cargo.total_pieces')}
   line(10,205,90);text(10,207,90,5,'Printed Name and Signature of IAC Employee',5);line(115,205,90);text(115,207,90,5,'Date',5);
+  text(10,226,195,34,'Sensitive security information: maintain and disclose this record only in accordance with the organization’s approved security program and applicable SSI handling requirements.',5.5,'400');
  }else{
   text(10,8,W-20,10,name,15,'700','center');
  }
@@ -153,6 +157,8 @@ function ensureStarters(){
  const now=new Date().toISOString();
  // Remove only NODARA's superseded built-in starters. User-created/custom templates are preserved.
  a=a.filter(t=>!t.builtin || String(t.id||'').startsWith('nodara-system-20260928-'));
+ // Retire older generated starter records so the gallery has one authoritative NODARA base per document.
+ a=a.filter(t=>!(t.builtin && ['starter-awb-professional-v3','Air Waybill — Professional Starter'].includes(String(t.id||t.name||''))));
  const defs=[
   ['nodara-system-20260928-awb','Air Waybill — NODARA Base','Air','portrait','awb',[{module:'Shipments',mode:'Air',recordType:'MAWB',surface:'Documents'},{module:'Shipments',mode:'Air',recordType:'HAWB',surface:'Documents'}]],
   ['nodara-system-20260928-bol','Bill of Lading — NODARA Base','Ocean','portrait','bol',[{module:'Shipments',mode:'Ocean',recordType:'HBL',surface:'Documents'}]],
