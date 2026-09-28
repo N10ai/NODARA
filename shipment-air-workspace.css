@@ -412,3 +412,22 @@
  .shx-document-party-cards .shx-profile-copy strong{font-size:12px!important}
  .shx-document-party-cards .shx-profile-copy span{font-size:8px!important}
 }
+
+/* Parties v13 — quieter Transport Order hierarchy */
+.shx-customer-defaults{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px;padding:14px 2px 2px;border-top:1px solid rgba(130,163,190,.09)}
+.shx-customer-defaults div{min-width:0}.shx-customer-defaults small{display:block;color:#667d91;font-size:7px;font-weight:750;letter-spacing:.16em}.shx-customer-defaults strong{display:block;margin-top:5px;color:#dce6ed;font-size:11px;font-weight:580;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.shx-customer-defaults span{display:block;margin-top:3px;color:#687d8f;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:760px){
+ .shx-account-card{padding:16px!important;background:rgba(7,18,27,.52)!important;box-shadow:none!important}
+ .shx-account-card .shx-party-card-head b{font-size:18px!important;letter-spacing:-.025em!important}.shx-account-card .shx-party-card-head small{font-size:7px!important}
+ .shx-account-card .shx-party-identity{background:transparent!important;border:0!important;padding:9px 0!important;box-shadow:none!important}
+ .shx-account-card .shx-party-summary{display:none!important}
+ .shx-customer-defaults{grid-template-columns:1fr;gap:11px;margin-top:5px;padding-top:12px}
+ .shx-customer-defaults strong{font-size:11px}.shx-customer-defaults span{font-size:8px}
+ .shx-document-party-section{background:transparent!important;border-color:rgba(121,156,184,.12)!important;padding:17px 15px 18px!important;box-shadow:none!important}
+ .shx-document-party-cards>.shx-party-card{background:transparent!important}
+ .shx-document-party-cards .shx-party-card-head>div small{font-size:7px!important;color:#667c8f!important;letter-spacing:.18em!important}
+ .shx-document-party-cards .shx-party-card-head>div b{font-size:23px!important;font-weight:650!important;letter-spacing:-.04em!important}
+ .shx-document-party-cards .shx-party-identity{padding-top:10px!important}
+ .shx-document-party-cards .shx-party-summary{border-top-color:rgba(120,153,180,.075)!important}
+ .shx-document-party-cards .shx-profile-row{border-bottom-color:rgba(120,153,180,.065)!important}
+}
