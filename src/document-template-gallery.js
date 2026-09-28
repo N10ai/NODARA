@@ -40,52 +40,63 @@ function awbStarter(){
  const barcode=(x,y,w,h,binding)=>O.push({id:oid('b',n++),type:'barcode',x,y,w,h,text:'',binding,sampleValue:'35552201726',barcodeType:'CODE128',showValue:true,fontSize:7,fontFamily:'Arial',fontWeight:'400',fontStyle:'normal',textColor:'#111111',fillColor:'transparent',borderColor:'#111111',align:'left',border:0});
  const box=(x,y,w,h,label,binding)=>{frame(x,y,w,h);text(x+2,y+1,w-4,4,label,5,'400');if(binding)variable(x+2,y+6,w-4,h-7,binding,8,'600')};
  const W=195,X=10;
- // Header — mirror the supplied Magaya AWB: prefix + origin + serial at upper left; prefix + serial repeated upper right.
- variable(X,3,13,6,'booking.mawb_prefix',9,'700','center');
- variable(X+14,3,12,6,'booking.origin',9,'700','center');
- variable(X+27,3,39,6,'booking.mawb_serial',9,'700','left');
- variable(153,3,13,6,'booking.mawb_prefix',9,'700','center');
- variable(168,3,37,6,'booking.mawb_serial',9,'700','right');
- // The Air Waybill title belongs inside the upper-right carrier block, not as a NODARA-style page heading.
- text(109.5,13,43,5,'Not Negotiable',5,'400');text(109.5,18,43,7,'Air Waybill',12,'700');
- text(109.5,27,20,4,'Issued By',5);variable(129,25,74,8,'company.name',8,'600');
- // Parties
- box(X,39,97.5,30,'Shipper’s Name and Address','shipper.name');variable(X+2,51,92,14,'shipper.address',7,'400');
- box(107.5,39,97.5,30,'Shipper’s Account Number','shipper.account');
- box(X,69,97.5,30,'Consignee’s Name and Address','consignee.name');variable(X+2,81,92,14,'consignee.address',7,'400');
- box(107.5,69,97.5,30,'Consignee’s Account Number','consignee.account');
- // Agent/accounting
- box(X,99,97.5,24,'Issuing Carrier’s Agent Name and City','company.name');variable(X+2,111,92,8,'company.address',6,'400');
- frame(107.5,99,97.5,24);text(109.5,100,93,4,'Accounting Information',5);variable(109.5,106,93,14,'awb.accounting_info',6,'400');
- // Routing top
- frame(X,123,W,29);
- text(12,124,27,4,'Airport of Departure',5);variable(12,130,28,7,'booking.origin',9,'700');
- text(42,124,22,4,'To',5);variable(42,130,22,7,'booking.destination',9,'700');
- text(66,124,30,4,'By First Carrier',5);variable(66,130,30,7,'booking.flight',8,'600');
- text(99,124,24,4,'Routing / To',5);variable(99,130,24,7,'awb.route_1',7,'600');text(125,124,24,4,'By',5);variable(125,130,24,7,'awb.carrier_2',7,'600');text(151,124,24,4,'To',5);variable(151,130,24,7,'awb.route_2',7,'600');text(177,124,26,4,'By',5);variable(177,130,26,7,'awb.carrier_3',7,'600');
- line(X,139,W);text(12,141,18,4,'Currency',5);variable(12,146,18,5,'awb.currency',7,'600');text(32,141,18,4,'CHGS',5);variable(32,146,18,5,'awb.charges_code',7,'600');text(52,141,25,4,'WT/VAL',5);variable(52,146,25,5,'awb.wt_val',6,'600');text(79,141,25,4,'Other',5);variable(79,146,25,5,'awb.other_ppd_coll',6,'600');text(106,141,44,4,'Declared Value for Carriage',5);variable(106,146,44,5,'awb.declared_carriage',7,'600','center');text(152,141,51,4,'Declared Value for Customs',5);variable(152,146,51,5,'awb.declared_customs',7,'600','center');
- // Destination/flight
- frame(X,152,W,18);text(12,153,38,4,'Airport of Destination',5);variable(12,159,38,7,'booking.destination',9,'700');text(52,153,32,4,'Requested Flight/Date',5);variable(52,159,46,7,'booking.flight',8,'600');variable(101,159,48,7,'booking.etd',7,'400');text(152,153,51,4,'Amount of Insurance',5);variable(152,159,51,7,'awb.insurance',7,'600','center');
- // Handling
- frame(X,170,W,22);text(12,171,60,4,'Handling Information',5);variable(12,177,189,11,'awb.handling',7,'400');
- // Cargo grid
- frame(X,192,W,47);
- const cols=[20,24,27,25,28,71];let xx=X;cols.forEach((v,i)=>{if(i>0)frame(xx,192,.2,47,.5);xx+=v});
- const labels=['No. of Pieces','Gross Weight','kg/lb','Rate Class','Chargeable Weight','Rate / Charge / Total / Nature and Quantity of Goods'];
- xx=X;cols.forEach((v,i)=>{text(xx+1,194,v-2,8,labels[i],4.8,'600','center');xx+=v});
- variable(12,207,16,9,'cargo.total_pieces',9,'700','center');variable(32,207,20,9,'cargo.gross_weight',8,'600','center');text(57,207,10,8,'KG',7,'600','center');variable(83,207,24,9,'cargo.chargeable_weight',8,'600','center');variable(136,205,66,24,'cargo.description',6,'400');
- // Charges
- frame(X,239,97.5,24);frame(107.5,239,97.5,24);text(12,240,93,4,'Weight Charge / Valuation Charge / Tax',5,'600');text(109.5,240,93,4,'Other Charges',5,'600');
- frame(X,263,97.5,20);frame(107.5,263,97.5,20);text(12,264,93,4,'Total Other Charges Due Agent / Carrier',5,'600');text(109.5,264,93,4,'Total Prepaid / Total Collect',5,'600');
- // Footer signature
- text(12,285,92,4,'Shipper certifies that the particulars on the face hereof are correct.',4.8);line(12,296,90);text(12,297,90,4,'Signature of Shipper or Agent',5,'400','center');
- line(112,296,91);text(112,297,91,4,'Executed on / Place / Signature of Issuing Carrier or Agent',5,'400','center');
- variable(153,304,13,7,'booking.mawb_prefix',9,'700','center');
- variable(168,304,35,7,'booking.mawb_serial',9,'700','right');
+ // AWB identity strip exactly follows the supplied reference.
+ variable(10,3,12,6,'booking.mawb_prefix',9,'700','center');variable(23,3,12,6,'booking.origin',9,'700','center');variable(36,3,38,6,'booking.mawb_serial',9,'700');
+ variable(153,3,13,6,'booking.mawb_prefix',9,'700','center');variable(168,3,37,6,'booking.mawb_serial',9,'700','right');
+
+ // Main face: left party column / right carrier-contract column.
+ frame(10,10,195,186);
+ frame(10,10,95,38); text(11,11,47,4,'Shipper Name and Address',4.8);variable(12,17,61,9,'shipper.name',7,'600');variable(12,27,89,16,'shipper.address',6,'400');
+ frame(58,10,47,12);text(59,11,45,4,"Shipper's Account Number",4.8);variable(60,16,43,5,'shipper.account',6,'600');
+ frame(105,10,100,38);text(107,11,42,4,'Not Negotiable',4.8);text(107,16,42,7,'Air Waybill',12,'700');text(107,25,18,4,'Issued By',4.8);variable(126,23,77,8,'company.name',7,'600');
+ text(107,34,96,10,'Copies 1, 2 and 3 of this Air Waybill are originals and have the same validity.',4.5);
+
+ frame(10,48,95,38);text(11,49,47,4,'Consignee Name and Address',4.8);variable(12,55,61,9,'consignee.name',7,'600');variable(12,65,89,16,'consignee.address',6,'400');
+ frame(58,48,47,12);text(59,49,45,4,"Consignee's Account Number",4.8);variable(60,54,43,5,'consignee.account',6,'600');
+ frame(105,48,100,38);text(107,49,96,30,'It is agreed that the goods described herein are accepted in apparent good order and condition (except as noted) for carriage SUBJECT TO THE CONDITIONS OF CONTRACT ON THE REVERSE HEREOF. Shipper may increase such limitation of liability by declaring a higher value for carriage and paying a supplemental charge if required.',4.3);
+
+ frame(10,86,95,26);text(11,87,91,4,"Issuing Carrier's Agent Name and City",4.8);variable(12,93,91,7,'company.name',6.5,'600');variable(12,101,91,7,'company.address',5.5,'400');
+ frame(105,86,100,26);text(107,87,96,4,'Accounting Information',4.8);variable(107,93,96,15,'awb.accounting_info',6,'400');
+ frame(10,112,48,14);text(11,113,45,4,"Agent's IATA Code",4.8);variable(12,119,44,5,'company.iata_code',6,'600');
+ frame(58,112,47,14);text(59,113,44,4,'Account No.',4.8);variable(60,119,43,5,'company.account_number',6,'600');
+ frame(105,112,100,14);text(107,113,52,4,'Reference Number',4.8);variable(107,119,45,5,'awb.reference_number',6,'600');text(157,113,46,4,'Optional Shipping Information',4.5);variable(157,119,46,5,'awb.optional_shipping_info',5.5,'400');
+
+ frame(10,126,95,16);text(11,127,91,4,'Airport of Departure (Addr. of First Carrier) and Requested Routing',4.5);variable(12,133,91,6,'booking.origin',7,'600');
+ frame(105,126,100,16);
+ text(107,127,9,4,'To',4.5);variable(107,133,11,6,'booking.destination',6,'600');text(120,127,23,4,'By First Carrier',4.5);variable(120,133,28,6,'booking.first_carrier',6,'600');text(150,127,8,4,'to',4.5);variable(150,133,10,6,'awb.route_1',5.5,'600');text(162,127,8,4,'by',4.5);variable(162,133,15,6,'awb.carrier_2',5.5,'600');text(179,127,8,4,'to',4.5);variable(179,133,10,6,'awb.route_2',5.5,'600');text(191,127,8,4,'by',4.5);variable(191,133,12,6,'awb.carrier_3',5.5,'600');
+
+ frame(10,142,195,14);
+ text(11,143,16,4,'Currency',4.3);variable(11,149,16,5,'awb.currency',6,'600','center');text(29,143,16,4,'CHGS Code',4.3);variable(29,149,16,5,'awb.charges_code',5.5,'600','center');
+ text(47,143,27,4,'WT/VAL PPD/COLL',4.1);variable(47,149,27,5,'awb.wt_val',5.5,'600','center');text(76,143,27,4,'Other PPD/COLL',4.1);variable(76,149,27,5,'awb.other_ppd_coll',5.5,'600','center');
+ text(105,143,49,4,'Declared Value for Carriage',4.3,'400','center');variable(105,149,49,5,'awb.declared_carriage',6,'600','center');text(156,143,48,4,'Declared Value for Customs',4.3,'400','center');variable(156,149,48,5,'awb.declared_customs',6,'600','center');
+
+ frame(10,156,195,16);text(11,157,36,4,'Airport of Destination',4.5);variable(11,163,36,6,'booking.destination',6.5,'600');
+ text(49,157,25,4,'Flight Date',4.5);variable(49,163,25,6,'booking.flight_date',5.5,'600');text(76,157,31,4,'For Carrier Use Only',4.2);text(109,157,22,4,'Flight Date',4.5);variable(109,163,22,6,'booking.flight',5.5,'600');
+ text(133,157,25,4,'Amount of Insurance',4.2);variable(133,163,25,6,'awb.insurance',5.5,'600');text(160,157,43,11,'INSURANCE - If carrier offers insurance, and such insurance is requested in accordance with the conditions thereof.',3.8);
+
+ frame(10,172,195,24);text(11,173,48,4,'Handling Information',4.8);variable(11,179,165,13,'awb.handling',5.5,'400');text(190,186,13,4,'SCI',4.5,'400','center');variable(190,190,13,5,'awb.sci',5.5,'600','center');
+
+ // Cargo rating grid, matching the standard AWB column order.
+ frame(10,196,195,72);
+ const cx=[10,21,40,46,65,91,113,139,171,205];for(let i=1;i<cx.length-1;i++)frame(cx[i],196,.2,72,.5);
+ const labs=[['No. of Pieces RCP',10,11],['Gross Weight',21,19],['kg/lb',40,6],['Rate Class / Commodity Item No.',46,19],['Chargeable Weight',65,26],['Rate / Charge',91,22],['Total',113,26],['Nature and Quantity of Goods (incl. Dimensions or Volume)',139,66]];
+ labs.forEach(z=>text(z[1]+.7,198,z[2]-1.4,10,z[0],4.1,'500','center'));
+ variable(11,211,9,8,'cargo.total_pieces',6.5,'600','center');variable(22,211,17,8,'cargo.gross_weight',6,'600','center');text(41,211,4,7,'K',5.5,'600','center');variable(66,211,24,8,'cargo.chargeable_weight',6,'600','center');variable(140,210,63,48,'cargo.description',5.3,'400');
+
+ // Charges and certification footer.
+ frame(10,268,74,29);text(11,269,22,4,'Prepaid',4.2,'400','center');text(34,269,25,4,'Weight Charge',4.2,'400','center');text(60,269,23,4,'Collect',4.2,'400','center');line(10,278,74);text(11,280,72,4,'Valuation Charge',4.2,'400','center');line(10,287,74);text(11,289,72,4,'Tax',4.2,'400','center');
+ frame(84,268,121,29);text(85,269,119,4,'Other Charges',4.5);variable(86,276,117,17,'awb.other_charges',5.5,'400');
+ frame(10,297,74,25);text(11,298,72,4,'Total Other Charges Due Agent',4.1,'400','center');line(10,306,74);text(11,308,72,4,'Total Other Charges Due Carrier',4.1,'400','center');
+ frame(84,297,121,25);text(86,298,117,13,'Shipper certifies that the particulars on the face hereof are correct and that insofar as any part of the consignment contains dangerous goods, such part is properly described by name and is in proper condition for carriage according to the applicable Dangerous Goods Regulations.',4.2);variable(86,313,60,6,'company.name',6,'600');variable(147,313,56,6,'execution.authorized_agent',5.5,'600','right');
+ frame(10,322,74,22);text(11,323,35,4,'Total Prepaid',4.1,'400','center');text(48,323,35,4,'Total Collect',4.1,'400','center');line(10,333,74);text(11,335,35,4,'Currency Conversion Rates',3.9,'400','center');text(48,335,35,4,'CC Charges in Dest. Currency',3.9,'400','center');
+ frame(84,322,121,22);variable(86,325,34,6,'execution.issue_date',5.5,'600');variable(122,325,37,6,'execution.issue_place',5.5,'600','center');variable(161,325,42,6,'execution.authorized_agent',5.5,'600','right');line(86,333,117);text(86,335,117,4,'Executed on (date) · at (place) · Signature of Issuing Carrier or its Agent',3.9,'400','center');
+ frame(10,344,74,13);text(11,345,35,4,"For Carrier's Use only at Destination",3.8,'400','center');text(48,345,35,4,'Charges at Destination',3.8,'400','center');
+ frame(84,344,55,13);text(85,345,53,4,'Total Collect Charges',3.9,'400','center');
+ variable(153,348,13,6,'booking.mawb_prefix',8,'700','center');variable(168,348,35,6,'booking.mawb_serial',8,'700','right');
  // Fit the industry AWB architecture cleanly on US Letter while preserving editable geometry.
  O.forEach(o=>{
-   o.y=+(o.y*.855).toFixed(2);
-   o.h=+(Math.max(o.type==='line' ? .3 : o.h*.855,.3)).toFixed(2);
+   o.y=+(o.y*.735).toFixed(2);
+   o.h=+(Math.max(o.type==='line' ? .3 : o.h*.735,.3)).toFixed(2);
  });
  return {zoom:.72,testMode:false,grid:1,snap:true,mobilePanel:null,pagePreset:'LETTER',pageW:215.9,pageH:279.4,pageColor:'#ffffff',pageOrientation:'portrait',marginTop:6,marginRight:10,marginBottom:6,marginLeft:10,mobileInspector:'properties',inspectorExpanded:false,selected:[],objects:O,name:'Air Waybill — Magaya Base',background:null,bgOpacity:.42,bgLocked:true,bgX:0,bgY:0,bgW:215.9,bgH:279.4,bgFit:'fill',guidesX:[],guidesY:[]};
 }
