@@ -40,9 +40,15 @@ function awbStarter(){
  const barcode=(x,y,w,h,binding)=>O.push({id:oid('b',n++),type:'barcode',x,y,w,h,text:'',binding,sampleValue:'35552201726',barcodeType:'CODE128',showValue:true,fontSize:7,fontFamily:'Arial',fontWeight:'400',fontStyle:'normal',textColor:'#111111',fillColor:'transparent',borderColor:'#111111',align:'left',border:0});
  const box=(x,y,w,h,label,binding)=>{frame(x,y,w,h);text(x+2,y+1,w-4,4,label,5,'400');if(binding)variable(x+2,y+6,w-4,h-7,binding,8,'600')};
  const W=195,X=10;
- // Header
- text(X,8,80,7,'AIR WAYBILL',15,'700');text(X,16,95,5,'Not Negotiable',5,'600');text(X,21,95,5,'Issued by',5);variable(X,26,95,7,'company.name',8,'600');
- text(121,8,84,5,'Air Waybill Number',5,'400','right');variable(121,14,84,7,'shipment.number',11,'700','right');barcode(133,22,72,13,'booking.mawb_serial');
+ // Header — mirror the supplied Magaya AWB: prefix + origin + serial at upper left; prefix + serial repeated upper right.
+ variable(X,3,13,6,'booking.mawb_prefix',9,'700','center');
+ variable(X+14,3,12,6,'booking.origin',9,'700','center');
+ variable(X+27,3,39,6,'booking.mawb_serial',9,'700','left');
+ variable(153,3,13,6,'booking.mawb_prefix',9,'700','center');
+ variable(168,3,37,6,'booking.mawb_serial',9,'700','right');
+ // The Air Waybill title belongs inside the upper-right carrier block, not as a NODARA-style page heading.
+ text(109.5,13,43,5,'Not Negotiable',5,'400');text(109.5,18,43,7,'Air Waybill',12,'700');
+ text(109.5,27,20,4,'Issued By',5);variable(129,25,74,8,'company.name',8,'600');
  // Parties
  box(X,39,97.5,30,'Shipper’s Name and Address','shipper.name');variable(X+2,51,92,14,'shipper.address',7,'400');
  box(107.5,39,97.5,30,'Shipper’s Account Number','shipper.account');
@@ -74,14 +80,14 @@ function awbStarter(){
  // Footer signature
  text(12,285,92,4,'Shipper certifies that the particulars on the face hereof are correct.',4.8);line(12,296,90);text(12,297,90,4,'Signature of Shipper or Agent',5,'400','center');
  line(112,296,91);text(112,297,91,4,'Executed on / Place / Signature of Issuing Carrier or Agent',5,'400','center');
- text(12,305,80,4,'For operational use — verify carrier-required wording and fields before issue.',4.5);
- variable(126,304,77,7,'shipment.number',9,'700','right');
+ variable(153,304,13,7,'booking.mawb_prefix',9,'700','center');
+ variable(168,304,35,7,'booking.mawb_serial',9,'700','right');
  // Fit the industry AWB architecture cleanly on US Letter while preserving editable geometry.
  O.forEach(o=>{
    o.y=+(o.y*.855).toFixed(2);
    o.h=+(Math.max(o.type==='line' ? .3 : o.h*.855,.3)).toFixed(2);
  });
- return {zoom:.72,testMode:false,grid:1,snap:true,mobilePanel:null,pagePreset:'LETTER',pageW:215.9,pageH:279.4,pageColor:'#ffffff',pageOrientation:'portrait',marginTop:6,marginRight:10,marginBottom:6,marginLeft:10,mobileInspector:'properties',inspectorExpanded:false,selected:[],objects:O,name:'Air Waybill — Professional Starter',background:null,bgOpacity:.42,bgLocked:true,bgX:0,bgY:0,bgW:215.9,bgH:279.4,bgFit:'fill',guidesX:[],guidesY:[]};
+ return {zoom:.72,testMode:false,grid:1,snap:true,mobilePanel:null,pagePreset:'LETTER',pageW:215.9,pageH:279.4,pageColor:'#ffffff',pageOrientation:'portrait',marginTop:6,marginRight:10,marginBottom:6,marginLeft:10,mobileInspector:'properties',inspectorExpanded:false,selected:[],objects:O,name:'Air Waybill — Magaya Base',background:null,bgOpacity:.42,bgLocked:true,bgX:0,bgY:0,bgW:215.9,bgH:279.4,bgFit:'fill',guidesX:[],guidesY:[]};
 }
 function systemDocDesign(id,name,orientation='portrait',kind='generic'){
  const landscape=orientation==='landscape',W=landscape?279.4:215.9,H=landscape?215.9:279.4,O=[];let n=0;
