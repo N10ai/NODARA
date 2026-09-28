@@ -385,3 +385,30 @@
  .shx-document-party-cards .shx-party-identity-copy strong{font-size:12px!important}
  .shx-document-party-cards .shx-change-entity{margin-top:3px!important}
 }
+
+/* Parties v12 — mobile uses the same vertical journey language as Transport Orders */
+@media(max-width:760px){
+ .shx-document-party-section{padding:17px 16px 19px!important}
+ .shx-party-flow{display:none!important}
+ .shx-document-party-cards{display:block!important;position:relative;padding-left:25px}
+ .shx-document-party-cards:before{content:"";display:block!important;position:absolute;left:7px!important;top:28px!important;bottom:28px!important;width:1px!important;background:linear-gradient(180deg,#ff963f 0%,#ff963f 82%,rgba(255,150,63,.12) 100%)!important}
+ .shx-document-party-cards>.shx-party-card{position:relative;padding:10px 0 18px!important}
+ .shx-document-party-cards>.shx-party-card+ .shx-party-card{padding-top:20px!important;border-top:1px solid rgba(120,155,184,.1)!important}
+ .shx-document-party-cards>.shx-party-card:after{content:"";position:absolute;left:-24px;top:22px;width:10px;height:10px;border-radius:50%;background:#ff963f;box-shadow:0 0 0 4px #07111a}
+ .shx-document-party-cards>.shx-party-card+ .shx-party-card:after{top:32px}
+ .shx-document-party-cards .shx-party-card-head{display:flex!important;margin:0 0 9px!important;align-items:end}
+ .shx-document-party-cards .shx-party-card-head>div small{display:block!important;font-size:8px!important;letter-spacing:.2em!important;color:#8195a8!important}
+ .shx-document-party-cards .shx-party-card-head>div b{display:block!important;font-size:21px!important;line-height:1.05!important;letter-spacing:-.035em!important;color:#f2f6f9!important}
+ .shx-document-party-cards .shx-party-linked{display:none!important}
+ .shx-document-party-cards .shx-party-identity{grid-template-columns:34px minmax(0,1fr) auto!important;gap:9px!important;padding:7px 0 10px!important}
+ .shx-document-party-cards .shx-party-avatar{width:34px!important;height:34px!important}
+ .shx-document-party-cards .shx-party-identity-copy strong{font-size:15px!important}
+ .shx-document-party-cards .shx-party-identity-copy span{font-size:9px!important}
+ .shx-document-party-cards .shx-change-entity{grid-column:auto!important;width:auto!important;min-width:62px!important;padding:0 10px!important}
+ .shx-document-party-cards .shx-party-summary{display:grid!important;grid-template-columns:1fr!important;margin-top:3px!important}
+ .shx-document-party-cards .shx-profile-row{grid-template-columns:25px minmax(0,1fr) 10px 22px!important;min-height:51px!important;gap:7px!important}
+ .shx-document-party-cards .shx-profile-icon{width:25px!important;height:25px!important}
+ .shx-document-party-cards .shx-profile-copy small{font-size:7px!important}
+ .shx-document-party-cards .shx-profile-copy strong{font-size:12px!important}
+ .shx-document-party-cards .shx-profile-copy span{font-size:8px!important}
+}
