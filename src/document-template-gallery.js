@@ -94,7 +94,7 @@ function systemDocDesign(id,name,orientation='portrait',kind='generic'){
  const table=(x,y,w,h,cols,labels,bindings=[])=>{frame(x,y,w,h);let xx=x;cols.slice(0,-1).forEach(c=>{xx+=c;frame(xx,y,.2,h)});let cx=x;cols.forEach((c,i)=>{text(cx+1,y+1,c-2,5,labels[i]||'',4.6,'600','center');if(bindings[i])v(cx+1,y+8,c-2,Math.max(7,h-10),bindings[i],6,'400');cx+=c})};
  if(kind==='manifest'){
   text(8,7,90,8,'{{company.name}}',10,'700');text(W-78,7,70,8,'Cargo Manifest',14,'700','right');
-  field(8,22,62,24,'Destination Agent Name and Address','agent.name');field(70,22,62,24,'Carrier Name and Address','booking.first_carrier');
+  field(8,22,62,24,'Destination Agent Name and Address','agent.name');v(10,34,58,9,'agent.address',5.7);field(70,22,62,24,'Carrier Name and Address','booking.first_carrier');
   field(132,22,48,12,'AWB / Bill of Lading No.','booking.reference');field(180,22,45,12,'Date','execution.date');field(225,22,46,12,'Origin','booking.origin');
   field(132,34,48,12,'Flight / Voyage','booking.flight');field(180,34,45,12,'Departure Date','booking.etd');field(225,34,46,12,'Destination','booking.destination');
   field(8,46,W-16,16,'Notes','awb.remarks');
@@ -104,9 +104,9 @@ function systemDocDesign(id,name,orientation='portrait',kind='generic'){
   text(8,8,85,8,'{{company.name}}',10,'700');text(W-78,8,70,8,'Loading Guide',14,'700','right');
   field(108,18,48,14,'Date','execution.date');field(156,18,48,14,'Container No.','shipment.reference');
   field(108,32,48,14,'AWB / Bill of Lading No.','booking.reference');field(156,32,48,14,'Booking Number','booking.reference');
-  field(8,46,100,26,'Shipper Name and Address','shipper.name');v(10,58,96,10,'shipper.address',6);
+  field(8,46,100,26,'Shipper Name and Address','shipper.name');v(10,57,96,6,'shipper.address',5.8);v(10,64,96,6,'shipper.contact_name',5.5);
   field(108,46,48,13,'Origin','booking.origin');field(156,46,48,13,'Destination','booking.destination');field(108,59,96,13,'Carrier Name','booking.first_carrier');
-  field(8,72,100,26,'Consignee Name and Address','consignee.name');v(10,84,96,10,'consignee.address',6);field(108,72,96,26,'Notes','awb.remarks');
+  field(8,72,100,26,'Consignee Name and Address','consignee.name');v(10,83,96,6,'consignee.address',5.8);v(10,90,96,6,'consignee.contact_name',5.5);field(108,72,96,26,'Notes','awb.remarks');
   table(8,98,W-16,H-118,[20,20,20,20,75,25,27],['WR No.','Type','Pieces','Location','Description','Weight','Volume'],['shipment.reference','','cargo.total_pieces','','cargo.description','cargo.gross_weight','cargo.volume_cbm']);
  }else if(kind==='bol'){
   text(8,6,105,8,'{{company.name}}',10,'700');text(W-80,6,72,8,'BILL OF LADING',13,'700','right');line(8,15,W-16);
@@ -119,20 +119,20 @@ function systemDocDesign(id,name,orientation='portrait',kind='generic'){
   field(8,225,100,32,'FREIGHT RATES, CHARGES, WEIGHTS AND/OR MEASUREMENTS','charges.other');field(108,225,99,32,'DECLARED VALUE / CARRIER CERTIFICATION','execution.authorized_agent');
  }else if(kind==='vgm'){
   text(10,8,W-20,10,'VGM DECLARATION',16,'700','center');
-  const rows=[['Carrier','booking.first_carrier'],['MBL No.','booking.reference'],['Booking No.','booking.reference'],['Container / Seal','shipment.reference'],['Container Type','shipment.reference'],['Container Tare Weight','cargo.gross_weight'],['Cargo Weight','cargo.gross_weight'],['VGM','cargo.gross_weight'],['Verifying Party','execution.authorized_agent'],['Signature (Name)','execution.authorized_agent'],['Phone','company.phone'],['Verification Date','execution.date']];
+  const rows=[['Carrier','booking.first_carrier'],['MBL No.','booking.reference'],['Booking No.','booking.reference'],['Container / Seal','ocean.container_seal'],['Container Type','ocean.container_type'],['Container Tare Weight','ocean.container_tare_weight'],['Cargo Weight','cargo.gross_weight'],['VGM','ocean.vgm_weight'],['Verifying Party','execution.authorized_agent'],['Signature (Name)','execution.authorized_agent'],['Phone','execution.authorized_agent_phone'],['Verification Date','execution.date']];
   rows.forEach((r,i)=>field(18,28+i*13,W-36,13,r[0],r[1]));text(18,190,W-36,7,'The method used to get the VGM of this container was:',7,'600');text(18,201,W-36,7,'☐ Method 1: Weighing the packed container',7);text(18,212,W-36,14,'☐ Method 2: Weighing all cargo and contents, including pallets/dunnage, and adding container tare weight',7);
  }else if(kind==='arrival'){
   text(8,7,78,9,'{{company.name}}',13,'700');text(W-103,7,95,9,'ARRIVAL NOTICE / INVOICE',15,'700','right');v(8,17,78,12,'company.address',6);
-  field(8,31,98,27,'CONSIGNEE','consignee.name');v(10,43,94,10,'consignee.address',6);field(106,31,101,27,'BILL TO','customer.name');
-  field(8,58,98,27,'NOTIFY PARTY','consignee.contact_name');field(106,58,101,27,'SHIPPER','shipper.name');
+  field(8,31,98,27,'CONSIGNEE','consignee.name');v(10,42,94,7,'consignee.address',5.8);v(10,50,94,6,'consignee.contact_name',5.4);field(106,31,101,27,'BILL TO','customer.name');v(108,42,97,7,'customer.address',5.8);v(108,50,97,6,'customer.contact_name',5.4);
+  field(8,58,98,27,'NOTIFY PARTY','consignee.contact_name');v(10,70,94,9,'consignee.contact_email',5.5);field(106,58,101,27,'SHIPPER','shipper.name');v(108,69,97,7,'shipper.address',5.8);v(108,77,97,6,'shipper.contact_name',5.4);
   const f=[['DEPARTURE DATE','booking.etd'],['ARRIVAL DATE','booking.eta'],['PORT OF LOADING','booking.origin'],['PORT OF UNLOADING','booking.destination'],['CARRIER','booking.first_carrier'],['FLIGHT DATE / NUMBER','booking.flight'],['MASTER AIR WAYBILL','booking.mawb_number'],['HOUSE AIR WAYBILL','booking.hawb_number']];
   f.forEach((r,i)=>field(8+(i%4)*49.75,85+Math.floor(i/4)*15,49.75,15,r[0],r[1]));
   table(8,115,W-16,82,[28,82,32,28,29],['NUMBER OF PACKAGES','DESCRIPTION OF COMMODITIES','GROSS WEIGHT','CHARGEABLE WEIGHT','MEASUREMENT'],['cargo.total_pieces','cargo.description','cargo.gross_weight','cargo.chargeable_weight','cargo.volume_cbm']);
   field(8,201,96,24,'CARGO LOCATION','shipment.reference');field(104,201,73,24,'DESCRIPTION OF CHARGES','charges.other');field(177,201,30,24,'AMOUNT','charges.collect_total');field(8,225,96,20,'PLACE OF DELIVERY','booking.destination');field(8,245,96,20,'NOTES','awb.remarks');
  }else if(kind==='do'){
   text(8,7,70,7,'{{company.name}}',9,'700');text(W-88,7,80,9,'Delivery Order (DO) - Export',14,'700','right');
-  field(8,20,95,18,'Pickup From','shipper.address');field(103,20,104,18,'Deliver To','consignee.address');field(8,38,95,25,'Shipper (Name and Address)','shipper.name');field(103,38,104,25,'Consignee (Name and Address)','consignee.name');
-  const fs=[['Flight / Voyage','booking.flight'],['File Number','shipment.number'],['Port of Discharge','booking.destination'],['Booking Number','booking.reference'],['House Number','booking.hawb_number'],['Delivering Carrier','booking.first_carrier'],['Bill To Party','customer.name'],['Customer Reference','shipment.reference']];
+  field(8,20,95,18,'Pickup From','shipper.address');field(103,20,104,18,'Deliver To','consignee.address');field(8,38,95,25,'Shipper (Name and Address)','shipper.name');v(10,49,91,7,'shipper.address',5.7);v(10,56,91,5,'shipper.contact_name',5.2);field(103,38,104,25,'Consignee (Name and Address)','consignee.name');v(105,49,100,7,'consignee.address',5.7);v(105,56,100,5,'consignee.contact_name',5.2);
+  const fs=[['Flight / Voyage','booking.flight'],['File Number','shipment.number'],['Port of Discharge','booking.destination'],['Booking Number','booking.reference'],['House Number','booking.hawb_number'],['Delivering Carrier','booking.first_carrier'],['Bill To Party','customer.name'],['Customer Reference','customer.reference']];
   fs.forEach((r,i)=>field(8+(i%4)*49.75,63+Math.floor(i/4)*14,49.75,14,r[0],r[1]));
   table(8,91,W-16,85,[28,20,91,30,30],['Marks and Numbers','Pieces','Description','Weight','Vol / Chargeable Weight'],['shipment.reference','cargo.total_pieces','cargo.description','cargo.gross_weight','cargo.chargeable_weight']);
   field(8,180,W-16,28,'Special Instructions','awb.handling');field(8,212,96,30,'Return To','company.address');field(104,212,103,30,'Received Signature / Date','execution.authorized_agent');
