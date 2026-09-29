@@ -1,7 +1,7 @@
 import { supabase } from './supabase-client.js';
 import './workflow-studio.js?v=20260911-wf3';
 
-if(!document.querySelector('link[data-wr22-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./wr-canonical-v22.css?v=20260912-v22';l.dataset.wr22Css='1';document.head.appendChild(l)}
+if(!document.querySelector('link[data-wr22-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./wr-canonical-v22.css?v=20260929-services1';l.dataset.wr22Css='1';document.head.appendChild(l)}
 const main=document.getElementById('main');
 let S=null,wrId=null,mode='guided',tab='overview',manualStep=null,cargoQuery='',docGroup='category',pendingDocMeta=null;
 const selectedCargo=new Set(),selectedDocs=new Set();
