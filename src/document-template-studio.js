@@ -5,6 +5,7 @@ const TYPES={text:'Text',variable:'Variable',frame:'Frame',line:'Line',checkbox:
  ['Shipment',['shipment.number','shipment.reference']],
  ['Booking',['booking.reference','booking.mawb_prefix','booking.mawb_serial','booking.mawb_number','booking.hawb_number','booking.origin','booking.destination','booking.first_carrier','booking.flight','booking.flight_date','booking.etd','booking.eta']],
  ['Ocean / Container',['ocean.mbl_number','ocean.booking_number','ocean.container_number','ocean.seal_number','ocean.container_seal','ocean.container_type','ocean.container_tare_weight','ocean.vgm_weight']],
+ ['Delivery',['delivery.name','delivery.address','delivery.contact','delivery.contact_detail','delivery.date','delivery.window_from','delivery.window_to','delivery.reference','delivery.instructions']],
  ['Shipper · Identity',['shipper.name','shipper.account','shipper.tax_id','shipper.tax_id_type','shipper.tax_id_country']],
  ['Shipper · Address',['shipper.address','shipper.address_label','shipper.address_type','shipper.address_line1','shipper.address_line2','shipper.city','shipper.state','shipper.postal_code','shipper.country']],
  ['Shipper · Contact',['shipper.contact_name','shipper.contact_title','shipper.contact_department','shipper.contact_email','shipper.contact_phone','shipper.contact_mobile','shipper.contact_extension']],
