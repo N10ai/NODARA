@@ -1,0 +1,30 @@
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const n=v=>Number(v)||0;
+function cargo(hs){return (hs||[]).map((h,i)=>{const s=h.shipments||{};return{id:h.id,label:s.house_reference||s.shipment_number||('House '+(i+1)),ship:s.shipment_number||'',pieces:n(s.pieces),weight:n(s.weight),cbm:n(s.volume_cbm),idx:i}})}
+function score(r,items){const cbm=items.reduce((a,x)=>a+x.cbm,0),wt=items.reduce((a,x)=>a+x.weight,0),cube=r.capacity_cbm?Math.round(cbm/n(r.capacity_cbm)*100):null,weight=r.capacity_weight?Math.round(wt/n(r.capacity_weight)*100):null;return{cbm,wt,cube,weight,peak:Math.max(cube||0,weight||0)}}
+function boxes(items){let x=32,y=178,z=0;return items.map((it,i)=>{const w=Math.max(46,Math.min(112,36+it.cbm*12)),h=Math.max(40,Math.min(94,34+it.weight/80)),d=24+(i%3)*5;if(x+w>430){x=42;y-=64;z++}const out=`<g class="ls-cargo ls-cargo-${i%6}" data-load-cargo="${esc(it.id)}" transform="translate(${x} ${y})"><polygon points="0,0 ${w},0 ${w+d},-${d} ${d},-${d}"/><polygon points="${w},0 ${w+d},-${d} ${w+d},${h-d} ${w},${h}"/><rect width="${w}" height="${h}" rx="2"/><text x="${w/2}" y="${Math.min(h-10,22)}" text-anchor="middle">${esc(it.label)}</text></g>`;x+=w+14;return out}).join('')}
+export function renderLoadStudio(r,hs){
+ const items=cargo(hs),s=score(r,items),cap=n(r.capacity_cbm),remaining=cap?Math.max(0,cap-s.cbm):null;
+ const utilization=s.cube==null?'Set capacity':s.cube+'%';
+ const risk=s.peak>95?'Critical':s.peak>85?'Tight':s.peak>70?'Healthy':'Open capacity';
+ return `<section class="load-studio" data-load-studio>
+ <div class="ls-head"><div><div class="eyebrow">NODARA LOAD INTELLIGENCE</div><h2>3D Loading Assistant</h2><p>Build the load visually, detect constraints, and turn the final plan into warehouse instructions.</p></div><div class="ls-actions"><button class="secondary compact-btn" data-ls-action="reset">Reset view</button><button class="primary compact-btn" data-ls-action="optimize">✦ Auto-plan load</button></div></div>
+ <div class="ls-grid"><div class="ls-stage"><div class="ls-stagebar"><span class="ls-live">● Live plan</span><div><b>${utilization}</b> cube · <b>${s.weight==null?'—':s.weight+'%'}</b> weight</div></div>
+ <svg class="ls-svg" viewBox="0 0 560 320" role="img" aria-label="Interactive container loading plan"><defs><linearGradient id="lsfloor" x1="0" x2="1"><stop offset="0" stop-color="#15233b"/><stop offset="1" stop-color="#0b1324"/></linearGradient></defs><polygon class="ls-floor" points="38,238 438,238 525,153 124,153"/><polyline class="ls-shell" points="38,238 38,92 124,35 525,35 525,153 438,238 38,238 124,153 124,35"/><line class="ls-shell" x1="438" y1="238" x2="438" y2="92"/><line class="ls-shell" x1="438" y1="92" x2="525" y2="35"/>${boxes(items)}</svg>
+ <div class="ls-camera"><button data-ls-view="iso">Isometric</button><button data-ls-view="top">Top</button><button data-ls-view="door">Door</button></div></div>
+ <aside class="ls-intel"><div class="ls-intel-title"><span>✦</span><div><b>Load Intelligence</b><small>Continuous checks</small></div></div>
+ <div class="ls-score"><div><span>Plan health</span><b>${risk}</b></div><strong>${Math.min(100,Math.max(12,100-Math.max(0,s.peak-72)*2))}%</strong></div>
+ <div class="ls-insights">
+ <button data-ls-insight="capacity"><span class="ls-dot good"></span><div><b>Capacity</b><small>${remaining==null?'Add equipment capacity to unlock utilization intelligence.':remaining.toFixed(1)+' CBM remains after planned cargo.'}</small></div><span>›</span></button>
+ <button data-ls-insight="sequence"><span class="ls-dot warn"></span><div><b>Loading sequence</b><small>${items.length>1?'Suggested: heaviest / largest cargo forward, final-delivery cargo nearest doors.':'Add more houses to optimize loading order.'}</small></div><span>›</span></button>
+ <button data-ls-insight="readiness"><span class="ls-dot ${items.length?'good':'warn'}"></span><div><b>Warehouse handoff</b><small>${items.length?items.length+' house group'+(items.length===1?'':'s')+' can be converted to a scan-ready load list.':'No cargo linked yet.'}</small></div><span>›</span></button>
+ </div><button class="ls-handoff" data-ls-action="instructions">Generate loading instructions <span>→</span></button></aside></div>
+ <div class="ls-bottom"><div><span>Planned cargo</span><b>${items.length} houses · ${items.reduce((a,x)=>a+x.pieces,0)} pieces</b></div><div><span>Volume</span><b>${s.cbm.toFixed(2)} CBM</b></div><div><span>Weight</span><b>${s.wt.toLocaleString()}</b></div><div><span>Constraint</span><b>${s.cube!=null&&s.weight!=null?(s.cube>=s.weight?'Cube':'Weight'):'Capacity pending'}</b></div></div>
+ </section>`}
+export function bindLoadStudio(root,r,hs){
+ const stage=root?.querySelector?.('[data-load-studio]');if(!stage)return;
+ stage.querySelector('[data-ls-action="optimize"]')?.addEventListener('click',ev=>{const b=ev.currentTarget;b.disabled=true;b.textContent='✦ Optimizing…';stage.classList.add('is-optimizing');setTimeout(()=>{stage.classList.remove('is-optimizing');b.disabled=false;b.textContent='✓ Optimized plan';stage.querySelectorAll('.ls-cargo').forEach((x,i)=>x.style.setProperty('--delay',(i*70)+'ms'))},650)});
+ stage.querySelector('[data-ls-action="reset"]')?.addEventListener('click',()=>{stage.classList.remove('view-top','view-door');stage.querySelectorAll('[data-ls-view]').forEach(x=>x.classList.toggle('active',x.dataset.lsView==='iso'))});
+ stage.querySelectorAll('[data-ls-view]').forEach(b=>b.addEventListener('click',()=>{stage.classList.toggle('view-top',b.dataset.lsView==='top');stage.classList.toggle('view-door',b.dataset.lsView==='door');stage.querySelectorAll('[data-ls-view]').forEach(x=>x.classList.toggle('active',x===b))}));
+ stage.querySelector('[data-ls-action="instructions"]')?.addEventListener('click',()=>{const items=cargo(hs);const lines=items.sort((a,b)=>b.weight-a.weight).map((x,i)=>`${i+1}. ${x.label} — ${x.pieces||'—'} pcs · ${x.weight||'—'} · ${x.cbm.toFixed(2)} CBM`).join('\n');alert('Suggested loading sequence\n\n'+(lines||'Add houses first.')+'\n\nNext: this becomes a warehouse scan/checklist workflow.')});
+}
