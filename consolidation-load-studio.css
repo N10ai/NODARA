@@ -8,3 +8,5 @@
 .ls-box3d{touch-action:none}.ls-box3d .front,.ls-box3d .side,.ls-box3d .top{transform-style:preserve-3d}.ls-box3d{rotate:var(--cargo-rot,0deg)}.ls-selection small{display:block;margin-top:5px;color:#6f87a5;font-size:8px}
 
 .ls-validation{display:grid;grid-template-columns:10px 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(120,145,180,.12)}.ls-validation b,.ls-validation small{display:block}.ls-validation b{font-size:10px}.ls-validation small{font-size:9px;color:#8fa3bd;margin-top:2px}.ls-validation.bad b{color:#fbbf24}.ls-box3d.invalid .front,.ls-box3d.invalid .side,.ls-box3d.invalid .top{background:rgba(239,68,68,.68)!important;outline:2px solid rgba(248,113,113,.9);box-shadow:0 0 18px rgba(239,68,68,.32)}
+
+.ls-box3d{translate:0 var(--y,0px)}.ls-item-actions{display:flex;gap:5px;margin-top:7px}.ls-item-actions button{pointer-events:auto;border:1px solid rgba(130,155,190,.3);border-radius:6px;background:rgba(12,22,36,.9);color:#c9d6e8;font-size:8px;padding:4px 6px}.ls-selection{pointer-events:auto}
