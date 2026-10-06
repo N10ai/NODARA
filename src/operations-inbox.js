@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { getCurrentOrganizationId, listEntities } from './live-data.js';
+import { getCurrentOrganizationId } from './live-data.js';
 
 const main=document.getElementById('main');
 const types={PICKUP:'Pickup',DELIVERY:'Delivery',TRANSFER:'Transfer',DRAYAGE:'Drayage',SHIPMENT_AIR:'Air shipment',SHIPMENT_OCEAN:'Ocean shipment',SHIPMENT_GROUND:'Ground shipment',DOCUMENTATION:'Documentation',INVENTORY_CHECK:'Inventory check',COMPLAINT:'Complaint',COMPLIANCE:'Compliance question',OTHER:'Other request'};
@@ -20,12 +20,12 @@ const dateValue=id=>value(id)?new Date(value(id)).toISOString():null;
 const notice=(msg)=>{const el=document.getElementById('oi-error');if(el){el.textContent=msg;el.hidden=false}else alert(msg)};
 async function run(button,fn){if(button.disabled)return;button.disabled=true;try{await fn()}catch(e){notice(e.message||String(e));button.disabled=false}}
 async function checked(q){const {data,error}=await q;if(error)throw error;return data}
+async function allRows(table,sort='created_at',keys=['id']) {const result=[];for(let start=0;;start+=500){let q=supabase.from(table).select('*').eq('organization_id',org).order(sort,{ascending:false});for(const key of keys)q=q.order(key,{ascending:true});const batch=await checked(q.range(start,start+499));result.push(...batch);if(batch.length<500)return result}}
 function customerOptions(id){return {'':'Select customer',...Object.fromEntries(entities.map(e=>[e.id,e.name]))}}
 function header(title,actions=''){return `<div class="oi-head"><div><div class="eyebrow">Operations · Inbox</div><h1 class="title">${esc(title)}</h1></div><div class="oi-actions">${actions}</div></div><div id="oi-error" class="notice warning" role="alert" hidden></div>`}
 async function reload(){org=await getCurrentOrganizationId();[rows,messages,links,entities]=await Promise.all([
- checked(supabase.from('operations_requests').select('*').eq('organization_id',org).order('created_at',{ascending:false})),
- checked(supabase.from('operations_messages').select('*').eq('organization_id',org).order('received_at',{ascending:false})),
- checked(supabase.from('operations_request_messages').select('*').eq('organization_id',org)),listEntities('')]);}
+ allRows('operations_requests'),allRows('operations_messages','received_at'),
+ allRows('operations_request_messages','created_at',['request_id','message_id']),allRows('entities','name')]);}
 export async function open(){window.nodaraSetActive?.('ops_inbox');const version=++loadVersion;main.innerHTML=header('Operations Inbox')+'<div class="card">Loading requests…</div>';try{await reload();if(version===loadVersion&&window.__nodaraRoute==='ops_inbox')render()}catch(e){if(version===loadVersion)notice(e.message)}}
 function render(){
  const filtered=rows.filter(r=>(!typeFilter||r.request_type===typeFilter)&&(!attention||late(r))&&[r.request_number,r.title,r.customer_name,r.owner_name,r.next_action,types[r.request_type]].join(' ').toLowerCase().includes(query.toLowerCase()));
