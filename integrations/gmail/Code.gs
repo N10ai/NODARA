@@ -1,6 +1,14 @@
 // NODARA Gmail bridge. Configure from Operations Inbox > Gmail connection.
 const NODARA_CONFIG = __NODARA_CONFIG__;
 
+function nodaraDecodeBody(data) {
+  // Normalize Gmail's base64url alphabet and restore omitted padding.
+  let encoded=String(data||'').replace(/\s/g,'').replace(/-/g,'+').replace(/_/g,'/');
+  encoded=encoded.replace(/=+$/,'');
+  encoded+='='.repeat((4-encoded.length%4)%4);
+  return Utilities.newBlob(Utilities.base64Decode(encoded)).getDataAsString('UTF-8');
+}
+
 function setupNodara() {
   const email=Gmail.Users.getProfile('me').emailAddress;
   if(email.toLowerCase()!==NODARA_CONFIG.email.toLowerCase())throw new Error('Authorize this script with '+NODARA_CONFIG.email);
@@ -28,8 +36,8 @@ function syncNodara() {
         const m=Gmail.Users.Messages.get('me',ref.id,{format:'full'}),headers=m.payload.headers||[];
         const header=name=>(headers.find(h=>h.name.toLowerCase()===name.toLowerCase())||{}).value||'';
         const parts=[];function walk(p){parts.push(p);(p.parts||[]).forEach(walk)}walk(m.payload);
-        let plain=parts.filter(p=>p.mimeType==='text/plain'&&p.body&&p.body.data).map(p=>Utilities.newBlob(Utilities.base64DecodeWebSafe(p.body.data)).getDataAsString('UTF-8')).join('\n');
-        if(!plain){const html=parts.filter(p=>p.mimeType==='text/html'&&p.body&&p.body.data).map(p=>Utilities.newBlob(Utilities.base64DecodeWebSafe(p.body.data)).getDataAsString('UTF-8')).join('\n');plain=html.replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?<\/style>/gi,'').replace(/<br\s*\/?>|<\/p>|<\/div>/gi,'\n').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');}
+        let plain=parts.filter(p=>p.mimeType==='text/plain'&&p.body&&p.body.data).map(p=>nodaraDecodeBody(p.body.data)).join('\n');
+        if(!plain){const html=parts.filter(p=>p.mimeType==='text/html'&&p.body&&p.body.data).map(p=>nodaraDecodeBody(p.body.data)).join('\n');plain=html.replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?<\/style>/gi,'').replace(/<br\s*\/?>|<\/p>|<\/div>/gi,'\n').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');}
         const truncated=plain.length>140000;
         return {message_id:m.id,thread_id:m.threadId,subject:header('Subject'),sender:header('From'),received_at:new Date(Number(m.internalDate)).toISOString(),body:plain.slice(0,140000)||m.snippet||'No text body.',metadata:{body_truncated:truncated,to:header('To'),attachments:parts.filter(p=>p.filename).map(p=>({name:p.filename,mime_type:p.mimeType,size:p.body&&p.body.size||0}))}};
       });
