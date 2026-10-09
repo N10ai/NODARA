@@ -1,6 +1,12 @@
 // NODARA Gmail bridge. Configure from Operations Inbox > Gmail connection.
 const NODARA_CONFIG = __NODARA_CONFIG__;
 
+function nodaraGetMessage(messageId) {
+  const response=UrlFetchApp.fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/'+encodeURIComponent(messageId)+'?format=full',{headers:{Authorization:'Bearer '+ScriptApp.getOAuthToken()},muteHttpExceptions:true});
+  if(response.getResponseCode()!==200)throw new Error('Gmail message fetch failed ('+response.getResponseCode()+').');
+  return JSON.parse(response.getContentText());
+}
+
 function nodaraDecodeBody(data) {
   // Normalize Gmail's base64url alphabet and restore omitted padding.
   let encoded=String(data||'').replace(/\s/g,'').replace(/-/g,'+').replace(/_/g,'/');
@@ -33,7 +39,7 @@ function syncNodara() {
       if(state.pageToken)options.pageToken=state.pageToken;
       const page=Gmail.Users.Messages.list('me',options);
       const messages=(page.messages||[]).map(ref=>{
-        const m=Gmail.Users.Messages.get('me',ref.id,{format:'full'}),headers=m.payload.headers||[];
+        const m=nodaraGetMessage(ref.id),headers=m.payload.headers||[];
         const header=name=>(headers.find(h=>h.name.toLowerCase()===name.toLowerCase())||{}).value||'';
         const parts=[];function walk(p){parts.push(p);(p.parts||[]).forEach(walk)}walk(m.payload);
         let plain=parts.filter(p=>p.mimeType==='text/plain'&&p.body&&p.body.data).map(p=>nodaraDecodeBody(p.body.data)).join('\n');
