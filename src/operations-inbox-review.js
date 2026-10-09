@@ -39,7 +39,7 @@ export async function openMailboxes({org,onBack}){
  document.getElementById('gmail-setup').onsubmit=async e=>{e.preventDefault();const button=document.getElementById('gmail-create');button.disabled=true;try{
  const email=get('gmail-email'),query=get('gmail-query')||'in:inbox',initialDays=Number(get('gmail-days'))||1;
  if(boxes.some(b=>b.active&&b.email.toLowerCase()===email.toLowerCase()))throw new Error('Disconnect the existing connection before creating a new setup for this mailbox.');
- const [scriptResponse,manifestResponse]=await Promise.all([fetch('./integrations/gmail/Code.gs?v=20261005-gmail1'),fetch('./integrations/gmail/appsscript.json?v=20261005-gmail1')]);if(!scriptResponse.ok||!manifestResponse.ok)throw new Error('Gmail setup files could not load.');
+ const [scriptResponse,manifestResponse]=await Promise.all([fetch('./integrations/gmail/Code.gs?v=20261009-inbox2'),fetch('./integrations/gmail/appsscript.json?v=20261009-inbox2')]);if(!scriptResponse.ok||!manifestResponse.ok)throw new Error('Gmail setup files could not load.');
  const template=await scriptResponse.text(),manifest=await manifestResponse.text();if(!template.includes('__NODARA_CONFIG__'))throw new Error('Gmail setup template is unavailable.');JSON.parse(manifest);
  const connection=await checked(supabase.rpc('nodara_create_gmail_mailbox',{p_org:org,p_email:email,p_query:query}));
  const script=template.replace('__NODARA_CONFIG__',()=>JSON.stringify({email,query,initialDays,token:connection.token,endpoint:SUPABASE_URL+'/functions/v1/nodara-gmail-ingest'}));
