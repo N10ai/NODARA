@@ -3,7 +3,7 @@ import { SUPABASE_URL } from './supabase-config.js';
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const options=(items,value)=>Object.entries(items).map(([k,v])=>`<option value="${esc(k)}" ${k===value?'selected':''}>${esc(v)}</option>`).join('');
-const types={PICKUP:'Pickup',DELIVERY:'Delivery',TRANSFER:'Transfer',DRAYAGE:'Drayage',SHIPMENT_AIR:'Air shipment',SHIPMENT_OCEAN:'Ocean shipment',SHIPMENT_GROUND:'Ground shipment',DOCUMENTATION:'Documentation',INVENTORY_CHECK:'Inventory check',COMPLAINT:'Complaint',COMPLIANCE:'Compliance question',OTHER:'Other request'};
+import { requestTypes as types } from './operations-inbox-types.js?v=20261009-fast1';
 const field=(label,id,val='')=>`<label class="oi-field">${label}<input id="${id}" value="${esc(val)}"></label>`;
 const select=(label,id,items,val)=>`<label class="oi-field">${label}<select id="${id}">${options(items,val)}</select></label>`;
 const get=id=>String(document.getElementById(id)?.value??'').trim();
