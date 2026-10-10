@@ -70,11 +70,23 @@ function nodaraReplyRecipient(value) {
   if(addresses.length!==1)throw new Error('Cannot verify one reply recipient. Use Gmail.');
   return addresses[0].toLowerCase();
 }
+function nodaraReplyAddresses(values) {
+  if(!Array.isArray(values)||values.length>20)throw new Error('Invalid recipient list.');
+  return values.map(value=>{if(typeof value!=='string'||value.length>254||!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value))throw new Error('Invalid recipient address.');return value.toLowerCase();});
+}
 function nodaraBuildReply(job, profile, source) {
   const header=name=>((source.payload.headers||[]).find(h=>h.name.toLowerCase()===name.toLowerCase())||{}).value||'';
   if(source.id!==job.source_message_id||source.threadId!==job.thread_id)throw new Error('Conversation identity did not match.');
-  const recipient=nodaraReplyRecipient(header('Reply-To')||header('From'));
-  if(recipient!==job.to||recipient===profile.emailAddress.toLowerCase())throw new Error('Reply recipient changed. Refresh the conversation or use Gmail.');
+  let tos,ccs;
+  if(Array.isArray(job.to_addresses)) {
+    tos=nodaraReplyAddresses(job.to_addresses);ccs=nodaraReplyAddresses(job.cc_addresses||[]);
+    if(!tos.length||tos.length+ccs.length>20)throw new Error('Invalid recipient count.');
+    if(tos.some(x=>ccs.includes(x)))throw new Error('Duplicate To and CC recipient.');
+  } else {
+    const recipient=nodaraReplyRecipient(header('Reply-To')||header('From'));
+    if(recipient!==job.to||recipient===profile.emailAddress.toLowerCase())throw new Error('Reply recipient changed. Refresh the conversation or use Gmail.');
+    tos=[recipient];ccs=[];
+  }
   if(!job.body||job.body.length>20000)throw new Error('Invalid reply body.');
   const originalId=header('Message-ID').trim();
   if(!/^<[^<>\s]+>$/.test(originalId))throw new Error('Original message has no valid Message-ID. Use Gmail to reply.');
@@ -82,7 +94,7 @@ function nodaraBuildReply(job, profile, source) {
   const subject=header('Subject').replace(/[\r\n]/g,' ').trim();
   const encodedSubject='=?UTF-8?B?'+Utilities.base64Encode(subject,Utilities.Charset.UTF_8)+'?=';
   const content=Utilities.base64Encode(job.body,Utilities.Charset.UTF_8).match(/.{1,76}/g).join('\r\n');
-  const mime=['From: '+profile.emailAddress,'To: '+recipient,'Subject: '+encodedSubject,'In-Reply-To: '+originalId,'References: '+references,'Message-ID: <nodara-'+job.id+'@nodara.invalid>','MIME-Version: 1.0','Content-Type: text/plain; charset=UTF-8','Content-Transfer-Encoding: base64','',''+content].join('\r\n');
+  const mime=['From: '+profile.emailAddress,'To: '+tos.join(', '),...(ccs.length?['Cc: '+ccs.join(', ')]:[]),'Subject: '+encodedSubject,'In-Reply-To: '+originalId,'References: '+references,'Message-ID: <nodara-'+job.id+'@nodara.invalid>','MIME-Version: 1.0','Content-Type: text/plain; charset=UTF-8','Content-Transfer-Encoding: base64','',''+content].join('\r\n');
   return {raw:Utilities.base64EncodeWebSafe(mime,Utilities.Charset.UTF_8),threadId:source.threadId};
 }
 function nodaraReplyTick() {
@@ -100,7 +112,7 @@ function nodaraReplyTick() {
         nodaraBridge('reply_result',result);result.acknowledged=true;props.setProperty(key,JSON.stringify(result));
       } else if(Date.now()-result.saved_at>7*86400000)props.deleteProperty(key);
     });
-    const job=nodaraBridge('poll_replies').job;if(!job)return;
+    const job=nodaraBridge('poll_replies',{recipient_version:2}).job;if(!job)return;
     const key='NODARA_REPLY_'+job.id;if(props.getProperty(key))return;
     let result={id:job.id,status:'SENDING',saved_at:Date.now(),acknowledged:false},sending=false;
     try {
