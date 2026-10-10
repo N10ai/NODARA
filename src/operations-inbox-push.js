@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { drawer } from './operations-inbox-fast.js?v=20261010-polish1';
+import { drawer } from './operations-inbox-fast.js?v=20261010-drawer2';
 const bytes=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
 async function call(body){const {data,error}=await supabase.functions.invoke('nodara-reminder-push',{body});if(error){let detail;try{detail=await error.context.json()}catch{}throw new Error(detail?.message||data?.message||error.message||'Notifications could not be configured');}return data;}
 const registration=()=>navigator.serviceWorker.register(new URL('../nodara-push-sw.js',import.meta.url),{scope:new URL('../',import.meta.url).pathname}).then(()=>navigator.serviceWorker.ready);
