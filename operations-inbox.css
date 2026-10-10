@@ -166,3 +166,18 @@ html[data-theme=light] .oi-workspace,html[data-theme=light] .oi-drawer,html[data
 .oi-popover-label{display:block;font-size:11px;color:var(--muted,#8291a5);margin-top:12px}
 .oi-popover-label select{color:var(--theme-text,inherit)}
 .oi-filter-popover [hidden]{display:none!important}
+
+/* Instant touch drag is limited to the grip, leaving the card free to scroll. */
+.oi-workspace .oi-simple-card{position:relative}
+.oi-workspace .oi-simple-card .oi-card-top{padding-right:30px}
+.oi-drag-handle{position:absolute;top:6px;right:5px;width:36px;height:44px;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--muted,#8291a5);font-size:24px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.oi-drag-handle:active{cursor:grabbing;background:#5799ee20}
+.oi-drag-handle:focus-visible{outline:2px solid #5799ee;outline-offset:-2px}
+.oi-workspace .oi-dragging{opacity:.3}
+.oi-drag-ghost{position:fixed!important;left:0;top:0;z-index:9900;pointer-events:none!important;margin:0!important;padding:0!important;max-height:320px;overflow:hidden;box-shadow:0 16px 45px #0006;opacity:.94;background:var(--card,#132131);border-color:#5799ee;will-change:transform}
+.oi-drag-ghost .oi-card-open{padding:16px}
+.oi-drag-ghost .oi-drag-handle{display:none}
+.oi-workspace .oi-move-saving{opacity:.65}
+.oi-workspace .oi-move-saving .oi-drag-handle{pointer-events:none}
+.oi-workspace .oi-board-drag-active{scroll-snap-type:none}
+.oi-workspace .oi-move-saving .oi-card-actions{pointer-events:none}

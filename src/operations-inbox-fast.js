@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { requestTypes, requestTypeOptions } from './operations-inbox-types.js?v=20261010-inbox3';
+import { requestTypes, requestTypeOptions } from './operations-inbox-types.js?v=20261010-drag4';
 
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const options=(items,val)=>Object.entries(items).map(([k,v])=>`<option value="${esc(k)}" ${k===val?'selected':''}>${esc(v)}</option>`).join('');
