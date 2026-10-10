@@ -115,3 +115,54 @@ html[data-theme=light] .oi-workspace,html[data-theme=light] .oi-drawer,html[data
 .oi-message-list .oi-trash-button{margin-top:12px}
 .oi-drawer-body #oq-next{background:transparent!important;border:0!important;border-bottom:1px solid var(--theme-border,#29394a)!important;border-radius:0!important}
 @media(max-width:600px){.oi-workspace .oi-view{flex-wrap:wrap;overflow:visible;width:100%;gap:2px}.oi-workspace .oi-toolbar{padding-right:0}.oi-workspace .oi-toolbar #oi-search{flex-basis:calc(100% - 54px);max-width:calc(100% - 48px)}.oi-workspace .oi-view button{flex:0 0 auto}.oi-simple-card .oi-card-open{padding:16px 16px 12px}}
+
+/* Board polish: status rails and dates guide the eye without louder cards. */
+.oi-workspace .oi-column{--oi-stage:#8393aa;background:var(--surface,#101b27);border-radius:18px;transition:border-color .15s,background .15s}
+.oi-column[data-stage=WORKING]{--oi-stage:#5799ee}
+.oi-column[data-stage=WAITING]{--oi-stage:#b692db}
+.oi-column[data-stage=READY_TO_BILL]{--oi-stage:#d4a35c}
+.oi-column[data-stage=COMPLETED]{--oi-stage:#63af94}
+.oi-workspace .oi-column>h2{justify-content:flex-start;gap:8px;font-size:12px;font-weight:600;padding:18px 14px;border-bottom:0}
+.oi-workspace .oi-column>h2:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--oi-stage);flex-shrink:0}
+.oi-workspace .oi-column>h2>span{margin-left:auto;font-size:11px;color:var(--muted,#8291a5);background:transparent;padding:0}
+.oi-workspace .oi-stack{padding-top:0;gap:12px}
+.oi-workspace .oi-simple-card{border-radius:14px;background:var(--card,#132131);overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.oi-workspace .oi-simple-card .oi-card-meta{opacity:1;justify-content:flex-start;gap:8px;row-gap:7px}
+.oi-card-schedule{display:flex;gap:5px;align-items:center;width:100%;font-size:10px;color:var(--muted,#8291a5);line-height:1.5}
+.oi-card-schedule svg{width:13px;height:13px;flex-shrink:0}
+.oi-card-schedule.is-due{color:#b86b27}
+:root[data-theme=dark] .oi-card-schedule.is-due{color:#e9b579}
+.oi-card-owner{max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted,#8291a5);font-size:10px}
+.oi-workspace .oi-card-actions{margin-top:0}
+.oi-workspace .oi-card-actions button{min-width:40px;width:40px;min-height:40px;height:40px;background:transparent;color:var(--muted,#8291a5)}
+.oi-workspace .oi-card-actions button[data-card-action=done]{color:#449d7d}
+.oi-workspace .oi-card-actions button[data-card-action=conversation]{margin-left:auto}
+.oi-workspace .oi-card-actions button:focus-visible,.oi-workspace .oi-icon-button:focus-visible{outline:2px solid #5799ee;outline-offset:1px}
+.oi-workspace .oi-drop-target{border-color:#5799ee;box-shadow:inset 0 0 0 1px #5799ee;background:#5799ee12}
+.oi-drawer .oi-action-footer{min-height:44px}
+.oi-drawer .oi-task-save{width:auto;min-width:100px;height:38px;border-radius:9px;padding:8px 14px;font:inherit;font-size:12px;font-weight:600;background:#3980ef20;color:var(--theme-text,#dbe7f8)}
+.oi-drawer .oi-task-save:disabled{opacity:.35;cursor:default}
+.oi-drawer #oq-saved{min-height:16px;margin:0;font-size:11px}
+.oi-workspace .oi-simple-card .oi-waiting{font-size:11px;color:var(--muted,#8291a5);margin:8px 0 12px;overflow-wrap:anywhere}
+@media(hover:hover){.oi-workspace .oi-card-actions button:hover{background:#3980ef18;color:var(--theme-text,#6aa5fb)}}
+@media(max-width:600px){.oi-workspace .oi-board{scroll-snap-type:x proximity;overscroll-behavior-x:contain}.oi-workspace .oi-column{scroll-snap-align:start}.oi-workspace .oi-card-actions button{min-width:44px;width:44px;min-height:44px;height:44px}.oi-drawer #oq-next,.oi-drawer #oq-wait,.oi-drawer #oq-follow{font-size:16px!important}}
+@media(prefers-reduced-motion:reduce){.oi-workspace .oi-column,.oi-workspace .oi-simple-card{transition:none}}
+
+/* Task, action and email source have distinct roles in the reading order. */
+.oi-workspace .oi-simple-card .oi-task-kind{display:block;font-size:8px;letter-spacing:.1em;color:var(--muted,#8291a5);margin:0 0 5px}
+.oi-workspace .oi-simple-card .oi-card-top{margin-bottom:12px}
+.oi-workspace .oi-simple-card .oi-card-type{background:var(--surface,#101b27);border-radius:6px;padding:4px 7px;color:var(--muted,#8291a5)}
+.oi-workspace .oi-simple-card .oi-next{padding:10px 12px;border-radius:9px;background:#3980ef0a;border-left:2px solid #5799ee}
+.oi-workspace .oi-simple-card .oi-next small{font-size:8px;color:var(--muted,#8291a5)}
+.oi-workspace .oi-simple-card .oi-next span{font-size:13px;color:var(--theme-text,inherit)}
+.oi-card-source{display:grid;gap:4px;margin:12px 0;font-size:10px;color:var(--muted,#8291a5)}
+.oi-card-source small{font-size:9px}
+.oi-card-source span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:11px;overflow-wrap:anywhere}
+.oi-source-context{padding:10px 12px;background:var(--theme-surface-2,#132131);border:1px solid var(--theme-border,#29394a);border-radius:10px;margin:12px 0}
+.oi-source-context small{font-size:10px;color:var(--theme-muted,#8291a5)}
+.oi-source-context p{font-size:12px!important;line-height:1.5;margin:5px 0 0!important;overflow-wrap:anywhere}
+.oi-drawer .oi-task-reference{display:block;font-size:10px;color:var(--theme-muted,#8291a5);margin:8px 0}
+.oi-drawer .oi-task-title-field input{font-size:16px;font-weight:500}
+.oi-popover-label{display:block;font-size:11px;color:var(--muted,#8291a5);margin-top:12px}
+.oi-popover-label select{color:var(--theme-text,inherit)}
+.oi-filter-popover [hidden]{display:none!important}
