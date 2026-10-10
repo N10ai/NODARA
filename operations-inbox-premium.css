@@ -1,0 +1,100 @@
+/* Shared Inbox visual system. Theme tokens stay available without external fonts. */
+.oi-workspace,.oi-drawer,.oi-drag-ghost{
+ --oi-accent:#6ba6ff;--oi-accent-soft:rgba(80,139,235,.12);--oi-card:#111923;--oi-canvas:#0c121a;--oi-line:#25303e;--oi-ink:#edf2f9;--oi-muted:#97a3b5;
+ --card:var(--oi-card);--surface:var(--oi-canvas);--line:var(--oi-line);--muted:var(--oi-muted);color:var(--oi-ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+html[data-theme=light] .oi-workspace,html[data-theme=light] .oi-drawer,html[data-theme=light] .oi-drag-ghost{--oi-accent:#2a68c9;--oi-accent-soft:rgba(54,112,210,.075);--oi-card:#fff;--oi-canvas:#f3f5f8;--oi-line:#dce2ea;--oi-ink:#182437;--oi-muted:#627087}
+.oi-workspace{padding-top:4px}
+.oi-workspace .oi-head{margin-bottom:24px;align-items:center}
+.oi-workspace .oi-head .eyebrow{font-size:10px;font-weight:500;letter-spacing:.04em;text-transform:none;color:var(--oi-muted)}
+.oi-workspace .oi-head .title{font-size:30px;font-weight:650;letter-spacing:-1.2px;line-height:1.2;margin-top:6px;color:var(--oi-ink)}
+.oi-workspace .oi-head .oi-actions{align-items:center;gap:8px}
+.oi-workspace .oi-icon-button{width:40px;height:40px;border-radius:10px;background:transparent;border-color:var(--oi-line);color:var(--oi-muted)}
+.oi-workspace #oi-new{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:9px 14px;font-size:12px;font-weight:600;border-radius:10px;background:#3478de;border:1px solid #4c8ae3;box-shadow:0 2px 5px #0001}
+.oi-workspace .oi-inbox-menu{position:relative}
+.oi-workspace .oi-inbox-menu summary{display:flex;list-style:none;padding:0}
+.oi-workspace .oi-inbox-menu summary::-webkit-details-marker{display:none}
+.oi-workspace .oi-inbox-menu>div{top:48px;border-radius:14px;background:var(--oi-card);border:1px solid var(--oi-line);box-shadow:0 12px 40px #0003;padding:6px}
+.oi-workspace .oi-inbox-menu>div button{background:transparent;border:0;border-radius:8px;font-size:12px;text-align:left;min-height:40px;color:var(--oi-ink)}
+.oi-workspace .oi-metrics{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px}
+.oi-workspace .oi-metrics button{display:flex;align-items:center;gap:8px;padding:8px 11px;min-height:36px;background:transparent;border:1px solid transparent;border-radius:9px;color:var(--oi-muted);font-size:11px;white-space:nowrap}
+.oi-workspace .oi-metrics button b{font-size:13px;font-weight:600;margin:0;font-variant-numeric:tabular-nums;color:var(--oi-ink)}
+.oi-workspace .oi-metrics button.selected{background:var(--oi-accent-soft);border-color:var(--oi-line);color:var(--oi-accent)}
+.oi-workspace .oi-metrics button.selected b{color:var(--oi-accent)}
+.oi-workspace .oi-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 230px 40px;align-items:center;gap:10px;padding:0;margin:0 0 24px}
+.oi-workspace .oi-view{display:flex;gap:3px;padding:0;background:transparent;border:0;border-radius:0;overflow-x:auto;flex-wrap:nowrap;max-width:100%;scrollbar-width:none}
+.oi-workspace .oi-view::-webkit-scrollbar{display:none}
+.oi-workspace .oi-view button{display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;min-height:40px;padding:8px 10px;border:1px solid transparent;border-radius:9px;font-size:11px;font-weight:500;color:var(--oi-muted);background:transparent;white-space:nowrap}
+.oi-workspace .oi-view button svg{width:15px;height:15px}
+.oi-workspace .oi-view button.selected{color:var(--oi-ink);background:var(--oi-card);border-color:var(--oi-line);box-shadow:0 2px 4px #0001}
+.oi-workspace .oi-view-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 5px;background:var(--oi-accent-soft);color:var(--oi-accent);border-radius:5px;font-size:9px;font-variant-numeric:tabular-nums}
+.oi-workspace .oi-search-wrap{display:flex;align-items:center;gap:8px;height:40px;border:1px solid var(--oi-line);border-radius:10px;background:var(--oi-card);padding:0 11px;min-width:0;color:var(--oi-muted)}
+.oi-workspace .oi-search-wrap svg{flex-shrink:0;width:15px;height:15px}
+.oi-workspace .oi-search-wrap #oi-search{flex:1;max-width:none;min-width:0;width:100%;border:0!important;background:transparent!important;border-radius:0;box-shadow:none!important;padding:0;min-height:36px;font-size:11px;color:var(--oi-ink)}
+.oi-workspace .oi-search-wrap:focus-within{border-color:var(--oi-accent);box-shadow:0 0 0 3px var(--oi-accent-soft)}
+.oi-workspace .oi-search-wrap input:focus{outline:none}
+.oi-workspace .oi-filter-anchor{position:relative;height:40px}
+.oi-workspace #oi-filter-toggle{position:static}
+.oi-workspace .oi-filter-popover{border-radius:16px;background:var(--oi-card);border-color:var(--oi-line);box-shadow:0 18px 55px #0004;padding:18px}
+.oi-workspace .oi-board{gap:16px;grid-template-columns:repeat(5,minmax(250px,1fr));padding-bottom:24px}
+.oi-workspace .oi-column{min-height:300px;background:var(--oi-canvas);border:1px solid var(--oi-line);border-radius:16px}
+.oi-workspace .oi-column>h2{padding:17px 14px;font-size:11px;letter-spacing:.01em;color:var(--oi-ink)}
+.oi-workspace .oi-stack{padding:0 9px 9px;gap:10px}
+.oi-workspace .oi-simple-card{background:var(--oi-card);border:1px solid var(--oi-line);border-radius:12px;box-shadow:0 2px 5px #0001}
+.oi-workspace .oi-simple-card .oi-card-open{padding:16px 15px 12px}
+.oi-workspace .oi-simple-card .oi-card-top{margin-bottom:11px}
+.oi-workspace .oi-simple-card .oi-card-type{font-size:9px;font-weight:500;background:transparent;padding:0;letter-spacing:.015em;color:var(--oi-muted)}
+.oi-workspace .oi-simple-card h3{font-size:15px;font-weight:600;line-height:1.4;letter-spacing:-.2px;margin:0 0 6px;color:var(--oi-ink)}
+.oi-workspace .oi-simple-card .oi-card-customer{font-size:11px;line-height:1.5;margin:0 0 13px;color:var(--oi-muted)}
+.oi-workspace .oi-simple-card .oi-next{background:var(--oi-accent-soft);border:0;border-radius:8px;margin:0 0 12px;padding:10px 11px;gap:5px}
+.oi-workspace .oi-simple-card .oi-next small{font-size:8px;font-weight:600;letter-spacing:.06em;color:var(--oi-accent)}
+.oi-workspace .oi-simple-card .oi-next span{font-size:12px;font-weight:450;line-height:1.5;color:var(--oi-ink)}
+.oi-workspace .oi-simple-card .oi-card-update{padding:0;border:0;margin:0 0 12px}
+.oi-workspace .oi-simple-card .oi-card-update small{font-size:9px;color:var(--oi-muted)}
+.oi-workspace .oi-simple-card .oi-card-update p{font-size:11px;line-height:1.55;color:var(--oi-ink)}
+.oi-workspace .oi-card-source{margin:0 0 12px;padding-top:10px;border-top:1px solid var(--oi-line);gap:4px}
+.oi-workspace .oi-card-source small{font-size:9px;color:var(--oi-muted)}
+.oi-workspace .oi-card-source span{color:var(--oi-muted);font-size:10px}
+.oi-workspace .oi-simple-card .oi-card-actions{gap:4px;border-color:var(--oi-line);padding:5px 8px}
+.oi-workspace .oi-card-actions button{border-radius:8px}
+.oi-workspace .oi-card-actions button svg{width:16px;height:16px}
+.oi-workspace .oi-drag-handle{color:var(--oi-muted);opacity:.7}
+.oi-workspace .oi-drag-handle svg{width:17px;height:17px}
+.oi-workspace .oi-empty{font-size:11px;line-height:1.6;color:var(--oi-muted)}
+.oi-workspace .oi-drop-target{border-color:var(--oi-accent);box-shadow:inset 0 0 0 1px var(--oi-accent);background:var(--oi-accent-soft)}
+.oi-workspace .oi-overdue{border-left:2px solid #c89355}
+.oi-workspace .oi-icon-button:focus-visible,.oi-workspace .oi-view button:focus-visible,.oi-workspace .oi-metrics button:focus-visible{outline:2px solid var(--oi-accent);outline-offset:3px}
+/* The editor uses the same visual rhythm as its board card. */
+.oi-drawer-backdrop{background:rgba(4,9,16,.5);backdrop-filter:blur(5px)}
+.oi-drawer{background:var(--oi-card);border-color:var(--oi-line);box-shadow:-18px 0 70px #0003}
+.oi-drawer>header{background:var(--oi-card);border-color:var(--oi-line);padding:20px 26px}
+.oi-drawer>header small{font-size:9px;letter-spacing:.08em;color:var(--oi-muted)}
+.oi-drawer>header h2{font-size:15px;letter-spacing:-.2px;margin-top:4px;font-weight:600}
+.oi-drawer #oi-quick-close{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;min-height:36px;padding:0;border-radius:10px;background:transparent;border-color:var(--oi-line);color:var(--oi-muted)}
+.oi-drawer-body{padding:26px}
+.oi-drawer .oi-quick-title>span{font-size:10px;letter-spacing:.01em;color:var(--oi-muted)}
+.oi-drawer .oi-quick-title h3{font-size:24px;line-height:1.3;letter-spacing:-.65px;margin:8px 0;font-weight:600}
+.oi-drawer .oi-task-direct button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:10px;font-size:12px;font-weight:500}
+.oi-drawer .oi-task-direct button svg{width:16px;height:16px}
+.oi-drawer .oi-task-direct #oq-reply{background:#3478de!important;border-color:#4c8ae3!important}
+.oi-drawer .oi-task-tabs{display:flex;gap:0;padding:0;margin:24px 0;border:0;border-bottom:1px solid var(--oi-line);background:transparent;border-radius:0}
+.oi-drawer .oi-task-tabs button{flex:1;border-radius:0;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--oi-muted);font-size:12px;min-height:44px;margin-bottom:-1px}
+.oi-drawer .oi-task-tabs button[aria-selected=true]{border-bottom-color:var(--oi-accent);color:var(--oi-ink);background:transparent}
+.oi-drawer .oi-field{font-size:11px;font-weight:500;color:var(--oi-muted);gap:7px}
+.oi-drawer .oi-field input,.oi-drawer .oi-field textarea,.oi-drawer .oi-field select{border-radius:10px;background:var(--oi-canvas);border:1px solid var(--oi-line);color:var(--oi-ink);font-size:14px;min-height:44px;padding:11px 12px}
+.oi-drawer .oi-field input:focus,.oi-drawer .oi-field select:focus,.oi-drawer .oi-field textarea:focus{outline:2px solid var(--oi-accent);outline-offset:2px}
+.oi-drawer .oi-action-panel{padding:14px;border:1px solid var(--oi-line);border-radius:12px;background:var(--oi-canvas)}
+.oi-drawer .oi-action-panel #oq-next{font-size:15px!important;background:transparent!important;border:0!important;border-radius:0!important;padding:9px 0!important}
+.oi-drawer .oi-action-footer{min-height:36px;padding-top:6px}
+.oi-drawer .oi-task-save{font-size:11px;min-width:90px;border-radius:8px;background:var(--oi-accent-soft);color:var(--oi-accent)}
+.oi-drawer .oi-reminder-strip{padding:18px 0;border-color:var(--oi-line)}
+.oi-drawer .oi-section-heading h3,.oi-drawer .oi-task-checklist h3{font-size:12px;font-weight:600}
+.oi-drawer .oi-quick-status{gap:6px}
+.oi-drawer .oi-quick-status button{font-size:11px;font-weight:500;border-radius:8px;min-height:36px;padding:8px 10px}
+.oi-drawer .oi-source-context{background:var(--oi-canvas);border-color:var(--oi-line);margin-top:16px}
+@media(hover:hover){.oi-workspace .oi-simple-card:hover{border-color:#537196;box-shadow:0 5px 16px #0002}.oi-workspace .oi-view button:hover,.oi-workspace .oi-metrics button:hover,.oi-workspace .oi-icon-button:hover{background:var(--oi-accent-soft);color:var(--oi-ink)}.oi-workspace .oi-inbox-menu>div button:hover{background:var(--oi-accent-soft)}}
+@media(max-width:1150px){.oi-workspace .oi-toolbar{grid-template-columns:minmax(0,1fr) 40px}.oi-workspace .oi-view{grid-column:1/-1}.oi-workspace .oi-view button{min-height:38px}}
+@media(max-width:600px){.oi-workspace .oi-head{margin-bottom:20px;gap:12px}.oi-workspace .oi-head .title{font-size:27px}.oi-workspace .oi-head .eyebrow{font-size:9px}.oi-workspace .oi-head #oi-new{padding:9px 11px;font-size:11px}.oi-workspace .oi-head .oi-actions{gap:6px}.oi-workspace .oi-icon-button{width:36px;height:40px}.oi-workspace .oi-metrics{gap:3px;margin-bottom:18px}.oi-workspace .oi-metrics button{padding:7px 9px;font-size:10px;gap:6px}.oi-workspace .oi-toolbar{margin-bottom:20px;gap:10px}.oi-workspace .oi-view{width:100%;gap:3px;flex-wrap:nowrap;overflow-x:auto}.oi-workspace .oi-view button{padding:8px 10px;min-height:42px}.oi-workspace .oi-search-wrap #oi-search{font-size:16px}.oi-workspace .oi-board{gap:12px;grid-template-columns:repeat(5,280px)}.oi-workspace .oi-column{width:280px;min-width:280px}.oi-drawer>header{padding:calc(15px + env(safe-area-inset-top)) 20px 15px}.oi-drawer-body{padding:22px 20px calc(28px + env(safe-area-inset-bottom))}.oi-drawer .oi-field input,.oi-drawer .oi-field select,.oi-drawer .oi-field textarea,.oi-drawer .oi-action-panel #oq-next{font-size:16px!important}.oi-drawer .oi-quick-title h3{font-size:23px}}
+@media(max-width:380px){.oi-workspace .oi-head .eyebrow{display:none}.oi-workspace .oi-head .title{font-size:25px}.oi-workspace .oi-head .oi-actions{gap:4px}.oi-workspace .oi-head #oi-new{padding:8px}.oi-workspace .oi-metrics button{padding:6px 7px}}
+@media(prefers-reduced-motion:no-preference){.oi-workspace .oi-icon-button,.oi-workspace .oi-view button,.oi-workspace .oi-metrics button{transition:background .15s,color .15s,border-color .15s}.oi-drawer{animation:oi-panel-arrive .18s ease-out}@keyframes oi-panel-arrive{from{opacity:.6;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}}
+@media(max-width:600px){.oi-workspace .oi-head .oi-inbox-menu summary{padding:0}.oi-workspace .oi-head .oi-icon-button{height:44px;width:40px}}
