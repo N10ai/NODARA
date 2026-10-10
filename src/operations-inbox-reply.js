@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { drawer } from './operations-inbox-fast.js?v=20261010-simple7';
+import { drawer } from './operations-inbox-fast.js?v=20261010-polish8';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function checked(q){const {data,error}=await q;if(error)throw error;return data;}
 function recipient(m){const list=String(m.source_metadata?.reply_to||m.sender||'').match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g)||[];return list.length===1?list[0].toLowerCase():null;}
