@@ -1,4 +1,5 @@
 const paths={
+ edit:'<path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-4-4L5 15z"/>',
  left:'<path d="m15 5-7 7 7 7"/>',right:'<path d="m9 5 7 7-7 7"/>',
  filter:'<path d="M4 7h16M7 12h10M10 17h4"/>',trash:'<path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',
  mail:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/>',reply:'<path d="m9 5-6 6 6 6M3 11h10a7 7 0 0 1 7 7"/>',
