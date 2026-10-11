@@ -1,4 +1,4 @@
-import {showEntityError,allowEntityNavigation} from './entity360-ui.js?v=20261011-ui1';
+import {showEntityError,allowEntityNavigation} from './entity360-ui.js?v=20261011-premium2';
 import {supabase} from './supabase-client.js';
 import {escapeHtml as e,renderOnboardingDocument} from './onboarding-document-renderer.js?v=20261011-onboarding1';
 const TYPES=['CUSTOMER_INFORMATION','W9','CREDIT_APPLICATION','CUSTOMS_POA','FTZ_AUTHORIZATION','RATE_AGREEMENT','BILLING_INSTRUCTIONS','OTHER'];

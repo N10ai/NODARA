@@ -9,6 +9,7 @@ export function showEntityError(error){
 export function hasUnsavedEntityChanges(){return document.querySelector('.entity360-shell')?.dataset.dirty==='true'}
 export function allowEntityNavigation(){return !hasUnsavedEntityChanges()||confirm('You have unsaved profile changes. Leave without saving?')}
 export function mountEntity360(e){
+ window.__nodaraCurrentWRJourney=null;
  const main=document.getElementById('main'),shell=document.createElement('div');shell.className='entity360-shell';
  while(main.firstChild)shell.append(main.firstChild);main.append(shell);
  const header=shell.querySelector('.record-header');header.classList.add('entity360-header');
@@ -29,6 +30,7 @@ export function mountEntity360(e){
  footer.hidden=!(shell.querySelector('.entity-tabs .active')?.dataset.jump==='identity');
  const identity=shell.querySelector('#identity');const grids=identity.querySelectorAll(':scope > .detail-grid');if(grids[1]){const heading=document.createElement('h4');heading.textContent='Legal & billing details';grids[1].before(heading)}
  shell.querySelectorAll('[data-role]').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('selected')));
+ installProfilePresentation(e);
  const overview=shell.querySelector('#overview');overview?.querySelectorAll('.customer-summary-grid > div').forEach(card=>{if(card.querySelector('small')?.textContent==='Charges')card.remove()});
 }
 export async function openEntityDocuments(e,onBack){
@@ -59,4 +61,29 @@ export async function openStatementOfAccount(e,organizationId,onBack){
 export function organizeEntityTabs(){
  const tabs=document.querySelector('.entity-tabs');if(!tabs)return;const order=['overview','vendor-overview','identity','contacts','addresses','pricing','agreements','onboarding','customer-operations','customer-inventory','customer-related','customer-billing','customer-documents','vendor-profile','vendor-compliance'];
  [...tabs.children].sort((a,b)=>{const key=x=>x.dataset.canonicalTab||x.dataset.jump;return (order.indexOf(key(a))<0?99:order.indexOf(key(a)))-(order.indexOf(key(b))<0?99:order.indexOf(key(b)))}).forEach(b=>tabs.append(b));
+}
+
+function installProfilePresentation(e){
+ const shell=document.querySelector('.entity360-shell'),identity=shell.querySelector('#identity');
+ shell.dataset.profileEditing=e.id?'false':'true';
+ const edit=document.createElement('button');edit.type='button';edit.className='secondary compact-btn';edit.dataset.editCompany='';edit.textContent=e.id?'Edit company':'Company details';identity.querySelector('.section-heading').append(edit);
+ edit.onclick=()=>{const editing=shell.dataset.profileEditing!=='true';shell.dataset.profileEditing=String(editing);edit.textContent=editing?'Done editing':'Edit company';refreshEntityPresentation();const footer=shell.querySelector('.entity360-savebar');footer.hidden=!editing&&shell.dataset.dirty!=='true';if(editing)identity.querySelector('input')?.focus()};
+ const overview=shell.querySelector('#overview');if(overview){const title=overview.querySelector('h3');if(title)title.textContent='Account overview';const lead=overview.querySelector('.section-heading .muted');if(lead)lead.textContent='Activity, commercial setup and account health.';}
+ refreshEntityPresentation();if(e.id)shell.querySelector('.entity360-savebar').hidden=true;
+ shell.addEventListener('click',event=>{const button=event.target.closest('[data-edit-card],[data-done-card]');if(button){const row=button.closest('.master-row');row.dataset.editing=button.hasAttribute('data-edit-card')?'true':'false';refreshEntityPresentation();if(row.dataset.editing==='true')row.querySelector('input')?.focus();} });
+}
+export function refreshEntityPresentation(){
+ const shell=document.querySelector('.entity360-shell');if(!shell)return;
+ const identity=shell.querySelector('#identity');let summary=identity.querySelector('.entity360-company-summary');if(!summary){summary=document.createElement('div');summary.className='entity360-company-summary';identity.querySelector('.section-heading').after(summary)}
+ const fields=[...identity.querySelectorAll('.field')].map(field=>({label:field.querySelector('label')?.textContent,value:field.querySelector('input,select')?.value}));
+ summary.innerHTML=`<dl>${fields.filter(f=>f.value).map(f=>`<div class="${f.value.includes('@')?'wide':''}"><dt>${escape(f.label)}</dt><dd>${escape(f.value.replaceAll('_',' '))}</dd></div>`).join('')}</dl><div class="entity360-role-summary">${[...identity.querySelectorAll('.flag-chip.selected')].map(b=>`<span>${escape(b.textContent.replaceAll('_',' '))}</span>`).join('')}</div>${fields.some(f=>f.value)?'':'<p class="muted">Add the company details to complete this profile.</p>'}`;
+ shell.querySelectorAll('[data-cc-row],[data-ca-row]').forEach(row=>{
+  const contact=row.hasAttribute('data-cc-row'),prefix=contact?'cc':'ca',val=key=>row.querySelector(`[data-${prefix}-${key}]`)?.value||'';
+  if(!row.dataset.editing)row.dataset.editing=row.dataset.id?'false':'true';
+  let card=row.querySelector('.entity360-read-card');if(!card){card=document.createElement('div');card.className='entity360-read-card';row.prepend(card)}
+  const name=val('name')||(contact?'New contact':val('type')+' address');const email=val('email'),phone=val('phone');
+  const details=contact?[val('title'),val('roles')]:[val('line1'),[val('city'),val('state'),val('postal')].filter(Boolean).join(', '),val('country')];
+  card.innerHTML=`<div class="entity360-card-head"><span class="entity360-card-avatar">${escape(name.slice(0,1).toUpperCase())}</span><div><b>${escape(name)}</b><small>${row.querySelector(`[data-${prefix}-primary]`)?.checked?'Primary '+(contact?'contact':'address'):contact?'Contact':escape(val('type'))}</small></div><button type="button" class="secondary compact-btn" data-edit-card>Edit</button></div><div class="entity360-card-details">${details.filter(Boolean).map(v=>`<span>${escape(v)}</span>`).join('')}${email?`<a href="mailto:${escape(email)}">${escape(email)}</a>`:''}${phone?`<a href="tel:${escape(phone.replace(/[^+0-9]/g,''))}">${escape(phone)}</a>`:''}</div>`;
+  if(!row.querySelector('[data-done-card]')){const done=document.createElement('button');done.type='button';done.className='secondary compact-btn';done.dataset.doneCard='';done.textContent='Done editing';row.append(done)}
+ });
 }
