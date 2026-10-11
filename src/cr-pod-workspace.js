@@ -1,4 +1,4 @@
-import './cr-canonical-guidance.js?v=20260906-0115';
+import './cr-canonical-guidance.js?v=20261011-smart3';
 import { supabase } from './supabase-client.js';
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

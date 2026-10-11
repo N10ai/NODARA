@@ -1,1 +1,1 @@
-export { warehouseReceiptList, warehouseReceiptOpen as warehouseReceiptDetail } from './wr-records-unified.js?v=20260925-register1';
+export { warehouseReceiptList, warehouseReceiptOpen as warehouseReceiptDetail } from './wr-records-unified.js?v=20261011-journey2';

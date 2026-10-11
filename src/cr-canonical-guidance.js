@@ -2,7 +2,7 @@ import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId } from './live-data.js';
 import { loadTransactionWork } from './domain-contract-engine.js';
 import { ensureCRWorkflow, loadCRFacts, resolveCRPlan, verifyReleaseAuthority, describeCRProvenance } from './cr-canonical-orchestrator.js';
-import { syncCRBilling } from './cr-smart-billing-v2.js';
+import { syncCRBilling } from './cr-smart-billing-v2.js?v=20261011-smart3';
 
 const main=document.getElementById('main');let active='',busy=false;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
