@@ -1,4 +1,4 @@
-import {installOnboardingFlow} from './entity-onboarding-flow.js?v=20261011-onboarding1';
+import {installOnboardingFlow} from './entity-onboarding-flow.js?v=20261011-package1';
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId } from './live-data.js';
 
