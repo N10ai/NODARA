@@ -1,6 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { mountDataView } from './data-view.js?v=20260902-0035';
-import { openEntitiesModule } from './entities-module.js?v=20261011-onboarding1';
+import { openEntitiesModule } from './entities-module.js?v=20261011-ui1';
 const main=document.getElementById('main');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function rows(){const{data,error}=await supabase.from('entities').select('id,name,code,roles,email,phone,updated_at').order('name').limit(1000);if(error)throw error;return data||[]}
