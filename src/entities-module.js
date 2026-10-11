@@ -1,4 +1,4 @@
-import {mountEntity360,showEntityError,allowEntityNavigation,openEntityDocuments,openEntityOperation,openStatementOfAccount} from './entity360-ui.js?v=20261011-premium2';
+import {mountEntity360,showEntityError,allowEntityNavigation,openEntityDocuments,openEntityOperation,openStatementOfAccount} from './entity360-ui.js?v=20261011-focus3';
 import {readEntityMasterData} from './entity-profile-data.js?v=20261011-onboarding1';
 import { supabase } from './supabase-client.js';
 const main=document.getElementById('main');

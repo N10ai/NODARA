@@ -1,5 +1,5 @@
-import {showEntityError,organizeEntityTabs,refreshEntityPresentation} from './entity360-ui.js?v=20261011-premium2';
-import {installOnboardingFlow} from './entity-onboarding-flow.js?v=20261011-premium2';
+import {showEntityError,organizeEntityTabs,refreshEntityPresentation} from './entity360-ui.js?v=20261011-focus3';
+import {installOnboardingFlow} from './entity-onboarding-flow.js?v=20261011-focus3';
 import { supabase } from './supabase-client.js';
 import { getCurrentOrganizationId } from './live-data.js';
 
