@@ -1,32 +1,38 @@
+import {editOnboardingFields} from './onboarding-template-fields.js?v=20261011-onboarding1';
+import {getCurrentOrganizationId} from './live-data.js';
 import { supabase } from './supabase-client.js';
-const main=document.getElementById('main'),KEY='nodara_template_registry_v1';
+const main=document.getElementById('main');let KEY='nodara_template_registry_v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const uid=()=>crypto.randomUUID?.()||'tpl-'+Date.now();
-let REGISTRY=[];
+let REGISTRY=[],workspaceId=null;
 export function templates(){return REGISTRY}
-export function saveTemplates(a){REGISTRY=a;localStorage.setItem(KEY,JSON.stringify(a));syncRegistry(a)}
+export async function saveTemplates(a){REGISTRY=a;localStorage.setItem(KEY,JSON.stringify(a));return syncRegistry(a)}
 async function syncRegistry(a){
- const rows=a.map(t=>({id:t.id,name:t.name,status:t.status||'draft',version:t.version||1,category:t.category||'General',placements:t.placements||[],design:t.design||null,versions:t.versions||[],builtin:!!t.builtin,created_at:t.createdAt||new Date().toISOString(),updated_at:t.updatedAt||new Date().toISOString(),published_at:t.publishedAt||null}));
+ const organization_id=workspaceId||await getCurrentOrganizationId();workspaceId=organization_id;
+ const rows=a.map(t=>({id:organization_id+':'+t.id,organization_id,name:t.name,status:t.status||'draft',version:t.version||1,category:t.category||'General',placements:t.placements||[],design:t.design||null,versions:t.versions||[],builtin:!!t.builtin,created_at:t.createdAt||new Date().toISOString(),updated_at:t.updatedAt||new Date().toISOString(),published_at:t.publishedAt||null}));
  if(!rows.length)return;
  const {error}=await supabase.from('document_templates').upsert(rows,{onConflict:'id'});
- if(error)console.error('Template sync failed',error);
+ if(error)throw error;
 }
 async function loadRegistry(){
- const {data,error}=await supabase.from('document_templates').select('*').order('updated_at',{ascending:false});
+ workspaceId=await getCurrentOrganizationId();KEY='nodara_template_registry_v1:'+workspaceId;
+ const {data,error}=await supabase.from('document_templates').select('*').or('organization_id.eq.'+workspaceId+',and(organization_id.is.null,builtin.eq.true)').order('updated_at',{ascending:false});
  if(!error&&data){
-   REGISTRY=data.map(r=>({id:r.id,name:r.name,status:r.status,version:r.version,category:r.category,placements:r.placements||[],design:r.design,versions:r.versions||[],builtin:r.builtin,createdAt:r.created_at,updatedAt:r.updated_at,publishedAt:r.published_at}));
+   const own=data.filter(r=>r.organization_id===workspaceId),shared=data.filter(r=>!r.organization_id&&!own.some(x=>x.id===workspaceId+':'+r.id));
+   REGISTRY=[...own,...shared].map(r=>({id:r.id.startsWith(workspaceId+':')?r.id.slice(workspaceId.length+1):r.id,name:r.name,status:r.status,version:r.version,category:r.category,placements:r.placements||[],design:r.design,versions:r.versions||[],builtin:r.builtin,createdAt:r.created_at,updatedAt:r.updated_at,publishedAt:r.published_at}));
+   REGISTRY=REGISTRY.filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i);
    const local=(()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return[]}})();
    const missing=local.filter(x=>!REGISTRY.some(r=>r.id===x.id));
    if(missing.length){REGISTRY=[...missing,...REGISTRY];await syncRegistry(missing)}
  }else{
    try{REGISTRY=JSON.parse(localStorage.getItem(KEY))||[]}catch{REGISTRY=[]}
  }
- ensureStarters();
+ await ensureStarters();
  return REGISTRY;
 }
 export function getTemplate(id){return templates().find(x=>x.id===id)}
 export function applicableTemplates(ctx={}){return templates().filter(t=>t.status==='published'&&(t.placements||[]).some(p=>(!ctx.module||p.module===ctx.module)&&(!ctx.mode||!p.mode||p.mode===ctx.mode)&&(!ctx.recordType||!p.recordType||p.recordType===ctx.recordType)&&(!ctx.surface||p.surface===ctx.surface)))}
-export function upsertTemplate(t){const a=templates(),i=a.findIndex(x=>x.id===t.id);if(i<0)a.unshift(t);else a[i]=t;saveTemplates(a);return t}
+export async function upsertTemplate(t){const a=templates(),i=a.findIndex(x=>x.id===t.id);if(i<0)a.unshift(t);else a[i]=t;await saveTemplates(a);return t}
 
 // Built-in editable starters. Seeded once into the local registry; users can freely duplicate/edit them.
 const starterId='nodara-system-20260928-awb';
@@ -169,7 +175,7 @@ function systemDocDesign(id,name,orientation='portrait',kind='generic'){
  }
  return {zoom:.72,testMode:false,grid:1,snap:true,mobilePanel:null,pagePreset:landscape?'CUSTOM':'LETTER',pageW:W,pageH:H,pageColor:'#ffffff',pageOrientation:orientation,marginTop:6,marginRight:8,marginBottom:6,marginLeft:8,mobileInspector:'properties',inspectorExpanded:false,selected:[],objects:O,name,background:null,bgOpacity:.3,bgLocked:true,bgX:0,bgY:0,bgW:W,bgH:H,bgFit:'fill',guidesX:[],guidesY:[]};
 }
-function ensureStarters(){
+async function ensureStarters(){
  let a=templates();
  const now=new Date().toISOString();
  // Remove only NODARA's superseded built-in starters. User-created/custom templates are preserved.
@@ -205,6 +211,7 @@ function ensureStarters(){
    ['billing-instructions','Billing Instructions',['Legal company name','Invoice recipient / email','Billing address','Purchase order / reference requirements','Agreed payment terms','Invoice delivery instructions']],
    ['onboarding-checklist','Customer Onboarding Checklist',['Customer name','Assigned owner','Contacts and billing address verified','Services and rates agreed','Required authorizations received','Signed agreements received','Activation approval / date']]
  ];
+ onboarding.push(['credit-application','Credit Application',['Legal company name','Requested credit limit','Accounts payable contact','Trade references','Applicant name / title']]);
  for(const [key,name,fields] of onboarding){
    const id='nodara-commercial-'+key;
    if(a.some(t=>t.id===id))continue;
@@ -212,15 +219,22 @@ function ensureStarters(){
    fields.forEach((label,i)=>objects.push({id:id+'-field-'+i,type:'text',x:14,y:40+i*24,w:185,h:20,text:label+'\n______________________________________________________',fontSize:9,fontFamily:'Arial',fontWeight:'400',textColor:'#111111',border:0}));
    a.push({id,name,status:'draft',version:1,category:'CRM',placements:[{module:'Customers',recordType:key.toUpperCase().replaceAll('-','_'),surface:'Onboarding'}],createdAt:now,updatedAt:now,builtin:true,design:{name,pagePreset:'LETTER',pageW:215.9,pageH:279.4,pageColor:'#ffffff',pageOrientation:'portrait',zoom:.72,grid:1,snap:true,objects,selected:[],marginTop:12,marginRight:14,marginBottom:12,marginLeft:14}});
  }
- saveTemplates(a);
+ for(const [key,name,type,fields] of [['w9','W-9','W9',[['customer.legal_name','Legal company name'],['tax.classification','Tax classification'],['tax.identifier','Taxpayer identification number']]],['customs-poa','Customs Power of Attorney','CUSTOMS_POA',[['customer.legal_name','Legal company name'],['customer.jurisdiction','Jurisdiction'],['signer.title','Authorized representative title']]],['rate-agreement','Customer Rate Agreement','RATE_AGREEMENT',[['customer.legal_name','Legal company name'],['agreement.start','Agreement start date'],['agreement.end','Agreement end date']]]]){const id='nodara-commercial-'+key;if(a.some(t=>t.id===id))continue;a.push({id,name,status:'draft',version:1,category:'CRM',placements:[{module:'Customers',recordType:type,surface:'Onboarding'}],createdAt:now,updatedAt:now,builtin:true,design:{name,pageW:215.9,pageH:279.4,objects:[],onboardingFields:fields.map(([key,label])=>({key,label,type:'text',required:true}))}})}
+ const formFields={
+ 'nodara-commercial-customer-information':[['customer.legal_name','Legal company name'],['customer.dba_name','DBA / trade name'],['customer.email','Company email'],['customer.phone','Company phone'],['customer.website','Website'],['contact.name','Operations contact name'],['contact.email','Operations contact email'],['contact.phone','Operations contact phone'],['billing.address','Billing street address'],['billing.city','Billing city'],['billing.state','Billing state / region'],['billing.postal','Billing postal code'],['billing.country','Billing country']],
+ 'nodara-commercial-billing-instructions':[['billing.contact','Billing contact'],['billing.email','Invoice recipient email'],['billing.reference','Required invoice reference'],['billing.instructions','Invoice delivery instructions']],
+ 'nodara-commercial-credit-application':[['customer.legal_name','Legal company name'],['credit.limit','Requested credit limit'],['billing.contact','Accounts payable contact'],['billing.email','Accounts payable email'],['credit.references','Trade references']]
+ };
+ for(const [id,fields] of Object.entries(formFields)){const t=a.find(t=>t.id===id);if(t?.status==='draft'&&!t.design?.onboardingFields){t.design.onboardingFields=fields.map(([key,label])=>({key,label,type:key.endsWith('email')?'email':key==='credit.references'?'textarea':'text',required:['customer.legal_name','customer.email','contact.name','contact.email','billing.address','billing.email'].includes(key)}));}}
+ await saveTemplates(a);
 }
 
 const placementLabel=p=>[p.module,p.mode,p.surface].filter(Boolean).join(' · ');
-function newTemplate(){const t={id:uid(),name:'Untitled Template',status:'draft',version:1,category:'General',placements:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),design:null};upsertTemplate(t);window.nodaraTemplateStudio?.open(t.id)}
+async function newTemplate(){const t={id:uid(),name:'Untitled Template',status:'draft',version:1,category:'General',placements:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),design:null};await upsertTemplate(t);window.nodaraTemplateStudio?.open(t.id)}
 function duplicate(id){const x=getTemplate(id);if(!x)return;const n=structuredClone(x);n.id=uid();n.name=x.name+' Copy';n.status='draft';n.version=1;n.createdAt=n.updatedAt=new Date().toISOString();upsertTemplate(n);render()}
 function archive(id){const a=templates(),x=a.find(t=>t.id===id);if(!x)return;x.status=x.status==='archived'?'draft':'archived';x.updatedAt=new Date().toISOString();saveTemplates(a);render()}
-async function remove(id){const x=getTemplate(id);if(!x)return;if(x.status==='published'){alert('Published templates are archived instead of deleted so historical documents keep their template lineage.');return}if(confirm('Delete this template permanently?')){REGISTRY=templates().filter(t=>t.id!==id);localStorage.setItem(KEY,JSON.stringify(REGISTRY));await supabase.from('document_templates').delete().eq('id',id);render()}}
-function publish(id){const a=templates(),x=a.find(t=>t.id===id);if(!x)return;x.versions=Array.isArray(x.versions)?x.versions:[];x.versions=x.versions.filter(v=>v.version!==x.version);x.versions.push({version:x.version,design:structuredClone(x.design),placements:structuredClone(x.placements||[]),publishedAt:new Date().toISOString()});x.status='published';x.publishedAt=new Date().toISOString();x.updatedAt=x.publishedAt;saveTemplates(a);render()}
+async function remove(id){const x=getTemplate(id);if(!x)return;if(x.status==='published'){alert('Published templates are archived instead of deleted so historical documents keep their template lineage.');return}if(confirm('Delete this template permanently?')){REGISTRY=templates().filter(t=>t.id!==id);localStorage.setItem(KEY,JSON.stringify(REGISTRY));await supabase.from('document_templates').delete().eq('id',workspaceId+':'+id).eq('organization_id',workspaceId);render()}}
+async function publish(id){const a=templates(),x=a.find(t=>t.id===id);if(!x)return;if((x.placements||[]).some(p=>p.surface==='Onboarding')&&!x.design?.objects?.length&&!x.design?.background){alert('Add the complete document design or form image before publishing this onboarding template.');return;}x.versions=Array.isArray(x.versions)?x.versions:[];x.versions=x.versions.filter(v=>v.version!==x.version);x.versions.push({version:x.version,design:structuredClone(x.design),placements:structuredClone(x.placements||[]),publishedAt:new Date().toISOString()});x.status='published';x.publishedAt=new Date().toISOString();x.updatedAt=x.publishedAt;await saveTemplates(a);render()}
 function placementEditor(t){
  const ps=(t.placements&&t.placements.length?t.placements:[{module:'Shipments',mode:'Air',recordType:'MAWB',surface:'Generate only'}]);
  const opts=(vals,v)=>vals.map(x=>'<option '+(x===v?'selected':'')+'>'+x+'</option>').join('');
@@ -228,7 +242,9 @@ function placementEditor(t){
  return '<div class="dtg-place"><b>Availability</b><p class="dtg-place-help">A template can be available in multiple workflows. Add every context where this document should appear.</p><div data-place-rows>'+ps.map(row).join('')+'</div><div class="dtg-place-actions"><button type="button" data-add-place>+ Add placement</button><button type="button" data-save-place>Save availability</button></div></div>'
 }
 function render(){const a=templates(),active=a.filter(x=>x.status!=='archived'),arch=a.filter(x=>x.status==='archived');main.innerHTML='<section class="dtg"><header><div><small>SETTINGS · DOCUMENT TEMPLATES</small><h1>Template Gallery</h1><p>Design once, publish a version, then control exactly where the document is available.</p></div><button data-new>+ New template</button></header><div class="dtg-filters"><input data-search placeholder="Search templates"><select data-filter><option>All</option><option>Air</option><option>Ocean</option><option>Warehouse</option><option>FTZ</option><option>General</option><option>CRM</option><option>Pricing</option><option>Accounting</option></select></div><div class="dtg-grid">'+active.map(card).join('')+'</div>'+(arch.length?'<details class="dtg-arch"><summary>Archived · '+arch.length+'</summary><div class="dtg-grid">'+arch.map(card).join('')+'</div></details>':'')+'</section>';wire()}
-function card(t){const placements=(t.placements||[]).map(placementLabel).filter(Boolean);return '<article class="dtg-card" data-card="'+t.id+'" data-hay="'+esc((t.name+' '+t.category+' '+placements.join(' ')).toLowerCase())+'"><div class="dtg-preview">'+(t.design?'<span>Designed template</span>':'<span>Blank template</span>')+'</div><div class="dtg-cardbody"><small>'+esc(t.category||'General')+' · v'+(t.version||1)+'</small><h3>'+esc(t.name)+'</h3><div class="dtg-status '+t.status+'">'+t.status+'</div><p>'+(placements.length?'Used in: '+esc(placements.join(', ')):'Not assigned yet')+'</p><div class="dtg-actions"><button data-edit>Edit</button><button data-dup>Duplicate</button><button data-placement>Placement</button><button data-publish>'+(t.status==='published'?'Published':'Publish')+'</button><button data-more>•••</button></div><div class="dtg-pop" hidden><button data-archive>'+(t.status==='archived'?'Restore':'Archive')+'</button><button data-delete>Delete</button></div><div class="dtg-placement" hidden>'+placementEditor(t)+'</div></div></article>'}
-function wire(){document.querySelector('[data-new]').onclick=newTemplate;document.querySelector('[data-search]').oninput=e=>filter(e.target.value,document.querySelector('[data-filter]').value);document.querySelector('[data-filter]').onchange=e=>filter(document.querySelector('[data-search]').value,e.target.value);document.querySelectorAll('.dtg-card').forEach(c=>{const id=c.dataset.card;c.querySelector('[data-edit]').onclick=()=>window.nodaraTemplateStudio?.open(id);c.querySelector('[data-dup]').onclick=()=>duplicate(id);c.querySelector('[data-placement]').onclick=()=>{const p=c.querySelector('.dtg-placement');p.hidden=!p.hidden};c.querySelector('[data-publish]').onclick=()=>publish(id);c.querySelector('[data-more]').onclick=()=>{const p=c.querySelector('.dtg-pop');p.hidden=!p.hidden};c.querySelector('[data-archive]').onclick=()=>archive(id);c.querySelector('[data-delete]').onclick=()=>remove(id);const rows=c.querySelector('[data-place-rows]');c.querySelector('[data-add-place]').onclick=()=>{const d=document.createElement('div');d.innerHTML=placementEditor({...getTemplate(id),placements:[{module:'Shipments',mode:'Air',recordType:'MAWB',surface:'Generate only'}]});rows.appendChild(d.querySelector('[data-place-row]'));bindRemove()};const bindRemove=()=>c.querySelectorAll('[data-remove-place]').forEach(b=>b.onclick=()=>{if(c.querySelectorAll('[data-place-row]').length>1)b.closest('[data-place-row]').remove()});bindRemove();c.querySelector('[data-save-place]').onclick=()=>{const t=getTemplate(id);t.placements=[...c.querySelectorAll('[data-place-row]')].map(r=>{const p={};r.querySelectorAll('[data-p]').forEach(x=>p[x.dataset.p]=x.value);return p});t.category=t.placements[0]?.mode||t.placements[0]?.module||'General';t.updatedAt=new Date().toISOString();upsertTemplate(t);render()}})}
+function card(t){const placements=(t.placements||[]).map(placementLabel).filter(Boolean);return '<article class="dtg-card" data-card="'+t.id+'" data-hay="'+esc((t.name+' '+t.category+' '+placements.join(' ')).toLowerCase())+'"><div class="dtg-preview">'+(t.design?'<span>Designed template</span>':'<span>Blank template</span>')+'</div><div class="dtg-cardbody"><small>'+esc(t.category||'General')+' · v'+(t.version||1)+'</small><h3>'+esc(t.name)+'</h3><div class="dtg-status '+t.status+'">'+t.status+'</div><p>'+(placements.length?'Used in: '+esc(placements.join(', ')):'Not assigned yet')+'</p><div class="dtg-actions"><button data-edit>Edit</button><button data-dup>Duplicate</button><button data-placement>Placement</button><button data-fields>Fields</button><button data-publish>'+(t.status==='published'?'Published':'Publish')+'</button><button data-more>•••</button></div><div class="dtg-pop" hidden><button data-archive>'+(t.status==='archived'?'Restore':'Archive')+'</button><button data-delete>Delete</button></div><div class="dtg-placement" hidden>'+placementEditor(t)+'</div></div></article>'}
+function wire(){document.querySelector('[data-new]').onclick=newTemplate;document.querySelector('[data-search]').oninput=e=>filter(e.target.value,document.querySelector('[data-filter]').value);document.querySelector('[data-filter]').onchange=e=>filter(document.querySelector('[data-search]').value,e.target.value);document.querySelectorAll('.dtg-card').forEach(c=>{const id=c.dataset.card;c.querySelector('[data-edit]').onclick=()=>window.nodaraTemplateStudio?.open(id);c.querySelector('[data-dup]').onclick=()=>duplicate(id);c.querySelector('[data-placement]').onclick=()=>{const p=c.querySelector('.dtg-placement');p.hidden=!p.hidden};c.querySelector('[data-fields]').onclick=()=>editOnboardingFields(getTemplate(id),async t=>{await upsertTemplate(t);render()});c.querySelector('[data-publish]').onclick=()=>publish(id);c.querySelector('[data-more]').onclick=()=>{const p=c.querySelector('.dtg-pop');p.hidden=!p.hidden};c.querySelector('[data-archive]').onclick=()=>archive(id);c.querySelector('[data-delete]').onclick=()=>remove(id);const rows=c.querySelector('[data-place-rows]');c.querySelector('[data-add-place]').onclick=()=>{const d=document.createElement('div');d.innerHTML=placementEditor({...getTemplate(id),placements:[{module:'Shipments',mode:'Air',recordType:'MAWB',surface:'Generate only'}]});rows.appendChild(d.querySelector('[data-place-row]'));bindRemove()};const bindRemove=()=>c.querySelectorAll('[data-remove-place]').forEach(b=>b.onclick=()=>{if(c.querySelectorAll('[data-place-row]').length>1)b.closest('[data-place-row]').remove()});bindRemove();c.querySelector('[data-save-place]').onclick=()=>{const t=getTemplate(id);t.placements=[...c.querySelectorAll('[data-place-row]')].map(r=>{const p={};r.querySelectorAll('[data-p]').forEach(x=>p[x.dataset.p]=x.value);return p});t.category=t.placements[0]?.mode||t.placements[0]?.module||'General';t.updatedAt=new Date().toISOString();upsertTemplate(t);render()}})}
 function filter(q,cat){q=(q||'').toLowerCase();document.querySelectorAll('.dtg-card').forEach(c=>{const t=getTemplate(c.dataset.card),okq=!q||c.dataset.hay.includes(q),okc=cat==='All'||t.category===cat||(t.placements||[]).some(p=>p.module===cat||p.mode===cat);c.style.display=okq&&okc?'':'none'})}
-export async function openTemplateGallery(){await loadRegistry();render()}loadRegistry();window.nodaraTemplateGallery={open:openTemplateGallery,templates,getTemplate,upsertTemplate,applicableTemplates};window.nodaraTemplateRegistry={templates,getTemplate,upsertTemplate,applicableTemplates};
+export async function openTemplateGallery(){await loadRegistry();render()}loadRegistry().catch(error=>console.warn('Template registry unavailable',error.message));window.nodaraTemplateGallery={open:openTemplateGallery,templates,getTemplate,upsertTemplate,applicableTemplates};window.nodaraTemplateRegistry={templates,getTemplate,upsertTemplate,applicableTemplates};
+
+export async function prepareOnboardingTemplates(){return loadRegistry()}

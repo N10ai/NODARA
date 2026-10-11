@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const source=await readFile(new URL('../src/onboarding-document-renderer.js',import.meta.url),'utf8');
+const {renderOnboardingDocument}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const html=renderOnboardingDocument({title:'Test',template_version:2,template_snapshot:{pageW:215.9,pageH:279.4,objects:[{type:'variable',binding:'customer.legal_name',x:10,y:10,w:100,h:20}]},prefill:{'customer.legal_name':'Original LLC',rate_sheet:[{service:'Receiving',rate:15,currency:'USD',unit:'WR',effective_from:'2026-01-01',effective_to:'2026-12-31'}]},responses:{'customer.legal_name':'<script>alert(1)</script>'},field_definitions:[{key:'customer.legal_name',label:'Legal name'}],submitted_at:'2026-10-11T17:00:00Z',signer_name:'Owner',signer_email:'owner@example.test',consent_text:'I agree',content_hash:'abc'});
+assert.ok(!html.includes('<script>'));
+assert.ok(html.includes('&lt;script&gt;'));
+assert.ok(html.includes('Electronic signature record'));
+assert.ok(html.includes('Receiving'));
+assert.ok(html.includes('2026-12-31'));
+assert.ok(html.includes('Template v2'));
+console.log('Signed snapshot, rate table and escaping checks passed.');
