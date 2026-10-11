@@ -1,4 +1,4 @@
-import {getTemplate,upsertTemplate} from './document-template-gallery.js?v=20261011-onboarding1';
+import {getTemplate,upsertTemplate} from './document-template-gallery.js?v=20261011-standard1';
 const main=document.getElementById('main'),MM=3.7795275591;
 const PAGE_PRESETS={LETTER:[215.9,279.4],A4:[210,297],LEGAL:[215.9,355.6],A5:[148,210]};
 const TYPES={text:'Text',variable:'Variable',frame:'Frame',line:'Line',checkbox:'Checkbox',table:'Table',image:'Image / Logo',qr:'QR Code',barcode:'Barcode'},VARS=[

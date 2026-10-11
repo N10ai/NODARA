@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const load=async path=>import('data:text/javascript;base64,'+Buffer.from(await readFile(new URL(path,import.meta.url),'utf8')).toString('base64'));
+const {standardOnboardingTemplates,installStandardOnboardingTemplates}=await load('../src/onboarding-standard-templates.js');
+const {renderOnboardingDocument}=await load('../src/onboarding-document-renderer.js');
+const reference=(await load('../src/onboarding-w9-reference.js')).default;
+const standards=standardOnboardingTemplates(reference);
+assert.equal(standards.length,7);
+for(const t of standards){
+ assert.equal(new Set(t.design.onboardingFields.map(f=>f.key)).size,t.design.onboardingFields.length);
+ for(const o of t.design.objects)assert(o.y+o.h<=t.design.pageH,'Object outside page: '+t.name);
+ const fields=new Set(t.design.onboardingFields.map(f=>f.key));
+ for(const o of t.design.objects)for(const m of o.text.matchAll(/\{\{([^}]+)\}\}/g))assert(fields.has(m[1])||['customer.legal_name','customer.payment_terms'].includes(m[1]),'Unbound field: '+m[1]);
+}
+const rate=standards.find(t=>t.id.endsWith('rate-agreement'));
+assert.equal(rate.status,'published');
+assert(!rate.design.onboardingFields.some(f=>f.key.startsWith('agreement.')),'Customer must not rewrite agreed validity dates');
+const html=renderOnboardingDocument({design:rate.design,fields:rate.design.onboardingFields,prefill:{'customer.legal_name':'Test LLC',rate_sheet:[{service:'Receiving',currency:'USD',rate:15,unit:'WR',minimum:25,effective_from:'2026-01-01',effective_to:'2026-12-31'}]}});
+assert(html.includes('Receiving')&&html.includes('2026-12-31')&&html.includes('Test LLC'));
+const w9=standards.find(t=>t.id.endsWith('w9'));
+assert.equal(w9.status,'draft');assert.equal(w9.design.referenceOnly,true);assert(w9.design.background.startsWith('data:image/png;base64,'));
+assert.equal(standards.find(t=>t.id.endsWith('customs-poa')).status,'draft');
+assert.equal(standards.find(t=>t.id.endsWith('onboarding-checklist')).placements[0].surface,'Hidden/manual');
+const registry=[];installStandardOnboardingTemplates(registry,'2026-10-11',reference);
+const info=registry.find(t=>t.id.endsWith('customer-information'));info.design.objects[0].text='My own branding';info.status='draft';
+const original=JSON.stringify(registry);installStandardOnboardingTemplates(registry,'2026-10-12',reference);
+assert.equal(JSON.stringify(registry),original,'Repeated preparation must preserve all edits and statuses');
+const blank={id:'nodara-commercial-rate-agreement',name:'Customer Rate Agreement',builtin:true,status:'draft',version:1,design:{pageW:215.9,pageH:279.4,objects:[],onboardingFields:[['customer.legal_name','Legal company name'],['agreement.start','Agreement start date'],['agreement.end','Agreement end date']].map(([key,label])=>({key,label,type:'text',required:true}))}};
+const legacy=[structuredClone(blank)];installStandardOnboardingTemplates(legacy,'2026-10-11',reference);
+assert.equal(legacy[0].version,2);assert.equal(legacy[0].status,'published');assert(legacy[0].design.objects.length);
+blank.design.onboardingFields[0].label='Custom label';const customized=[blank];installStandardOnboardingTemplates(customized,'2026-10-11',reference);assert.equal(customized[0],blank);assert.equal(customized[0].version,1);
+console.log('Standard forms, immutable rate bindings, official W-9 reference, legacy upgrade and edit preservation passed.');

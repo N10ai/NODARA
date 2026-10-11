@@ -13,6 +13,24 @@ begin
  begin perform nodara_save_entity_profile(jsonb_build_object('organization_id',org,'name','Invalid','roles',jsonb_build_array('customer')),'[]','[{"name":"Missing street"}]','{}');raise exception 'Invalid profile unexpectedly saved';exception when others then if sqlerrm='Invalid profile unexpectedly saved' then raise;end if;end;
  assert (select count(*)=before_count from entities),'Invalid address left partial entity';
  insert into document_templates(id,organization_id,name,status,placements,design) values(template,org,'Information','published','[{"module":"Customers","surface":"Onboarding"}]','{"pageW":215.9,"pageH":279.4,"objects":[{"type":"text","text":"Profile confirmation"}],"onboardingFields":[{"key":"customer.legal_name","label":"Legal company name","required":true},{"key":"contact.name","label":"Operations contact"},{"key":"contact.email","label":"Contact email"},{"key":"billing.address","label":"Billing street"}]}'),(tid2,org,'Agreement','published','[{"module":"Customers","surface":"Onboarding"}]','{"objects":[{"type":"text","text":"Agreement terms"}],"onboardingFields":[]}');
+ -- Reference-only W-9s cannot be sent even if manually marked published.
+ update document_templates set design=design||'{"referenceOnly":true}'::jsonb where id=template;
+ begin
+  perform nodara_create_onboarding_packet(eid,'Owner','owner@example.test',jsonb_build_array(jsonb_build_object('template_id',template,'document_type','W9')));
+  raise exception 'Reference form unexpectedly sent';
+ exception when others then
+  if sqlerrm<>'This official reference form must be completed and uploaded as a signed PDF' then raise;end if;
+ end;
+ update document_templates set design=design-'referenceOnly' where id=template;
+ -- The rate agreement needs an actual configured recurring rate sheet.
+ update customer_rate_agreements set active=false where id=rateid;
+ begin
+  perform nodara_create_onboarding_packet(eid,'Owner','owner@example.test',jsonb_build_array(jsonb_build_object('template_id',tid2,'document_type','RATE_AGREEMENT')));
+  raise exception 'Empty rate agreement unexpectedly sent';
+ exception when others then
+  if sqlerrm<>'Configure the customer recurring rate sheet before requesting agreement' then raise;end if;
+ end;
+ update customer_rate_agreements set active=true where id=rateid;
  packet:=nodara_create_onboarding_packet(eid,'Owner','owner@example.test',jsonb_build_array(jsonb_build_object('template_id',template,'document_type','CUSTOMER_INFORMATION'),jsonb_build_object('template_id',tid2,'document_type','RATE_AGREEMENT')));token:=packet->>'token';
  perform set_config('request.jwt.claim.sub','',true);
  execute 'set local role anon';
