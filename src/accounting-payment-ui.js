@@ -3,10 +3,10 @@ import { supabase } from './supabase-client.js';
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money = (value, currency) => new Intl.NumberFormat(undefined, {style:'currency', currency:currency || 'USD'}).format(Number(value) || 0);
 
-export function currencyTotals(rows, amount) {
+export function currencyTotals(rows, amount, vendor = false) {
   const sums = new Map();
   for (const row of rows) {
-    const currency = row.vendor_currency || row.currency || 'USD';
+    const currency = (vendor && row.vendor_currency) || row.currency || 'USD';
     sums.set(currency, (sums.get(currency) || 0) + Number(amount(row) || 0));
   }
   return [...sums].map(([currency, value]) => money(value, currency)).join(' · ') || money(0, 'USD');
@@ -16,7 +16,7 @@ export function groupCharges(rows, partyKey, vendor = false) {
   const groups = new Map();
   for (const row of rows) {
     if (!row[partyKey]) continue;
-    const key = JSON.stringify([row[partyKey], (vendor && row.vendor_currency) || row.currency || 'USD']);
+    const key = JSON.stringify([row[partyKey], (vendor && row.vendor_currency) || row.currency || 'USD',vendor?null:row.billing_group_key||null]);
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(row);
   }

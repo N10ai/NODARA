@@ -13,8 +13,8 @@ async function loadEffective(customerId){
     supabase.from('customer_rate_agreements').select('*').eq('organization_id',org).eq('customer_id',customerId).eq('active',true).order('effective_from',{ascending:false})
   ]);
   for(const x of[c,s,r,a]) if(x.error) throw x.error;
-  const stdBy=new Map(); for(const x of r.data||[]) if(!stdBy.has(x.service_id)) stdBy.set(x.service_id,x);
-  const agrBy=new Map(); for(const x of a.data||[]) if(!agrBy.has(x.service_id)) agrBy.set(x.service_id,x);
+  const stdBy=new Map(); for(const x of r.data||[]) if(x.effective_from<=new Date().toISOString().slice(0,10)&&(!x.effective_to||x.effective_to>=new Date().toISOString().slice(0,10))&&!stdBy.has(x.service_id)) stdBy.set(x.service_id,x);
+  const agrBy=new Map(); for(const x of a.data||[]) if(x.effective_from<=new Date().toISOString().slice(0,10)&&(!x.effective_to||x.effective_to>=new Date().toISOString().slice(0,10))&&!agrBy.has(x.service_id)) agrBy.set(x.service_id,x);
   const rows=(s.data||[]).map(service=>{
     const agr=agrBy.get(service.id),std=stdBy.get(service.id),rate=agr||std;
     if(!rate) return null;

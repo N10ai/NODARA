@@ -1,0 +1,42 @@
+begin;
+do $$
+declare org uuid; member uuid; customer uuid; service uuid; contract uuid; standard uuid; operation uuid; txid uuid; quote uuid; converted jsonb; again jsonb; price jsonb; charge uuid;
+begin
+ select t.organization_id,p.entity_id,m.user_id into org,customer,member from transactions t join transaction_parties p on p.transaction_id=t.id and p.role_code='CUSTOMER' and p.is_primary join organization_members m on m.organization_id=t.organization_id limit 1;
+ perform set_config('request.jwt.claim.sub',member::text,true);
+ insert into service_catalog(organization_id,code,name,domain,default_unit) values(org,'TEST_'||gen_random_uuid(),'Smart recurring test','WAREHOUSE','EA') returning id into service;
+ insert into standard_rates(organization_id,service_id,sell_rate,currency,unit,effective_from) values(org,service,5,'USD','EA',current_date-365) returning id into standard;
+ insert into customer_rate_agreements(organization_id,customer_id,service_id,sell_rate,currency,unit,effective_from,effective_to,is_default_service,metadata)
+ values(org,customer,service,7,'USD','EA',current_date-365,current_date+365,true,'{"billing_event":"SHIPMENT_DELIVERED"}') returning id into contract;
+ insert into shipments(organization_id,shipment_number,mode,customer_id,status) values(org,'TEST-'||gen_random_uuid(),'AIR',customer,'DRAFT') returning id into operation;
+ select id into txid from transactions where domain_record_id=operation and transaction_type='SHIPMENT';
+ select id into charge from operational_charges where transaction_id=txid and service_id=service;
+ assert charge is not null,'Recurring default charge not created automatically';
+ assert (select sell_amount=7 and billable_at is null from operational_charges where id=charge),'Recurring estimate incorrect or prematurely billable';
+ price:=nodara_resolve_commercial_rate(txid,service);assert price->>'source'='CUSTOMER_AGREEMENT','Negotiated rate not selected';
+ update shipments set status='DELIVERED' where id=operation;
+ assert (select performed_at is not null from operational_charges where id=charge),'Completion did not finalize recurring charge';
+ perform nodara_sync_commercial_event(txid,'SHIPMENT_DELIVERED');
+ assert (select count(*)=1 from operational_charges where transaction_id=txid and service_id=service),'Recurring event duplicated charge';
+ update customer_rate_agreements set effective_to=current_date-1 where id=contract;
+ price:=nodara_resolve_commercial_rate(txid,service);assert price->>'source'='STANDARD_RATE','Expired contract used instead of standard fallback';
+ update customer_rate_agreements set effective_to=current_date+365 where id=contract;
+ quote:=nodara_save_quote(jsonb_build_object('organization_id',org,'customer_id',customer,'currency','USD','mode','AIR','origin','MIA','destination','UIO'),jsonb_build_array(jsonb_build_object('service_id',service,'quantity',2,'sell_rate',12,'currency','USD','description','RFQ spot service')));
+ perform nodara_set_quote_status(quote,'SENT');perform nodara_set_quote_status(quote,'ACCEPTED');
+ converted:=nodara_create_operation_from_quote(quote,'SHIPMENT');again:=nodara_create_operation_from_quote(quote,'SHIPMENT');
+ assert converted->>'transaction_id'=again->>'transaction_id','Repeated conversion created duplicate operation';
+ txid:=(converted->>'transaction_id')::uuid;
+ assert (select count(*)=1 from operational_charges where transaction_id=txid and service_id=service),'RFQ also generated recurring charges';
+ price:=nodara_resolve_commercial_rate(txid,service);assert price->>'source'='QUOTE_SNAPSHOT' and (price->>'rate')::numeric=12,'RFQ did not override recurring agreement';
+ update shipments set status='DELIVERED' where id=(converted->>'record_id')::uuid;
+ assert (select sell_amount=24 and performed_at is not null from operational_charges where transaction_id=txid and quote_id=quote),'RFQ snapshot changed or not performed on completion';
+quote:=nodara_save_quote(jsonb_build_object('organization_id',org,'customer_id',customer,'currency','USD','mode','GROUND'),jsonb_build_array(jsonb_build_object('service_id',service,'quantity',1,'sell_rate',15,'currency','USD','description','RFQ pickup')));
+ perform nodara_set_quote_status(quote,'SENT');perform nodara_set_quote_status(quote,'ACCEPTED');
+ converted:=nodara_create_operation_from_quote(quote,'TRANSPORT_ORDER');
+ assert converted->>'type'='TRANSPORT_ORDER','RFQ transport order not created';
+ quote:=nodara_save_quote(jsonb_build_object('organization_id',org,'customer_id',customer,'currency','USD','mode','WAREHOUSE'),jsonb_build_array(jsonb_build_object('service_id',service,'quantity',1,'sell_rate',20,'currency','USD','description','RFQ receiving')));
+ perform nodara_set_quote_status(quote,'SENT');perform nodara_set_quote_status(quote,'ACCEPTED');
+ converted:=nodara_create_operation_from_quote(quote,'WAREHOUSE_RECEIPT');
+ assert converted->>'type'='WAREHOUSE_RECEIPT','RFQ receipt not created';
+end $$;
+rollback;

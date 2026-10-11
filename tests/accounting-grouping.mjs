@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync(new URL('../src/accounting-payment-ui.js',import.meta.url),'utf8').replace("import { supabase } from './supabase-client.js';",'const supabase={};');
+const {currencyTotals,groupCharges}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const rows=[{customer_id:'a',currency:'USD',vendor_currency:'EUR',balance:100,billing_group_key:'OPERATION:1'},{customer_id:'a',currency:'EUR',balance:50,billing_group_key:'OPERATION:1'},{customer_id:'a',currency:'USD',balance:25,billing_group_key:'OPERATION:2'},{customer_id:null,currency:'USD',balance:4}];
+assert.equal(groupCharges(rows,'customer_id').length,3,'Keep operation billing groups separate');
+assert.equal(currencyTotals(rows.slice(0,3),r=>r.balance),'$125.00 · €50.00','Customer totals use sell currency');
+assert.equal(currencyTotals(rows.slice(0,1),r=>r.balance,true),'€100.00','Vendor totals use vendor currency');
+assert.equal(groupCharges([{vendor_id:'v',currency:'USD',vendor_currency:'EUR'},{vendor_id:'v',currency:'USD',vendor_currency:'USD'}],'vendor_id',true).length,2);
+console.log('Accounting currency and invoice-group tests passed');

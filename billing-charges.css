@@ -2,3 +2,5 @@
 .ni-group{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:12px;margin:6px 0;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.025);color:inherit}.ni-group span{display:grid;gap:3px}.ni-group small{color:var(--muted)}
 
 .bp-modal>div{background:var(--panel,#10151d);color:var(--text);max-height:90vh;overflow:auto}.bp-modal input{width:100%;padding:10px;box-sizing:border-box;background:var(--input-bg,var(--panel));color:var(--text);border:1px solid var(--border);border-radius:8px}.bp-modal [data-error]{color:var(--danger,#e77777)}.bc-kpis b{overflow-wrap:anywhere}.bp-list article[data-inv],.bp-list article[data-bill]{cursor:pointer}
+
+.bc-select{display:flex;gap:7px;align-items:center;font-size:11px;margin-bottom:8px;color:var(--muted)}.bc-head .actions{display:flex;gap:8px;flex-wrap:wrap}.bc-row button{margin-top:6px}.bp-modal [data-list]{max-height:45vh;overflow:auto}.cq-card .bp-list{margin-top:14px}@media(max-width:760px){.bc-head .actions{margin-top:12px}}
