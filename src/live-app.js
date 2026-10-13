@@ -1,4 +1,4 @@
-import { install as installShell, home as openHome } from './nav-shell.js?v=20261011-startup1';
+import { install as installShell, home as openHome } from './nav-shell.js?v=20261013-workspace1';
 import { getSession, signInWithPassword, signUpWithPassword, signOut, ensureWorkspace } from './auth-session.js';
 import { getInventorySnapshot, findExpectedReceipts, findInventory, createWarehouseReceiptTree } from './live-data.js';
 import { PACKAGE_TYPES, makePackage, makeItem, repeatPackage, summarizeTree } from './cargo-tree-builder.js';
