@@ -8,7 +8,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 const uid=()=>crypto.randomUUID?.()||'tpl-'+Date.now();
 let REGISTRY=[],workspaceId=null;
 export function templates(){return REGISTRY}
-export async function saveTemplates(a){REGISTRY=a;localStorage.setItem(KEY,JSON.stringify(a));return syncRegistry(a)}
+export async function saveTemplates(a){await syncRegistry(a);REGISTRY=a;cacheTemplates(a)}
+function cacheTemplates(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(error){try{localStorage.removeItem(KEY)}catch{}console.warn('Template local cache unavailable; workspace copy is saved.',error.name||error.message)}}
 async function syncRegistry(a){
  const organization_id=workspaceId||await getCurrentOrganizationId();workspaceId=organization_id;
  const rows=a.map(t=>({id:organization_id+':'+t.id,organization_id,name:t.name,status:t.status||'draft',version:t.version||1,category:t.category||'General',placements:t.placements||[],design:t.design||null,versions:t.versions||[],builtin:!!t.builtin,created_at:t.createdAt||new Date().toISOString(),updated_at:t.updatedAt||new Date().toISOString(),published_at:t.publishedAt||null}));
@@ -16,7 +17,9 @@ async function syncRegistry(a){
  const {error}=await supabase.from('document_templates').upsert(rows,{onConflict:'id'});
  if(error)throw error;
 }
-async function loadRegistry(){
+let registryLoad=null;
+function loadRegistry(){if(!registryLoad)registryLoad=readRegistry().finally(()=>registryLoad=null);return registryLoad}
+async function readRegistry(){
  workspaceId=await getCurrentOrganizationId();KEY='nodara_template_registry_v1:'+workspaceId;
  const {data,error}=await supabase.from('document_templates').select('*').or('organization_id.eq.'+workspaceId+',and(organization_id.is.null,builtin.eq.true)').order('updated_at',{ascending:false});
  if(!error&&data){
@@ -217,7 +220,7 @@ const placementLabel=p=>[p.module,p.mode,p.surface].filter(Boolean).join(' · ')
 async function newTemplate(){const t={id:uid(),name:'Untitled Template',status:'draft',version:1,category:'General',placements:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),design:null};await upsertTemplate(t);window.nodaraTemplateStudio?.open(t.id)}
 function duplicate(id){const x=getTemplate(id);if(!x)return;const n=structuredClone(x);n.id=uid();n.name=x.name+' Copy';n.status='draft';n.version=1;n.createdAt=n.updatedAt=new Date().toISOString();upsertTemplate(n);render()}
 function archive(id){const a=templates(),x=a.find(t=>t.id===id);if(!x)return;x.status=x.status==='archived'?'draft':'archived';x.updatedAt=new Date().toISOString();saveTemplates(a);render()}
-async function remove(id){const x=getTemplate(id);if(!x)return;if(x.status==='published'){alert('Published templates are archived instead of deleted so historical documents keep their template lineage.');return}if(confirm('Delete this template permanently?')){REGISTRY=templates().filter(t=>t.id!==id);localStorage.setItem(KEY,JSON.stringify(REGISTRY));await supabase.from('document_templates').delete().eq('id',workspaceId+':'+id).eq('organization_id',workspaceId);render()}}
+async function remove(id){const x=getTemplate(id);if(!x)return;if(x.status==='published'){alert('Published templates are archived instead of deleted so historical documents keep their template lineage.');return}if(confirm('Delete this template permanently?')){const {error}=await supabase.from('document_templates').delete().eq('id',workspaceId+':'+id).eq('organization_id',workspaceId);if(error)throw error;REGISTRY=templates().filter(t=>t.id!==id);cacheTemplates(REGISTRY);render()}}
 async function publish(id){const a=templates(),x=a.find(t=>t.id===id);if(!x)return;if(x.design?.referenceOnly){alert(x.design.setupNote);return;}if((x.placements||[]).some(p=>p.surface==='Onboarding')&&!x.design?.objects?.length&&!x.design?.background){alert('Add the complete document design or form image before publishing this onboarding template.');return;}x.versions=Array.isArray(x.versions)?x.versions:[];x.versions=x.versions.filter(v=>v.version!==x.version);x.versions.push({version:x.version,design:structuredClone(x.design),placements:structuredClone(x.placements||[]),publishedAt:new Date().toISOString()});x.status='published';x.publishedAt=new Date().toISOString();x.updatedAt=x.publishedAt;await saveTemplates(a);render()}
 function placementEditor(t){
  const ps=(t.placements&&t.placements.length?t.placements:[{module:'Shipments',mode:'Air',recordType:'MAWB',surface:'Generate only'}]);
