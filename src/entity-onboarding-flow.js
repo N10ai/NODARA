@@ -4,7 +4,7 @@ import {escapeHtml as e,renderOnboardingDocument} from './onboarding-document-re
 const TYPES=['CUSTOMER_INFORMATION','W9','CREDIT_APPLICATION','CUSTOMS_POA','FTZ_AUTHORIZATION','RATE_AGREEMENT','BILLING_INSTRUCTIONS','OTHER'];
 function modal(html){const overlay=document.createElement('div');overlay.className='ob-flow-modal';overlay.innerHTML=`<div role="dialog" aria-modal="true">${html}</div>`;document.body.append(overlay);overlay.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>overlay.remove());return overlay;}
 export async function installOnboardingFlow(section,data,refresh){
- const gallery=await import('./document-template-gallery.js?v=20261011-standard1');await gallery.prepareOnboardingTemplates();
+ const gallery=await import('./document-template-gallery.js?v=20261013-quota1');await gallery.prepareOnboardingTemplates();
  const results=await Promise.all([supabase.from('document_templates').select('id,name,placements,status,design').eq('organization_id',data.org).order('name'),supabase.from('entity_onboarding_packets').select('*,entity_onboarding_packet_documents(*)').eq('organization_id',data.org).eq('entity_id',data.entity.id).order('created_at',{ascending:false}),supabase.from('customer_rate_agreements').select('*,service_catalog(name)').eq('organization_id',data.org).eq('customer_id',data.entity.id).eq('active',true).order('effective_from',{ascending:false})]);for(const r of results)if(r.error)throw r.error;
  const templates=(results[0].data||[]).filter(t=>(t.placements||[]).some(p=>p.surface==='Onboarding')),packets=results[1].data||[],rates=results[2].data||[];
  let area=section.querySelector('[data-onboarding-flow]');if(!area){area=document.createElement('div');area.dataset.onboardingFlow='';section.prepend(area)}
@@ -19,7 +19,7 @@ export async function installOnboardingFlow(section,data,refresh){
  area.querySelectorAll('[data-preview]').forEach(b=>b.onclick=()=>{const d=packets.flatMap(p=>p.entity_onboarding_packet_documents||[]).find(d=>d.id===b.dataset.preview);const url=URL.createObjectURL(new Blob([renderOnboardingDocument(d)],{type:'text/html'}));const box=modal(`<h2>${e(d.title)}</h2><iframe title="Signed document" sandbox="" style="width:100%;height:60vh;border:0" src="${url}"></iframe><div class="ob-actions"><a href="${url}" download="${e(d.title)}.html">Download signed copy</a><button data-close>Close</button></div>`);box.querySelector('[data-close]').onclick=()=>{URL.revokeObjectURL(url);box.remove()};});
 }
 async function createLink(data,refresh,selected=[]){
- const gallery=await import('./document-template-gallery.js?v=20261011-standard1');await gallery.prepareOnboardingTemplates();
+ const gallery=await import('./document-template-gallery.js?v=20261013-quota1');await gallery.prepareOnboardingTemplates();
  const{data:templates,error}=await supabase.from('document_templates').select('id,name,placements,status,design').eq('organization_id',data.org).eq('status','published').order('name');if(error)return alert(error.message);
  const available=(templates||[]).filter(t=>!t.design?.referenceOnly&&(t.placements||[]).some(p=>p.surface==='Onboarding'));
  if(!available.length){const box=modal('<h2>Prepare your onboarding templates</h2><p>Edit and publish the documents you want customers to complete. Set their availability to Onboarding, and add customer fields using the Fields action.</p><div class="ob-actions"><button data-templates>Open template editor</button><button data-close>Close</button></div>');box.querySelector('[data-templates]').onclick=()=>{box.remove();window.nodaraTemplateGallery.open()};return;}
@@ -46,7 +46,7 @@ function installDocumentLibrary(area,templates,data,refresh){
  library.querySelector('[data-build-package]').onclick=()=>createLink(data,refresh).catch(showEntityError);
  library.querySelector('[data-open-customer-files]').onclick=()=>openEntityDocuments(data.entity,()=>window.nodaraOpenEntity(data.entity.id)).catch(showEntityError);
  library.querySelectorAll('[data-upload-standard]').forEach(b=>b.onclick=()=>{const section=area.closest('.record-section'),select=section.querySelector('.entity360-supporting [data-doc-type]');if(select){select.value=b.dataset.uploadStandard;section.querySelector('[data-doc-file]').click()}});
- library.querySelectorAll('[data-edit-standard]').forEach(b=>b.onclick=async()=>{if(!allowEntityNavigation())return;try{const gallery=await import('./document-template-gallery.js?v=20261011-standard1');await gallery.openTemplateGallery();const back=document.createElement('button');back.className='secondary compact-btn';back.textContent='‹ '+data.entity.name;back.onclick=()=>window.nodaraOpenEntity(data.entity.id);document.getElementById('main').prepend(back)}catch(error){showEntityError(error)}});
+ library.querySelectorAll('[data-edit-standard]').forEach(b=>b.onclick=async()=>{if(!allowEntityNavigation())return;try{const gallery=await import('./document-template-gallery.js?v=20261013-quota1');await gallery.openTemplateGallery();const back=document.createElement('button');back.className='secondary compact-btn';back.textContent='‹ '+data.entity.name;back.onclick=()=>window.nodaraOpenEntity(data.entity.id);document.getElementById('main').prepend(back)}catch(error){showEntityError(error)}});
 }
 
 export async function requestRateAgreement(data,refresh){

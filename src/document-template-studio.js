@@ -1,4 +1,4 @@
-import {getTemplate,upsertTemplate} from './document-template-gallery.js?v=20261011-standard1';
+import {getTemplate,upsertTemplate} from './document-template-gallery.js?v=20261013-quota1';
 const main=document.getElementById('main'),MM=3.7795275591;
 const PAGE_PRESETS={LETTER:[215.9,279.4],A4:[210,297],LEGAL:[215.9,355.6],A5:[148,210]};
 const TYPES={text:'Text',variable:'Variable',frame:'Frame',line:'Line',checkbox:'Checkbox',table:'Table',image:'Image / Logo',qr:'QR Code',barcode:'Barcode'},VARS=[
@@ -26,7 +26,16 @@ function normalize(){if(typeof S.selected==='string')S.selected=S.selected?[S.se
 function load(templateId){CURRENT_TEMPLATE=templateId||null;const t=templateId?getTemplate(templateId):null;S=freshState();UNDO=[];REDO=[];if(t?.design){Object.assign(S,structuredClone(t.design))}else if(!templateId){try{Object.assign(S,JSON.parse(localStorage.getItem('nodara_template_studio_v2'))||JSON.parse(localStorage.getItem('nodara_template_studio_v1'))||{})}catch{}}if(t?.name)S.name=t.name;normalize();if(!templateId&&!S.objects.length)S.objects=seed()}
 const snapshot=()=>JSON.stringify({...S,background:S.background}),remember=()=>{UNDO.push(snapshot());if(UNDO.length>60)UNDO.shift();REDO=[]};
 function restore(raw){S=JSON.parse(raw);normalize();render()}function undo(){if(!UNDO.length)return;REDO.push(snapshot());restore(UNDO.pop())}function redo(){if(!REDO.length)return;UNDO.push(snapshot());restore(REDO.pop())}
-async function save(){localStorage.setItem('nodara_template_studio_v2',snapshot());if(CURRENT_TEMPLATE){const t=getTemplate(CURRENT_TEMPLATE);if(t){if(t.status==='published'){t.status='draft';t.version=(+t.version||1)+1}t.name=S.name;t.design=JSON.parse(snapshot());t.updatedAt=new Date().toISOString();await upsertTemplate(t)}}toast('Template saved')}
+let savingTemplate=false;
+export async function save(){if(savingTemplate)return;savingTemplate=true;try{
+ const design=JSON.parse(snapshot()),existing=CURRENT_TEMPLATE?getTemplate(CURRENT_TEMPLATE):null;
+ const template=existing?structuredClone(existing):{id:'custom-'+id(),status:'draft',version:1,category:'General',placements:[],createdAt:new Date().toISOString(),builtin:false};
+ if(template.status==='published'){template.status='draft';template.version=(+template.version||1)+1}
+ template.name=S.name;template.design=design;template.updatedAt=new Date().toISOString();await upsertTemplate(template);CURRENT_TEMPLATE=template.id;
+ try{localStorage.setItem('nodara_template_studio_v2',snapshot())}catch(error){console.warn('Template local draft cache unavailable; workspace copy is saved.',error.name||error.message)}
+ toast('Template saved to workspace');
+ }catch(error){toast('Could not save template: '+error.message)}finally{savingTemplate=false}}
+
 function toast(t){let x=document.querySelector('.dts-toast');if(!x){x=document.createElement('div');x.className='dts-toast';document.body.appendChild(x)}x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1200)}
 function add(type){remember();let o={id:id(),type,x:20,y:20,w:60,h:10,text:TYPES[type],fontSize:9,fontFamily:'Arial',fontWeight:'400',fontStyle:'normal',textColor:'#111111',fillColor:'transparent',borderColor:'#111111',align:'left',border:.75,binding:''};if(type==='line')Object.assign(o,{w:70,h:.3,text:''});if(type==='frame')Object.assign(o,{w:70,h:35,text:''});if(type==='checkbox')Object.assign(o,{w:5,h:5,text:''});if(type==='table')Object.assign(o,{w:100,h:40,text:'',rows:4,cols:4,colTracks:[25,25,25,25],rowTracks:[10,10,10,10],merges:[],selectedCells:[]});if(type==='variable')Object.assign(o,{text:'{{shipment.number}}',binding:'shipment.number'});if(type==='image')Object.assign(o,{w:45,h:22,text:'',src:'',fit:'contain',opacity:1});if(type==='qr')Object.assign(o,{w:28,h:28,text:'',binding:'shipment.public_tracking_url',sampleValue:'https://tracking.nodara.app/SHP-0001',qrLevel:'M'});if(type==='barcode')Object.assign(o,{w:55,h:18,text:'',binding:'booking.mawb_serial',sampleValue:'35552201726',barcodeType:'CODE128',showValue:true});S.objects.push(o);S.selected=[o.id];render()}
 function tableTracks(o){if(!Array.isArray(o.colTracks)||o.colTracks.length!==(o.cols||4)){const n=Math.max(1,o.cols||4);o.colTracks=Array(n).fill(o.w/n)}if(!Array.isArray(o.rowTracks)||o.rowTracks.length!==(o.rows||4)){const n=Math.max(1,o.rows||4);o.rowTracks=Array(n).fill(o.h/n)}o.merges=Array.isArray(o.merges)?o.merges:[];o.selectedCells=Array.isArray(o.selectedCells)?o.selectedCells:[];o.cells=o.cells&&typeof o.cells==='object'?o.cells:{};const sw=o.colTracks.reduce((a,b)=>a+b,0)||1,sh=o.rowTracks.reduce((a,b)=>a+b,0)||1;o.colTracks=o.colTracks.map(v=>v*o.w/sw);o.rowTracks=o.rowTracks.map(v=>v*o.h/sh);return o}
